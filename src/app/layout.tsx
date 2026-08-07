@@ -14,7 +14,7 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "BTM | Notas de Pedido",
+  title: "BTM Pedidos y Logística",
   description: "Sistema de notas de pedido de Beltramino Hnos.",
 };
 

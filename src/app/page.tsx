@@ -13,7 +13,7 @@ export default function Home() {
         priority
       />
       <h1 className="max-w-md font-display text-3xl font-extrabold uppercase tracking-tight text-btm-navy">
-        Notas de pedido
+        Pedidos y Logística
       </h1>
       <Link
         href="/pedidos"
