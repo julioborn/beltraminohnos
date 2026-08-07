@@ -5,6 +5,7 @@ import { logout } from "@/lib/actions/auth";
 
 const NAV_LINKS = [
   { href: "/pedidos", label: "Notas de pedido" },
+  { href: "/productos", label: "Productos" },
   { href: "/precios", label: "Precios" },
 ];
 
@@ -26,21 +27,21 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between border-b border-black/10 px-4 py-3 sm:px-6">
+      <header className="flex items-center justify-between bg-btm-red px-4 py-3 sm:px-6">
         <Link href="/pedidos" className="flex items-center">
           <Image
             src="/brand/btm-icon.png"
             alt="BTM"
             width={32}
             height={36}
-            className="h-9 w-auto sm:hidden"
+            className="h-9 w-auto brightness-0 invert sm:hidden"
           />
           <Image
             src="/brand/btm-horizontal-tagline.png"
             alt="BTM Nutrición Animal"
             width={200}
             height={51}
-            className="hidden h-auto w-[200px] sm:block"
+            className="hidden h-auto w-[200px] brightness-0 invert sm:block"
           />
         </Link>
 
@@ -49,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link
               key={link.href}
               href={link.href}
-              className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy transition-colors hover:text-btm-red"
+              className="font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:text-btm-navy"
             >
               {link.label}
             </Link>
@@ -57,11 +58,11 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </nav>
 
         <div className="flex items-center gap-3">
-          <span className="hidden text-sm text-btm-black/70 sm:inline">{fullName}</span>
+          <span className="hidden text-sm text-white/80 sm:inline">{fullName}</span>
           <form action={logout}>
             <button
               type="submit"
-              className="rounded-full border border-btm-navy px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy transition-colors hover:bg-btm-navy hover:text-white"
+              className="rounded-full border border-white px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-btm-red"
             >
               Salir
             </button>
@@ -71,7 +72,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
       <main className="flex flex-1 flex-col">{children}</main>
 
-      <nav className="grid grid-cols-2 border-t border-black/10 sm:hidden">
+      <nav className="grid grid-cols-3 border-t border-black/10 sm:hidden">
         {NAV_LINKS.map((link) => (
           <Link
             key={link.href}
