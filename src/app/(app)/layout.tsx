@@ -29,18 +29,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       <header className="flex items-center justify-between border-b border-black/10 px-4 py-3 sm:px-6">
         <Link href="/pedidos" className="flex items-center">
           <Image
-            src="/brand/btm-stacked.png"
+            src="/brand/btm-icon.png"
             alt="BTM"
-            width={36}
+            width={32}
             height={36}
-            className="sm:hidden"
+            className="h-9 w-auto sm:hidden"
           />
           <Image
             src="/brand/btm-horizontal-tagline.png"
             alt="BTM Nutrición Animal"
             width={200}
-            height={52}
-            className="hidden sm:block"
+            height={51}
+            className="hidden h-auto w-[200px] sm:block"
           />
         </Link>
 

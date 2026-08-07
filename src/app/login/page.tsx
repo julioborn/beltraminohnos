@@ -14,7 +14,8 @@ export default async function LoginPage({
         src="/brand/btm-horizontal-tagline.png"
         alt="BTM Nutrición Animal"
         width={320}
-        height={84}
+        height={82}
+        className="h-auto w-[320px]"
         priority
       />
       <LoginForm next={next ?? "/pedidos"} />

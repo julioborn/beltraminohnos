@@ -8,7 +8,8 @@ export default function Home() {
         src="/brand/btm-horizontal-tagline.png"
         alt="BTM Nutrición Animal"
         width={420}
-        height={110}
+        height={107}
+        className="h-auto w-[420px]"
         priority
       />
       <h1 className="max-w-md font-display text-3xl font-extrabold uppercase tracking-tight text-btm-navy">
