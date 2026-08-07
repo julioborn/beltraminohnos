@@ -35,12 +35,12 @@ export async function proxy(request: NextRequest) {
   const isProtected = PROTECTED_PREFIXES.some((prefix) => path.startsWith(prefix));
 
   if (isProtected && !user) {
-    const loginUrl = new URL("/login", request.url);
+    const loginUrl = new URL("/", request.url);
     loginUrl.searchParams.set("next", path);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (path === "/login" && user) {
+  if (path === "/" && user) {
     return NextResponse.redirect(new URL("/pedidos", request.url));
   }
 
