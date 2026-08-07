@@ -11,14 +11,14 @@ export default async function HomePage({
   return (
     <div className="flex flex-1 flex-col md:flex-row">
       {/* Visual panel */}
-      <div className="relative h-80 shrink-0 overflow-hidden bg-btm-navy sm:h-96 md:h-auto md:flex-1">
+      <div className="relative h-80 shrink-0 overflow-hidden bg-btm-navy sm:h-96 md:h-auto md:w-[380px] lg:w-[440px] xl:w-[500px]">
         <Image
           src="/brand/login-banner.jpg"
           alt="BTM Nutrición Animal — flota y cartel publicitario"
           fill
           priority
-          sizes="(min-width: 768px) 50vw, 100vw"
-          className="object-cover object-top"
+          sizes="(min-width: 768px) 500px, 100vw"
+          className="object-cover object-top md:object-contain"
         />
       </div>
 
