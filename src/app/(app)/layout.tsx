@@ -27,7 +27,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-full flex-col">
-      <header className="flex items-center justify-between bg-btm-red px-4 py-3 sm:px-6">
+      <header className="flex items-center justify-between bg-btm-navy px-4 py-3 sm:px-6">
         <Link href="/pedidos" className="flex items-center">
           <Image
             src="/brand/btm-icon.png"
@@ -50,7 +50,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             <Link
               key={link.href}
               href={link.href}
-              className="font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:text-btm-navy"
+              className="font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:text-btm-red"
             >
               {link.label}
             </Link>
@@ -62,7 +62,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
           <form action={logout}>
             <button
               type="submit"
-              className="rounded-full border border-white px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-btm-red"
+              className="rounded-full border border-white px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-white transition-colors hover:bg-white hover:text-btm-navy"
             >
               Salir
             </button>
