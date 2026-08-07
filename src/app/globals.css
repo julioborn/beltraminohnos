@@ -2,25 +2,42 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #373534;
+
+  /* BTM brand palette */
+  --btm-navy: #21305d;
+  --btm-red: #df0914;
+  --btm-black: #373534;
+
+  /* Semaforo (solo amarillo/verde por decision de negocio) */
+  --btm-pendiente: #f5b400;
+  --btm-pendiente-bg: #fef3c7;
+  --btm-fabricado: #4ade80;
+  --btm-fabricado-bg: #dcfce7;
+  --btm-entregado: #16a34a;
+  --btm-entregado-bg: #bbf7d0;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-archivo);
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --color-btm-navy: var(--btm-navy);
+  --color-btm-red: var(--btm-red);
+  --color-btm-black: var(--btm-black);
+
+  --color-btm-pendiente: var(--btm-pendiente);
+  --color-btm-pendiente-bg: var(--btm-pendiente-bg);
+  --color-btm-fabricado: var(--btm-fabricado);
+  --color-btm-fabricado-bg: var(--btm-fabricado-bg);
+  --color-btm-entregado: var(--btm-entregado);
+  --color-btm-entregado-bg: var(--btm-entregado-bg);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }

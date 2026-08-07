@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# OS
+desktop.ini
+
+# source data with real client/pricing info - never publish to a public repo
+/utils/
