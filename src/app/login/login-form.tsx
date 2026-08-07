@@ -20,7 +20,7 @@ export function LoginForm({ next }: { next: string }) {
           type="email"
           autoComplete="email"
           required
-          className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+          className="rounded-lg border border-black/10 px-3.5 py-2.5 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
         />
       </div>
 
@@ -34,7 +34,7 @@ export function LoginForm({ next }: { next: string }) {
           type="password"
           autoComplete="current-password"
           required
-          className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+          className="rounded-lg border border-black/10 px-3.5 py-2.5 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
         />
       </div>
 
@@ -47,7 +47,7 @@ export function LoginForm({ next }: { next: string }) {
       <button
         type="submit"
         disabled={pending}
-        className="mt-2 rounded-full bg-btm-navy px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
+        className="mt-2 w-full rounded-lg bg-btm-navy px-6 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
       >
         {pending ? "Ingresando..." : "Ingresar"}
       </button>
