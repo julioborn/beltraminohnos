@@ -49,7 +49,7 @@ export default async function PedidosPage({
         <input
           type="text"
           name="q"
-          placeholder="Buscar cliente o N°..."
+          placeholder="Buscar cliente, N°, provincia o localidad..."
           defaultValue={params.q}
           className="col-span-2 rounded-md border border-black/15 px-3 py-2 text-sm sm:col-span-2 lg:col-span-2"
         />

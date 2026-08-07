@@ -14,6 +14,8 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
     "Fecha",
     "Cliente",
     "Zona",
+    "Provincia",
+    "Localidad",
     "Productos",
     "Vendedor",
     "Chofer",
@@ -32,6 +34,8 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
       order.fecha,
       order.cliente,
       order.zona?.name ?? "",
+      order.provincia ?? "",
+      order.localidad ?? "",
       order.items
         .map((it) => `${it.product?.name} (${PACKAGING_LABELS[it.tipo_envase as PackagingType]} x${it.cantidad})`)
         .join(", "),
@@ -48,6 +52,8 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
     { width: 12 },
     { width: 26 },
     { width: 16 },
+    { width: 16 },
+    { width: 18 },
     { width: 50 },
     { width: 14 },
     { width: 14 },

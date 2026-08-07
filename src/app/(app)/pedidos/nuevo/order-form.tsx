@@ -3,6 +3,7 @@
 import { useActionState, useId, useMemo, useState } from "react";
 import { createOrderNote } from "@/lib/actions/order-notes";
 import { PACKAGING_TYPES, PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
+import { DestinoSelect } from "./destino-select";
 
 type Option = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
@@ -110,6 +111,8 @@ export function OrderForm({
             ))}
           </select>
         </div>
+
+        <DestinoSelect />
 
         <div className="flex flex-col gap-1">
           <label htmlFor="fecha" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">

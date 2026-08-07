@@ -85,8 +85,10 @@ export type Database = {
           fecha: string
           fecha_envio: string | null
           id: string
+          localidad: string | null
           numero: string
           observaciones: string | null
+          provincia: string | null
           updated_at: string
           vendedor_id: string | null
           zona_id: string | null
@@ -101,8 +103,10 @@ export type Database = {
           fecha?: string
           fecha_envio?: string | null
           id?: string
+          localidad?: string | null
           numero?: string
           observaciones?: string | null
+          provincia?: string | null
           updated_at?: string
           vendedor_id?: string | null
           zona_id?: string | null
@@ -117,8 +121,10 @@ export type Database = {
           fecha?: string
           fecha_envio?: string | null
           id?: string
+          localidad?: string | null
           numero?: string
           observaciones?: string | null
+          provincia?: string | null
           updated_at?: string
           vendedor_id?: string | null
           zona_id?: string | null
@@ -332,7 +338,9 @@ export type Database = {
           p_dia_entrega: string | null
           p_fecha: string | null
           p_items: Json
+          p_localidad?: string | null
           p_observaciones: string | null
+          p_provincia?: string | null
           p_vendedor_id: string | null
           p_zona_id: string | null
         }

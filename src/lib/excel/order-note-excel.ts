@@ -15,6 +15,8 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
 
   sheet.addRow(["Cliente", order.cliente]);
   sheet.addRow(["Zona", order.zona?.name ?? ""]);
+  sheet.addRow(["Provincia", order.provincia ?? ""]);
+  sheet.addRow(["Localidad", order.localidad ?? ""]);
   sheet.addRow(["Fecha", order.fecha]);
   sheet.addRow(["Día de entrega", order.dia_entrega ?? ""]);
   sheet.addRow(["Vendedor", order.vendedor?.name ?? ""]);

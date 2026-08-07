@@ -75,6 +75,8 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
             <Field label="Cliente" value={order.cliente} />
             <Field label="Zona" value={order.zona?.name ?? "—"} />
             <Field label="Fecha" value={order.fecha} />
+            <Field label="Provincia" value={order.provincia ?? "—"} />
+            <Field label="Localidad" value={order.localidad ?? "—"} />
             <Field label="Día de entrega" value={order.dia_entrega ?? "—"} />
             <Field label="Vendedor" value={order.vendedor?.name ?? "—"} />
             <Field label="Chofer" value={order.chofer?.name ?? "—"} />

@@ -14,7 +14,7 @@ export type OrderListFilters = {
   hasta?: string;
 };
 
-const LIST_SELECT_BASE = `id, numero, cliente, fecha, dia_entrega, fecha_envio, estado,
+const LIST_SELECT_BASE = `id, numero, cliente, fecha, dia_entrega, fecha_envio, estado, provincia, localidad,
   zona:zones(name), vendedor:vendedores(name), chofer:choferes(name)`;
 
 export async function getOrderNotesList(params: OrderListFilters) {
@@ -31,7 +31,9 @@ export async function getOrderNotesList(params: OrderListFilters) {
     .order("fecha", { ascending: false });
 
   if (params.q) {
-    query = query.or(`numero.ilike.%${params.q}%,cliente.ilike.%${params.q}%`);
+    query = query.or(
+      `numero.ilike.%${params.q}%,cliente.ilike.%${params.q}%,provincia.ilike.%${params.q}%,localidad.ilike.%${params.q}%`,
+    );
   }
   if (params.estado) query = query.eq("estado", params.estado as Estado);
   if (params.zona) query = query.eq("zona_id", params.zona);
@@ -51,7 +53,7 @@ export async function getOrderNoteDetail(id: string) {
   const { data: order } = await supabase
     .from("order_notes")
     .select(
-      `id, numero, cliente, fecha, dia_entrega, fecha_envio, observaciones, estado,
+      `id, numero, cliente, fecha, dia_entrega, fecha_envio, observaciones, estado, provincia, localidad,
        zona:zones(name), vendedor:vendedores(name), chofer:choferes(id, name),
        items:order_items(id, cantidad, tipo_envase, precio_unitario, product:products(name))`,
     )

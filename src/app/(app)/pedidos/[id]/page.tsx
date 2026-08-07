@@ -64,6 +64,8 @@ export default async function NotaDetallePage({
       <section className="grid grid-cols-2 gap-4 rounded-lg border border-black/10 p-4 text-sm sm:grid-cols-3">
         <Field label="Cliente" value={order.cliente} />
         <Field label="Zona" value={order.zona?.name ?? "—"} />
+        <Field label="Provincia" value={order.provincia ?? "—"} />
+        <Field label="Localidad" value={order.localidad ?? "—"} />
         <Field label="Fecha" value={order.fecha} />
         <Field label="Día de entrega" value={order.dia_entrega ?? "—"} />
         <Field label="Vendedor" value={order.vendedor?.name ?? "—"} />

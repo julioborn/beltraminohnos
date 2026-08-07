@@ -21,6 +21,8 @@ export async function createOrderNote(
   const vendedorId = String(formData.get("vendedor_id") ?? "") || null;
   const choferId = String(formData.get("chofer_id") ?? "") || null;
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
+  const provincia = String(formData.get("provincia") ?? "").trim() || null;
+  const localidad = String(formData.get("localidad") ?? "").trim() || null;
   const itemsRaw = String(formData.get("items") ?? "[]");
 
   if (!cliente) {
@@ -48,6 +50,8 @@ export async function createOrderNote(
     p_chofer_id: choferId,
     p_observaciones: observaciones,
     p_items: items,
+    p_provincia: provincia,
+    p_localidad: localidad,
   });
 
   if (error) {
