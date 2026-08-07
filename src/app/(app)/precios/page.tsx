@@ -6,7 +6,7 @@ export default async function PreciosPage() {
 
   const [{ data: products }, { data: zones }, { data: prices }] = await Promise.all([
     supabase.from("products").select("id, name").eq("active", true).order("name"),
-    supabase.from("zones").select("id, code, name").order("name"),
+    supabase.from("zones").select("id, code, name").order("sort_order"),
     supabase.from("prices").select("product_id, packaging_type, zone_id, price_usd"),
   ]);
 

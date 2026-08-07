@@ -313,16 +313,19 @@ export type Database = {
           code: string
           id: string
           name: string
+          sort_order: number
         }
         Insert: {
           code: string
           id?: string
           name: string
+          sort_order?: number
         }
         Update: {
           code?: string
           id?: string
           name?: string
+          sort_order?: number
         }
         Relationships: []
       }

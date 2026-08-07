@@ -5,7 +5,7 @@ export async function getMasterData() {
 
   const [products, zones, vendedores, choferes] = await Promise.all([
     supabase.from("products").select("id, name").eq("active", true).order("name"),
-    supabase.from("zones").select("id, code, name").order("name"),
+    supabase.from("zones").select("id, code, name").order("sort_order"),
     supabase.from("vendedores").select("id, name").eq("active", true).order("name"),
     supabase.from("choferes").select("id, name").eq("active", true).order("name"),
   ]);

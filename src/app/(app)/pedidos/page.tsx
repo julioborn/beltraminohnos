@@ -17,6 +17,11 @@ export default async function PedidosPage({
     Object.entries(params).filter(([, v]) => v) as [string, string][],
   ).toString();
 
+  const advancedKeys = ["estado", "zona", "producto", "vendedor", "chofer", "desde", "hasta"] as const;
+  const advancedFilterCount = advancedKeys.filter((key) => params[key]).length;
+  const hasAdvancedFilter = advancedFilterCount > 0;
+  const hasAnyFilter = hasAdvancedFilter || Boolean(params.q);
+
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -45,58 +50,133 @@ export default async function PedidosPage({
         </div>
       </div>
 
-      <form method="get" className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-7">
-        <input
-          type="text"
-          name="q"
-          placeholder="Buscar cliente, N°, provincia o localidad..."
-          defaultValue={params.q}
-          className="col-span-2 rounded-md border border-black/15 px-3 py-2 text-sm sm:col-span-2 lg:col-span-2"
-        />
-        <select name="estado" defaultValue={params.estado ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
-          <option value="">Estado</option>
-          <option value="PENDIENTE">Pendiente</option>
-          <option value="FABRICADO">Fabricado</option>
-          <option value="ENTREGADO">Entregado</option>
-        </select>
-        <select name="zona" defaultValue={params.zona ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
-          <option value="">Zona</option>
-          {masterData.zones.map((z) => (
-            <option key={z.id} value={z.id}>{z.name}</option>
-          ))}
-        </select>
-        <select name="vendedor" defaultValue={params.vendedor ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
-          <option value="">Vendedor</option>
-          {masterData.vendedores.map((v) => (
-            <option key={v.id} value={v.id}>{v.name}</option>
-          ))}
-        </select>
-        <select name="chofer" defaultValue={params.chofer ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
-          <option value="">Chofer</option>
-          {masterData.choferes.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
-        <select name="producto" defaultValue={params.producto ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
-          <option value="">Producto</option>
-          {masterData.products.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-        <input type="date" name="desde" defaultValue={params.desde} className="rounded-md border border-black/15 px-2 py-2 text-sm" />
-        <input type="date" name="hasta" defaultValue={params.hasta} className="rounded-md border border-black/15 px-2 py-2 text-sm" />
-        <button
-          type="submit"
-          className="rounded-md bg-btm-black px-4 py-2 text-sm font-semibold text-white hover:bg-btm-navy"
-        >
-          Filtrar
-        </button>
-        <Link
-          href="/pedidos"
-          className="flex items-center justify-center rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
-        >
-          Limpiar
-        </Link>
+      <form method="get" className="flex flex-col gap-4 rounded-lg border border-black/10 p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+          <div className="flex flex-1 flex-col gap-1">
+            <label htmlFor="q" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+              Buscar
+            </label>
+            <input
+              id="q"
+              type="text"
+              name="q"
+              placeholder="Cliente, N°, provincia o localidad..."
+              defaultValue={params.q}
+              className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="submit"
+              className="rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red"
+            >
+              Filtrar
+            </button>
+            {hasAnyFilter && (
+              <Link
+                href="/pedidos"
+                className="flex items-center justify-center rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+              >
+                Limpiar
+              </Link>
+            )}
+          </div>
+        </div>
+
+        <details className="group" open={hasAdvancedFilter}>
+          <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy [&::-webkit-details-marker]:hidden">
+            <svg
+              className="h-3.5 w-3.5 transition-transform group-open:rotate-90"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+            >
+              <path d="M6 4l6 6-6 6V4z" />
+            </svg>
+            Más filtros
+            {advancedFilterCount > 0 && (
+              <span className="rounded-full bg-btm-navy px-2 py-0.5 text-[10px] font-bold text-white">
+                {advancedFilterCount}
+              </span>
+            )}
+          </summary>
+
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="estado" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Estado
+              </label>
+              <select id="estado" name="estado" defaultValue={params.estado ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+                <option value="">Todos</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="FABRICADO">Fabricado</option>
+                <option value="ENTREGADO">Entregado</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="zona" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Zona
+              </label>
+              <select id="zona" name="zona" defaultValue={params.zona ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+                <option value="">Todas</option>
+                {masterData.zones.map((z) => (
+                  <option key={z.id} value={z.id}>{z.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="producto" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Producto
+              </label>
+              <select id="producto" name="producto" defaultValue={params.producto ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+                <option value="">Todos</option>
+                {masterData.products.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="vendedor" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Vendedor
+              </label>
+              <select id="vendedor" name="vendedor" defaultValue={params.vendedor ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+                <option value="">Todos</option>
+                {masterData.vendedores.map((v) => (
+                  <option key={v.id} value={v.id}>{v.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="chofer" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Chofer
+              </label>
+              <select id="chofer" name="chofer" defaultValue={params.chofer ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+                <option value="">Todos</option>
+                {masterData.choferes.map((c) => (
+                  <option key={c.id} value={c.id}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="desde" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Desde
+              </label>
+              <input id="desde" type="date" name="desde" defaultValue={params.desde} className="rounded-md border border-black/15 px-2 py-2 text-sm" />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="hasta" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Hasta
+              </label>
+              <input id="hasta" type="date" name="hasta" defaultValue={params.hasta} className="rounded-md border border-black/15 px-2 py-2 text-sm" />
+            </div>
+          </div>
+        </details>
       </form>
 
       <div className="overflow-x-auto rounded-lg border border-black/10">
