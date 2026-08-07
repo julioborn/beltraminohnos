@@ -11,44 +11,15 @@ export default async function HomePage({
   return (
     <div className="flex flex-1 flex-col md:flex-row">
       {/* Visual panel */}
-      <div className="relative flex h-auto shrink-0 flex-col bg-btm-navy md:flex-1">
-        <div className="px-6 pt-6 sm:px-10 sm:pt-10">
-          <Image
-            src="/brand/btm-icon.png"
-            alt="BTM"
-            width={30}
-            height={34}
-            className="h-8 w-auto brightness-0 invert"
-          />
-        </div>
-
-        <div className="flex flex-1 flex-col items-center justify-center gap-4 px-6 py-10 sm:gap-5 sm:px-10">
-          <div className="w-full max-w-[300px] overflow-hidden rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.45)] sm:max-w-sm">
-            <Image
-              src="/brand/login-billboard.jpg"
-              alt="Cartel publicitario de BTM Nutrición Animal"
-              width={1100}
-              height={667}
-              priority
-              className="h-auto w-full"
-            />
-          </div>
-          <div className="w-full max-w-[300px] overflow-hidden rounded-xl shadow-[0_20px_40px_-12px_rgba(0,0,0,0.45)] sm:max-w-sm">
-            <Image
-              src="/brand/login-trucks.jpg"
-              alt="Flota de camiones BTM"
-              width={1100}
-              height={440}
-              className="h-auto w-full"
-            />
-          </div>
-        </div>
-
-        <div className="px-6 pb-6 sm:px-10 sm:pb-10">
-          <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-white/70">
-            Pedidos y Logística
-          </p>
-        </div>
+      <div className="relative h-80 shrink-0 overflow-hidden bg-btm-navy sm:h-96 md:h-auto md:flex-1">
+        <Image
+          src="/brand/login-banner.jpg"
+          alt="BTM Nutrición Animal — flota y cartel publicitario"
+          fill
+          priority
+          sizes="(min-width: 768px) 50vw, 100vw"
+          className="object-cover object-top"
+        />
       </div>
 
       {/* Login panel */}
