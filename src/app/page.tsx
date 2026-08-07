@@ -18,7 +18,7 @@ export default async function HomePage({
           fill
           priority
           sizes="(min-width: 768px) 500px, 100vw"
-          className="object-cover object-top md:object-contain"
+          className="object-cover object-top md:object-center"
         />
       </div>
 
