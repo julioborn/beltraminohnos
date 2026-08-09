@@ -52,7 +52,47 @@ export function ProductsTable({ products }: { products: Product[] }) {
       </form>
       {state?.error && <p className="text-sm font-medium text-btm-red">{state.error}</p>}
 
-      <div className="overflow-x-auto rounded-lg border border-black/10">
+      {/* Mobile: cards, so long product names don't clip inside a narrow input */}
+      <div className="flex flex-col gap-2 md:hidden">
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className={`flex flex-col gap-2 rounded-lg border border-black/10 p-3 ${product.active ? "" : "opacity-50"}`}
+          >
+            <input
+              value={names[product.id] ?? ""}
+              onChange={(e) => setNames((prev) => ({ ...prev, [product.id]: e.target.value }))}
+              onBlur={(e) => {
+                if (e.target.value.trim() && e.target.value.trim() !== product.name) {
+                  handleRename(product.id, e.target.value);
+                }
+              }}
+              className={`w-full rounded-md border px-2 py-1.5 text-sm ${
+                savingId === product.id ? "border-btm-navy" : "border-black/10"
+              }`}
+            />
+            <button
+              type="button"
+              onClick={() => handleToggleActive(product.id, !product.active)}
+              className={`self-start rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors ${
+                product.active
+                  ? "bg-btm-fabricado-bg text-green-900 hover:bg-green-200"
+                  : "bg-black/10 text-btm-black/60 hover:bg-black/15"
+              }`}
+            >
+              {product.active ? "Activo" : "Inactivo"}
+            </button>
+          </div>
+        ))}
+        {products.length === 0 && (
+          <p className="rounded-lg border border-black/10 px-4 py-8 text-center text-btm-black/50">
+            No hay productos cargados.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop: table */}
+      <div className="hidden overflow-x-auto rounded-lg border border-black/10 md:block">
         <table className="w-full text-sm">
           <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
             <tr>

@@ -179,7 +179,43 @@ export default async function PedidosPage({
         </details>
       </form>
 
-      <div className="overflow-x-auto rounded-lg border border-black/10">
+      {/* Mobile: cards, so Estado stays visible without horizontal scroll */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {orders.map((order) => (
+          <Link
+            key={order.id}
+            href={`/pedidos/${order.id}`}
+            className="flex flex-col gap-2 rounded-lg border border-black/10 p-4 active:bg-black/[.02]"
+          >
+            <div className="flex items-start justify-between gap-2">
+              <div>
+                <p className="font-display text-sm font-bold text-btm-navy">{order.numero}</p>
+                <p className="text-xs text-btm-black/50">{order.fecha}</p>
+              </div>
+              <EstadoBadge estado={order.estado} />
+            </div>
+            <p className="text-sm font-medium">{order.cliente}</p>
+            <p className="text-xs text-btm-black/60">
+              {order.zona?.name ?? "—"}
+              {order.vendedor?.name ? ` · Vend. ${order.vendedor.name}` : ""}
+              {order.chofer?.name ? ` · Chofer ${order.chofer.name}` : ""}
+            </p>
+            <p className="text-xs text-btm-black/60">
+              {order.items
+                .map((it) => `${it.product?.name} (${PACKAGING_LABELS[it.tipo_envase as PackagingType]} x${it.cantidad})`)
+                .join(", ")}
+            </p>
+          </Link>
+        ))}
+        {orders.length === 0 && (
+          <p className="rounded-lg border border-black/10 px-4 py-8 text-center text-btm-black/50">
+            No hay notas de pedido con estos filtros.
+          </p>
+        )}
+      </div>
+
+      {/* Desktop: full table */}
+      <div className="hidden overflow-x-auto rounded-lg border border-black/10 md:block">
         <table className="w-full min-w-[900px] text-sm">
           <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
             <tr>

@@ -69,6 +69,8 @@ export function PricesGrid({
         ))}
       </div>
 
+      <p className="text-xs text-btm-black/50 md:hidden">Deslizá hacia los costados para ver todas las zonas →</p>
+
       <div className="overflow-x-auto rounded-lg border border-black/10">
         <table className="w-full min-w-[1000px] text-sm">
           <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">

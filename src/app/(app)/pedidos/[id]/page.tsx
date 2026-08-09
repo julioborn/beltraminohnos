@@ -74,6 +74,7 @@ export default async function NotaDetallePage({
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Productos</h2>
+        <p className="-mt-1 text-xs text-btm-black/50 sm:hidden">Deslizá para ver precio y subtotal →</p>
         <div className="overflow-x-auto rounded-lg border border-black/10">
           <table className="w-full min-w-[500px] text-sm">
             <thead className="bg-black/5 text-left text-xs font-semibold uppercase tracking-wide text-btm-black/60">
