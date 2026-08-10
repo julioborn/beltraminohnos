@@ -9,22 +9,34 @@ export default async function HomePage({
   const { next } = await searchParams;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-16">
-      <div className="flex flex-col items-center gap-2">
-        <Image
-          src="/brand/btm-horizontal-tagline.png"
-          alt="BTM Nutrición Animal"
-          width={400}
-          height={102}
-          className="h-auto w-70 sm:w-100"
-          priority
-        />
-        <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
-          Pedidos y Logística
-        </p>
-      </div>
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-white px-6 py-16">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-[0.06]"
+        style={{
+          backgroundImage: "url('/brand/pattern-tile.png')",
+          backgroundRepeat: "repeat",
+          backgroundSize: "130px 130px",
+        }}
+        aria-hidden
+      />
 
-      <LoginForm next={next ?? "/pedidos"} />
+      <div className="relative flex flex-col items-center gap-8 rounded-2xl bg-white p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_24px_48px_-24px_rgba(33,48,93,0.35)] sm:p-12">
+        <div className="flex flex-col items-center gap-2">
+          <Image
+            src="/brand/btm-horizontal-tagline.png"
+            alt="BTM Nutrición Animal"
+            width={400}
+            height={102}
+            className="h-auto w-70 sm:w-100"
+            priority
+          />
+          <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
+            Pedidos y Logística
+          </p>
+        </div>
+
+        <LoginForm next={next ?? "/inicio"} />
+      </div>
     </div>
   );
 }
