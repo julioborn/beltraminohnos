@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 const ITEMS = [
@@ -42,10 +43,17 @@ export default function InicioPage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
       <div className="flex flex-col items-center gap-2 text-center">
-        <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy sm:text-3xl">
-          ¿Qué querés hacer?
-        </h1>
-        <p className="text-sm text-btm-black/50">Elegí una sección para empezar</p>
+        <Image
+          src="/brand/btm-horizontal.png"
+          alt="BTM"
+          width={280}
+          height={72}
+          className="h-auto w-56 sm:w-64"
+          priority
+        />
+        <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
+          Pedidos y Logística
+        </p>
       </div>
 
       <div className="grid w-full max-w-4xl grid-cols-1 gap-5 sm:grid-cols-3">
