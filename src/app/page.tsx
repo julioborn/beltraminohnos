@@ -19,6 +19,8 @@ export default async function HomePage({
         priority
       />
 
+      <LoginForm next={next ?? "/pedidos"} />
+
       <div className="w-full max-w-70 overflow-hidden sm:max-w-xs">
         <div className="animate-truck-enter">
           <Image
@@ -30,8 +32,6 @@ export default async function HomePage({
           />
         </div>
       </div>
-
-      <LoginForm next={next ?? "/pedidos"} />
     </div>
   );
 }
