@@ -81,7 +81,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           dia_entrega: string | null
-          estado: Database["public"]["Enums"]["order_status"]
+          estado_logistica: Database["public"]["Enums"]["logistica_status"]
+          estado_produccion: Database["public"]["Enums"]["produccion_status"]
           fecha: string
           fecha_envio: string | null
           id: string
@@ -99,7 +100,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           dia_entrega?: string | null
-          estado?: Database["public"]["Enums"]["order_status"]
+          estado_logistica?: Database["public"]["Enums"]["logistica_status"]
+          estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           fecha?: string
           fecha_envio?: string | null
           id?: string
@@ -117,7 +119,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           dia_entrega?: string | null
-          estado?: Database["public"]["Enums"]["order_status"]
+          estado_logistica?: Database["public"]["Enums"]["logistica_status"]
+          estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           fecha?: string
           fecha_envio?: string | null
           id?: string
@@ -162,6 +165,7 @@ export type Database = {
       }
       order_status_history: {
         Row: {
+          campo: Database["public"]["Enums"]["estado_campo"]
           changed_at: string
           changed_by: string | null
           estado: Database["public"]["Enums"]["order_status"]
@@ -169,6 +173,7 @@ export type Database = {
           order_note_id: string
         }
         Insert: {
+          campo: Database["public"]["Enums"]["estado_campo"]
           changed_at?: string
           changed_by?: string | null
           estado: Database["public"]["Enums"]["order_status"]
@@ -176,6 +181,7 @@ export type Database = {
           order_note_id: string
         }
         Update: {
+          campo?: Database["public"]["Enums"]["estado_campo"]
           changed_at?: string
           changed_by?: string | null
           estado?: Database["public"]["Enums"]["order_status"]
@@ -336,23 +342,26 @@ export type Database = {
     Functions: {
       create_order_note: {
         Args: {
-          p_chofer_id: string | null
+          p_chofer_id: string
           p_cliente: string
-          p_dia_entrega: string | null
-          p_fecha: string | null
+          p_dia_entrega: string
+          p_fecha: string
           p_items: Json
-          p_localidad?: string | null
-          p_observaciones: string | null
-          p_provincia?: string | null
-          p_vendedor_id: string | null
-          p_zona_id: string | null
+          p_localidad?: string
+          p_observaciones: string
+          p_provincia?: string
+          p_vendedor_id: string
+          p_zona_id: string
         }
         Returns: string
       }
     }
     Enums: {
+      estado_campo: "LOGISTICA" | "PRODUCCION"
+      logistica_status: "PENDIENTE" | "ENTREGADO"
       order_status: "PENDIENTE" | "FABRICADO" | "ENTREGADO"
       packaging_type: "GRANEL" | "BOLSA" | "BIG_BAG"
+      produccion_status: "PENDIENTE" | "FABRICADO"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -480,8 +489,11 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      estado_campo: ["LOGISTICA", "PRODUCCION"],
+      logistica_status: ["PENDIENTE", "ENTREGADO"],
       order_status: ["PENDIENTE", "FABRICADO", "ENTREGADO"],
       packaging_type: ["GRANEL", "BOLSA", "BIG_BAG"],
+      produccion_status: ["PENDIENTE", "FABRICADO"],
     },
   },
 } as const

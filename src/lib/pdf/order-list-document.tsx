@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
-import { ESTADO_LABELS } from "@/components/estado-badge";
+import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import type { OrderListItem } from "./types";
 
 const styles = StyleSheet.create({
@@ -29,9 +29,10 @@ const styles = StyleSheet.create({
   cFecha: { width: "9%", paddingHorizontal: 3 },
   cCliente: { width: "20%", paddingHorizontal: 3 },
   cZona: { width: "11%", paddingHorizontal: 3 },
-  cProductos: { width: "26%", paddingHorizontal: 3 },
+  cProductos: { width: "22%", paddingHorizontal: 3 },
   cVendedor: { width: "12%", paddingHorizontal: 3 },
-  cEstado: { width: "12%", paddingHorizontal: 3 },
+  cLogistica: { width: "8%", paddingHorizontal: 3 },
+  cProduccion: { width: "8%", paddingHorizontal: 3 },
 });
 
 export function OrderListDocument({ orders }: { orders: OrderListItem[] }) {
@@ -51,7 +52,8 @@ export function OrderListDocument({ orders }: { orders: OrderListItem[] }) {
             <Text style={[styles.cZona, styles.headerCell]}>Zona</Text>
             <Text style={[styles.cProductos, styles.headerCell]}>Productos</Text>
             <Text style={[styles.cVendedor, styles.headerCell]}>Vendedor</Text>
-            <Text style={[styles.cEstado, styles.headerCell]}>Estado</Text>
+            <Text style={[styles.cLogistica, styles.headerCell]}>Pedido</Text>
+            <Text style={[styles.cProduccion, styles.headerCell]}>Producción</Text>
           </View>
           {orders.map((order) => (
             <View key={order.id} style={styles.tableRow}>
@@ -65,7 +67,8 @@ export function OrderListDocument({ orders }: { orders: OrderListItem[] }) {
                   .join(", ")}
               </Text>
               <Text style={styles.cVendedor}>{order.vendedor?.name ?? "—"}</Text>
-              <Text style={styles.cEstado}>{ESTADO_LABELS[order.estado]}</Text>
+              <Text style={styles.cLogistica}>{LOGISTICA_LABELS[order.estado_logistica]}</Text>
+              <Text style={styles.cProduccion}>{PRODUCCION_LABELS[order.estado_produccion]}</Text>
             </View>
           ))}
         </View>

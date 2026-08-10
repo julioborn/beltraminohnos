@@ -1,28 +1,45 @@
 import type { Database } from "@/lib/supabase/database.types";
 
-type Estado = Database["public"]["Enums"]["order_status"];
+type LogisticaEstado = Database["public"]["Enums"]["logistica_status"];
+type ProduccionEstado = Database["public"]["Enums"]["produccion_status"];
 
-const ESTADO_CONFIG: Record<Estado, { label: string; bg: string; dot: string }> = {
-  PENDIENTE: { label: "Pendiente", bg: "bg-btm-pendiente-bg text-amber-900", dot: "bg-btm-pendiente" },
-  FABRICADO: { label: "Fabricado", bg: "bg-btm-fabricado-bg text-green-900", dot: "bg-btm-fabricado" },
-  ENTREGADO: { label: "Entregado", bg: "bg-btm-entregado-bg text-green-950", dot: "bg-btm-entregado" },
-};
-
-export function EstadoBadge({ estado }: { estado: Estado }) {
-  const config = ESTADO_CONFIG[estado];
+function Badge({ label, bg, dot }: { label: string; bg: string; dot: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${config.bg}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${bg}`}
     >
-      <span className={`h-2 w-2 rounded-full ${config.dot}`} aria-hidden />
-      {config.label}
+      <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden />
+      {label}
     </span>
   );
 }
 
-export const ESTADO_ORDER: Estado[] = ["PENDIENTE", "FABRICADO", "ENTREGADO"];
-export const ESTADO_LABELS: Record<Estado, string> = {
+const LOGISTICA_CONFIG: Record<LogisticaEstado, { label: string; bg: string; dot: string }> = {
+  PENDIENTE: { label: "Pendiente", bg: "bg-btm-pendiente-bg text-amber-900", dot: "bg-btm-pendiente" },
+  ENTREGADO: { label: "Entregado", bg: "bg-btm-entregado-bg text-green-950", dot: "bg-btm-entregado" },
+};
+
+const PRODUCCION_CONFIG: Record<ProduccionEstado, { label: string; bg: string; dot: string }> = {
+  PENDIENTE: { label: "Pendiente", bg: "bg-btm-pendiente-bg text-amber-900", dot: "bg-btm-pendiente" },
+  FABRICADO: { label: "Fabricado", bg: "bg-btm-fabricado-bg text-green-900", dot: "bg-btm-fabricado" },
+};
+
+export function LogisticaBadge({ estado }: { estado: LogisticaEstado }) {
+  const config = LOGISTICA_CONFIG[estado];
+  return <Badge label={config.label} bg={config.bg} dot={config.dot} />;
+}
+
+export function ProduccionBadge({ estado }: { estado: ProduccionEstado }) {
+  const config = PRODUCCION_CONFIG[estado];
+  return <Badge label={config.label} bg={config.bg} dot={config.dot} />;
+}
+
+export const LOGISTICA_LABELS: Record<LogisticaEstado, string> = {
+  PENDIENTE: "Pendiente",
+  ENTREGADO: "Entregado",
+};
+
+export const PRODUCCION_LABELS: Record<ProduccionEstado, string> = {
   PENDIENTE: "Pendiente",
   FABRICADO: "Fabricado",
-  ENTREGADO: "Entregado",
 };

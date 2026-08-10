@@ -3,10 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { ESTADO_ORDER } from "@/components/estado-badge";
 import type { Database } from "@/lib/supabase/database.types";
-
-type Estado = Database["public"]["Enums"]["order_status"];
 
 export type CreateOrderState = { error: string } | undefined;
 
@@ -52,7 +49,7 @@ export async function createOrderNote(
     p_items: items,
     p_provincia: provincia,
     p_localidad: localidad,
-  });
+  } as Database["public"]["Functions"]["create_order_note"]["Args"]);
 
   if (error) {
     return { error: `No se pudo crear la nota: ${error.message}` };
@@ -62,21 +59,17 @@ export async function createOrderNote(
   redirect(`/pedidos/${orderId}`);
 }
 
-export async function advanceOrderStatus(orderId: string, currentEstado: Estado) {
-  const currentIndex = ESTADO_ORDER.indexOf(currentEstado);
-  const nextEstado = ESTADO_ORDER[currentIndex + 1];
-  if (!nextEstado) return;
-
+export async function marcarEntregado(orderId: string) {
   const supabase = await createClient();
-  await supabase.from("order_notes").update({ estado: nextEstado }).eq("id", orderId);
+  await supabase.from("order_notes").update({ estado_logistica: "ENTREGADO" }).eq("id", orderId);
 
   revalidatePath(`/pedidos/${orderId}`);
   revalidatePath("/pedidos");
 }
 
-export async function setOrderStatus(orderId: string, estado: Estado) {
+export async function marcarFabricado(orderId: string) {
   const supabase = await createClient();
-  await supabase.from("order_notes").update({ estado }).eq("id", orderId);
+  await supabase.from("order_notes").update({ estado_produccion: "FABRICADO" }).eq("id", orderId);
 
   revalidatePath(`/pedidos/${orderId}`);
   revalidatePath("/pedidos");

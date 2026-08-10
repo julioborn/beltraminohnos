@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
-import { ESTADO_LABELS } from "@/components/estado-badge";
+import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import type { OrderListItem } from "@/lib/pdf/types";
 
 const NAVY = "FF21305D";
@@ -19,7 +19,8 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
     "Productos",
     "Vendedor",
     "Chofer",
-    "Estado",
+    "Estado pedido",
+    "Estado producción",
     "Día de entrega",
     "Fecha de envío",
   ]);
@@ -41,7 +42,8 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
         .join(", "),
       order.vendedor?.name ?? "",
       order.chofer?.name ?? "",
-      ESTADO_LABELS[order.estado],
+      LOGISTICA_LABELS[order.estado_logistica],
+      PRODUCCION_LABELS[order.estado_produccion],
       order.dia_entrega ?? "",
       order.fecha_envio ?? "",
     ]);
@@ -57,7 +59,8 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
     { width: 50 },
     { width: 14 },
     { width: 14 },
-    { width: 12 },
+    { width: 14 },
+    { width: 14 },
     { width: 16 },
     { width: 16 },
   ];

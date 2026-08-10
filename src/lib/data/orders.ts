@@ -1,11 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
-type Estado = Database["public"]["Enums"]["order_status"];
+type LogisticaEstado = Database["public"]["Enums"]["logistica_status"];
+type ProduccionEstado = Database["public"]["Enums"]["produccion_status"];
 
 export type OrderListFilters = {
   q?: string;
-  estado?: string;
+  estado_logistica?: string;
+  estado_produccion?: string;
   zona?: string;
   vendedor?: string;
   chofer?: string;
@@ -14,7 +16,7 @@ export type OrderListFilters = {
   hasta?: string;
 };
 
-const LIST_SELECT_BASE = `id, numero, cliente, fecha, dia_entrega, fecha_envio, estado, provincia, localidad,
+const LIST_SELECT_BASE = `id, numero, cliente, fecha, dia_entrega, fecha_envio, estado_logistica, estado_produccion, provincia, localidad,
   zona:zones(name), vendedor:vendedores(name), chofer:choferes(name)`;
 
 export async function getOrderNotesList(params: OrderListFilters) {
@@ -35,7 +37,8 @@ export async function getOrderNotesList(params: OrderListFilters) {
       `numero.ilike.%${params.q}%,cliente.ilike.%${params.q}%,provincia.ilike.%${params.q}%,localidad.ilike.%${params.q}%`,
     );
   }
-  if (params.estado) query = query.eq("estado", params.estado as Estado);
+  if (params.estado_logistica) query = query.eq("estado_logistica", params.estado_logistica as LogisticaEstado);
+  if (params.estado_produccion) query = query.eq("estado_produccion", params.estado_produccion as ProduccionEstado);
   if (params.zona) query = query.eq("zona_id", params.zona);
   if (params.vendedor) query = query.eq("vendedor_id", params.vendedor);
   if (params.chofer) query = query.eq("chofer_id", params.chofer);
@@ -53,7 +56,7 @@ export async function getOrderNoteDetail(id: string) {
   const { data: order } = await supabase
     .from("order_notes")
     .select(
-      `id, numero, cliente, fecha, dia_entrega, fecha_envio, observaciones, estado, provincia, localidad,
+      `id, numero, cliente, fecha, dia_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
        zona:zones(name), vendedor:vendedores(name), chofer:choferes(id, name),
        items:order_items(id, cantidad, tipo_envase, precio_unitario, product:products(name))`,
     )
@@ -64,7 +67,7 @@ export async function getOrderNoteDetail(id: string) {
 
   const { data: history } = await supabase
     .from("order_status_history")
-    .select("id, estado, changed_at")
+    .select("id, estado, campo, changed_at")
     .eq("order_note_id", id)
     .order("changed_at", { ascending: true });
 

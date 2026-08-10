@@ -2,9 +2,9 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getMasterData } from "@/lib/data/master-data";
 import { getOrderNoteDetail } from "@/lib/data/orders";
-import { EstadoBadge, ESTADO_ORDER, ESTADO_LABELS } from "@/components/estado-badge";
+import { LogisticaBadge, ProduccionBadge, LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
-import { advanceOrderStatus, updateShippingDetails } from "@/lib/actions/order-notes";
+import { marcarEntregado, marcarFabricado, updateShippingDetails } from "@/lib/actions/order-notes";
 
 export default async function NotaDetallePage({
   params,
@@ -19,9 +19,10 @@ export default async function NotaDetallePage({
   const { order, history } = detail;
 
   const total = order.items.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
-  const currentIndex = ESTADO_ORDER.indexOf(order.estado);
-  const nextEstado = ESTADO_ORDER[currentIndex + 1];
-  const advanceAction = nextEstado ? advanceOrderStatus.bind(null, order.id, order.estado) : null;
+  const puedeMarcarEntregado = order.estado_logistica === "PENDIENTE";
+  const puedeMarcarFabricado = order.estado_produccion === "PENDIENTE";
+  const marcarEntregadoAction = puedeMarcarEntregado ? marcarEntregado.bind(null, order.id) : null;
+  const marcarFabricadoAction = puedeMarcarFabricado ? marcarFabricado.bind(null, order.id) : null;
   const updateShippingAction = updateShippingDetails.bind(null, order.id);
 
   return (
@@ -46,19 +47,36 @@ export default async function NotaDetallePage({
               {order.cliente}
             </h1>
           </div>
-          <EstadoBadge estado={order.estado} />
+          <div className="flex flex-col items-end gap-1.5">
+            <LogisticaBadge estado={order.estado_logistica} />
+            <ProduccionBadge estado={order.estado_produccion} />
+          </div>
         </div>
 
         <div className="flex flex-col gap-3 lg:hidden">
-          {advanceAction && (
-            <form action={advanceAction}>
-              <button
-                type="submit"
-                className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
-              >
-                Marcar como {ESTADO_LABELS[nextEstado]}
-              </button>
-            </form>
+          {(marcarEntregadoAction || marcarFabricadoAction) && (
+            <div className="flex flex-col gap-2 sm:flex-row">
+              {marcarFabricadoAction && (
+                <form action={marcarFabricadoAction} className="flex-1">
+                  <button
+                    type="submit"
+                    className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                  >
+                    Marcar como {PRODUCCION_LABELS.FABRICADO}
+                  </button>
+                </form>
+              )}
+              {marcarEntregadoAction && (
+                <form action={marcarEntregadoAction} className="flex-1">
+                  <button
+                    type="submit"
+                    className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                  >
+                    Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                  </button>
+                </form>
+              )}
+            </div>
           )}
           <div className="flex gap-2">
             <a
@@ -183,13 +201,23 @@ export default async function NotaDetallePage({
           <div className="hidden lg:block">
             <Card title="Acciones">
               <div className="flex flex-col gap-3">
-                {advanceAction && (
-                  <form action={advanceAction}>
+                {marcarFabricadoAction && (
+                  <form action={marcarFabricadoAction}>
                     <button
                       type="submit"
                       className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
-                      Marcar como {ESTADO_LABELS[nextEstado]}
+                      Marcar como {PRODUCCION_LABELS.FABRICADO}
+                    </button>
+                  </form>
+                )}
+                {marcarEntregadoAction && (
+                  <form action={marcarEntregadoAction}>
+                    <button
+                      type="submit"
+                      className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                    >
+                      Marcar como {LOGISTICA_LABELS.ENTREGADO}
                     </button>
                   </form>
                 )}
@@ -215,7 +243,14 @@ export default async function NotaDetallePage({
             <ol className="flex flex-col gap-3 border-l-2 border-black/10 pl-4">
               {(history ?? []).map((h) => (
                 <li key={h.id} className="flex flex-col gap-1 text-sm">
-                  <EstadoBadge estado={h.estado} />
+                  <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/40">
+                    {h.campo === "PRODUCCION" ? "Producción" : "Pedido"}
+                  </span>
+                  {h.campo === "PRODUCCION" ? (
+                    <ProduccionBadge estado={h.estado as "PENDIENTE" | "FABRICADO"} />
+                  ) : (
+                    <LogisticaBadge estado={h.estado as "PENDIENTE" | "ENTREGADO"} />
+                  )}
                   <span className="text-xs text-btm-black/50">
                     {new Date(h.changed_at).toLocaleString("es-AR")}
                   </span>

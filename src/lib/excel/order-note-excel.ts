@@ -1,6 +1,6 @@
 import ExcelJS from "exceljs";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
-import { ESTADO_LABELS } from "@/components/estado-badge";
+import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import type { OrderNoteDetail } from "@/lib/pdf/types";
 
 const NAVY = "FF21305D";
@@ -21,7 +21,8 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   sheet.addRow(["Día de entrega", order.dia_entrega ?? ""]);
   sheet.addRow(["Vendedor", order.vendedor?.name ?? ""]);
   sheet.addRow(["Chofer", order.chofer?.name ?? ""]);
-  sheet.addRow(["Estado", ESTADO_LABELS[order.estado]]);
+  sheet.addRow(["Estado pedido", LOGISTICA_LABELS[order.estado_logistica]]);
+  sheet.addRow(["Estado producción", PRODUCCION_LABELS[order.estado_produccion]]);
   sheet.addRow(["Observaciones", order.observaciones ?? ""]);
   sheet.addRow([]);
 
@@ -50,7 +51,12 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   sheet.addRow([]);
   sheet.addRow(["Historial de estados"]).font = { bold: true };
   for (const h of history) {
-    sheet.addRow([ESTADO_LABELS[h.estado], new Date(h.changed_at).toLocaleString("es-AR")]);
+    const campoLabel = h.campo === "PRODUCCION" ? "Producción" : "Pedido";
+    const estadoLabel =
+      h.campo === "PRODUCCION"
+        ? PRODUCCION_LABELS[h.estado as "PENDIENTE" | "FABRICADO"]
+        : LOGISTICA_LABELS[h.estado as "PENDIENTE" | "ENTREGADO"];
+    sheet.addRow([`${campoLabel}: ${estadoLabel}`, new Date(h.changed_at).toLocaleString("es-AR")]);
   }
 
   sheet.columns = [{ width: 28 }, { width: 16 }, { width: 12 }, { width: 16 }, { width: 14 }];

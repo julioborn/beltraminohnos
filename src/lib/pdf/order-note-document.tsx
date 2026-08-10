@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
-import { ESTADO_LABELS } from "@/components/estado-badge";
+import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import type { OrderNoteDetail } from "./types";
 
 const styles = StyleSheet.create({
@@ -45,6 +45,7 @@ const styles = StyleSheet.create({
   headerCell: { fontFamily: "Helvetica-Bold", fontSize: 8, textTransform: "uppercase" },
   totalRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 10 },
   totalLabel: { fontFamily: "Helvetica-Bold", fontSize: 12, color: "#21305D" },
+  estadoRow: { flexDirection: "row", gap: 8 },
   estadoBadge: {
     alignSelf: "flex-start",
     backgroundColor: "#dcfce7",
@@ -81,7 +82,10 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
             <Field label="Vendedor" value={order.vendedor?.name ?? "—"} />
             <Field label="Chofer" value={order.chofer?.name ?? "—"} />
           </View>
-          <Text style={styles.estadoBadge}>{ESTADO_LABELS[order.estado]}</Text>
+          <View style={styles.estadoRow}>
+            <Text style={styles.estadoBadge}>Pedido: {LOGISTICA_LABELS[order.estado_logistica]}</Text>
+            <Text style={styles.estadoBadge}>Producción: {PRODUCCION_LABELS[order.estado_produccion]}</Text>
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -120,7 +124,9 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
           <Text style={styles.sectionTitle}>Historial de estados</Text>
           {history.map((h) => (
             <Text key={h.id} style={{ marginBottom: 2 }}>
-              {ESTADO_LABELS[h.estado]} — {new Date(h.changed_at).toLocaleString("es-AR")}
+              {h.campo === "PRODUCCION" ? "Producción" : "Pedido"}: {" "}
+              {h.campo === "PRODUCCION" ? PRODUCCION_LABELS[h.estado as "PENDIENTE" | "FABRICADO"] : LOGISTICA_LABELS[h.estado as "PENDIENTE" | "ENTREGADO"]}
+              {" "}— {new Date(h.changed_at).toLocaleString("es-AR")}
             </Text>
           ))}
         </View>

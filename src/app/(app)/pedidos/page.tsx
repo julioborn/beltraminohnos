@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { getMasterData } from "@/lib/data/master-data";
 import { getOrderNotesList, type OrderListFilters } from "@/lib/data/orders";
-import { EstadoBadge } from "@/components/estado-badge";
+import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 
 type SearchParams = OrderListFilters;
@@ -17,7 +17,7 @@ export default async function PedidosPage({
     Object.entries(params).filter(([, v]) => v) as [string, string][],
   ).toString();
 
-  const advancedKeys = ["estado", "zona", "producto", "vendedor", "chofer", "desde", "hasta"] as const;
+  const advancedKeys = ["estado_logistica", "estado_produccion", "zona", "producto", "vendedor", "chofer", "desde", "hasta"] as const;
   const advancedFilterCount = advancedKeys.filter((key) => params[key]).length;
   const hasAdvancedFilter = advancedFilterCount > 0;
   const hasAnyFilter = hasAdvancedFilter || Boolean(params.q);
@@ -103,14 +103,24 @@ export default async function PedidosPage({
 
           <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             <div className="flex flex-col gap-1">
-              <label htmlFor="estado" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-                Estado
+              <label htmlFor="estado_logistica" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Estado pedido
               </label>
-              <select id="estado" name="estado" defaultValue={params.estado ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+              <select id="estado_logistica" name="estado_logistica" defaultValue={params.estado_logistica ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
+                <option value="">Todos</option>
+                <option value="PENDIENTE">Pendiente</option>
+                <option value="ENTREGADO">Entregado</option>
+              </select>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="estado_produccion" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Estado producción
+              </label>
+              <select id="estado_produccion" name="estado_produccion" defaultValue={params.estado_produccion ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
                 <option value="">Todos</option>
                 <option value="PENDIENTE">Pendiente</option>
                 <option value="FABRICADO">Fabricado</option>
-                <option value="ENTREGADO">Entregado</option>
               </select>
             </div>
 
@@ -192,7 +202,10 @@ export default async function PedidosPage({
                 <p className="font-display text-sm font-bold text-btm-navy">{order.numero}</p>
                 <p className="text-xs text-btm-black/50">{order.fecha}</p>
               </div>
-              <EstadoBadge estado={order.estado} />
+              <div className="flex flex-col items-end gap-1">
+                <LogisticaBadge estado={order.estado_logistica} />
+                <ProduccionBadge estado={order.estado_produccion} />
+              </div>
             </div>
             <p className="text-sm font-medium">{order.cliente}</p>
             <p className="text-xs text-btm-black/60">
@@ -226,7 +239,8 @@ export default async function PedidosPage({
               <th className="px-4 py-3">Productos</th>
               <th className="px-4 py-3">Vendedor</th>
               <th className="px-4 py-3">Chofer</th>
-              <th className="px-4 py-3">Estado</th>
+              <th className="px-4 py-3">Pedido</th>
+              <th className="px-4 py-3">Producción</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-black/5">
@@ -248,13 +262,16 @@ export default async function PedidosPage({
                 <td className="px-4 py-3 text-btm-black/70">{order.vendedor?.name ?? "—"}</td>
                 <td className="px-4 py-3 text-btm-black/70">{order.chofer?.name ?? "—"}</td>
                 <td className="px-4 py-3">
-                  <EstadoBadge estado={order.estado} />
+                  <LogisticaBadge estado={order.estado_logistica} />
+                </td>
+                <td className="px-4 py-3">
+                  <ProduccionBadge estado={order.estado_produccion} />
                 </td>
               </tr>
             ))}
             {orders.length === 0 && (
               <tr>
-                <td colSpan={8} className="px-4 py-8 text-center text-btm-black/50">
+                <td colSpan={9} className="px-4 py-8 text-center text-btm-black/50">
                   No hay notas de pedido con estos filtros.
                 </td>
               </tr>
