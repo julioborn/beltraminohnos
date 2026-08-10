@@ -21,6 +21,7 @@ export function ShippingForm({
   observaciones: string;
 }) {
   const [fechaEntrega, setFechaEntrega] = useState(initialFechaEntrega);
+  const [fechaEnvioValue, setFechaEnvioValue] = useState(fechaEnvio);
 
   return (
     <form action={action} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -53,11 +54,17 @@ export function ShippingForm({
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Fecha de envío</label>
+        <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+          Fecha de envío
+          {fechaEnvioValue && (
+            <span className="ml-1.5 font-normal normal-case text-btm-black/50">· {formatDiaEntrega(fechaEnvioValue)}</span>
+          )}
+        </label>
         <input
           type="date"
           name="fecha_envio"
-          defaultValue={fechaEnvio}
+          value={fechaEnvioValue}
+          onChange={(e) => setFechaEnvioValue(e.target.value)}
           className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
         />
       </div>
