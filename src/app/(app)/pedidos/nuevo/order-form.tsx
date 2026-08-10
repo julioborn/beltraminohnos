@@ -2,7 +2,7 @@
 
 import { useActionState, useId, useMemo, useState } from "react";
 import { createOrderNote } from "@/lib/actions/order-notes";
-import { PACKAGING_TYPES, PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
+import { PACKAGING_TYPES, PACKAGING_LABELS, pricingPackagingType, type PackagingType } from "@/lib/packaging";
 import { DestinoSelect } from "./destino-select";
 
 type Option = { id: string; name: string };
@@ -49,7 +49,8 @@ export function OrderForm({
 
   function priceFor(item: Item) {
     if (!item.productId || !zonaId) return null;
-    return priceMap[`${item.productId}_${item.tipoEnvase}_${zonaId}`] ?? null;
+    const packagingType = pricingPackagingType(item.tipoEnvase);
+    return priceMap[`${item.productId}_${packagingType}_${zonaId}`] ?? null;
   }
 
   const itemsPayload = useMemo(

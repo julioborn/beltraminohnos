@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { updatePrice } from "@/lib/actions/prices";
-import { PACKAGING_TYPES, PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
+import { PRICEABLE_PACKAGING_TYPES, PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 
 type Product = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
@@ -55,7 +55,7 @@ export function PricesGrid({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
-        {PACKAGING_TYPES.map((t) => (
+        {PRICEABLE_PACKAGING_TYPES.map((t) => (
           <button
             key={t}
             type="button"
@@ -68,6 +68,7 @@ export function PricesGrid({
           </button>
         ))}
       </div>
+      <p className="text-xs text-btm-black/50">Big Bag usa los mismos precios que Granel.</p>
 
       <p className="text-xs text-btm-black/50 md:hidden">Deslizá hacia los costados para ver todas las zonas →</p>
 
