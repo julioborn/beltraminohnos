@@ -28,7 +28,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex min-h-full flex-col">
+    <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center justify-between bg-btm-navy px-4 py-3 sm:px-6">
         <div className="flex items-center gap-2">
           <MobileMenu navLinks={NAV_LINKS} fullName={fullName} />

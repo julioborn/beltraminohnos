@@ -15,7 +15,7 @@ export default async function HomePage({
         style={{
           backgroundImage: "url('/brand/pattern-tile.png')",
           backgroundRepeat: "repeat",
-          backgroundSize: "130px 130px",
+          backgroundSize: "85px 85px",
         }}
         aria-hidden
       />
