@@ -50,6 +50,27 @@ export async function getOrderNotesList(params: OrderListFilters) {
   return data ?? [];
 }
 
+export type ReportFilters = { desde?: string; hasta?: string };
+
+export async function getOrdersForReports(filters: ReportFilters) {
+  const supabase = await createClient();
+
+  let query = supabase
+    .from("order_notes")
+    .select(
+      `id, cliente, fecha, estado_logistica, estado_produccion,
+       zona:zones(name), vendedor:vendedores(name),
+       items:order_items(cantidad, precio_unitario, product:products(name))`,
+    )
+    .order("fecha", { ascending: true });
+
+  if (filters.desde) query = query.gte("fecha", filters.desde);
+  if (filters.hasta) query = query.lte("fecha", filters.hasta);
+
+  const { data } = await query.limit(5000);
+  return data ?? [];
+}
+
 export async function getOrderNoteDetail(id: string) {
   const supabase = await createClient();
 

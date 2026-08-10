@@ -8,6 +8,8 @@ const NAV_LINKS = [
   { href: "/pedidos", label: "Notas de pedido" },
   { href: "/productos", label: "Productos" },
   { href: "/precios", label: "Precios" },
+  { href: "/reportes", label: "Reportes" },
+  { href: "/estadisticas", label: "Estadísticas" },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {

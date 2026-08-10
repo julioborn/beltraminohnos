@@ -39,6 +39,31 @@ const ITEMS = [
   },
 ];
 
+const SECONDARY_ITEMS = [
+  {
+    href: "/reportes",
+    label: "Reportes",
+    description: "Ventas por cliente, producto, vendedor y zona",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+        <path d="M14 2v6h6" />
+        <path d="M16 13H8M16 17H8M10 9H8" />
+      </svg>
+    ),
+  },
+  {
+    href: "/estadisticas",
+    label: "Estadísticas",
+    description: "Facturación, tendencias y rankings",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M18 20V10M12 20V4M6 20v-6" />
+      </svg>
+    ),
+  },
+];
+
 export default function InicioPage() {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
@@ -70,6 +95,26 @@ export default function InicioPage() {
               {item.label}
             </span>
             <span className="text-xs text-btm-black/50">{item.description}</span>
+          </Link>
+        ))}
+      </div>
+
+      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+        {SECONDARY_ITEMS.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="group flex items-center gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-btm-navy hover:shadow-lg"
+          >
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-navy/10 text-btm-navy transition-colors group-hover:bg-btm-navy group-hover:text-white">
+              {item.icon}
+            </span>
+            <span className="flex flex-col gap-0.5">
+              <span className="font-display text-sm font-extrabold uppercase tracking-wide text-btm-navy">
+                {item.label}
+              </span>
+              <span className="text-xs text-btm-black/50">{item.description}</span>
+            </span>
           </Link>
         ))}
       </div>
