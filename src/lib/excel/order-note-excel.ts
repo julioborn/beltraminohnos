@@ -1,6 +1,7 @@
 import ExcelJS from "exceljs";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
+import { formatDiaEntrega } from "@/lib/format";
 import type { OrderNoteDetail } from "@/lib/pdf/types";
 
 const NAVY = "FF21305D";
@@ -18,7 +19,7 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   sheet.addRow(["Provincia", order.provincia ?? ""]);
   sheet.addRow(["Localidad", order.localidad ?? ""]);
   sheet.addRow(["Fecha", order.fecha]);
-  sheet.addRow(["Día de entrega", order.dia_entrega ?? ""]);
+  sheet.addRow(["Día de entrega", formatDiaEntrega(order.fecha_entrega) ?? ""]);
   sheet.addRow(["Vendedor", order.vendedor?.name ?? ""]);
   sheet.addRow(["Chofer", order.chofer?.name ?? ""]);
   sheet.addRow(["Estado pedido", LOGISTICA_LABELS[order.estado_logistica]]);

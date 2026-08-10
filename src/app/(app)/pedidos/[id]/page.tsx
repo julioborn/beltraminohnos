@@ -5,6 +5,7 @@ import { getOrderNoteDetail } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge, LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { marcarEntregado, marcarFabricado, updateShippingDetails } from "@/lib/actions/order-notes";
+import { ShippingForm } from "./shipping-form";
 
 export default async function NotaDetallePage({
   params,
@@ -147,53 +148,14 @@ export default async function NotaDetallePage({
           </Card>
 
           <Card title="Detalles de envío">
-            <form action={updateShippingAction} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Chofer</label>
-                <select
-                  name="chofer_id"
-                  defaultValue={order.chofer?.id ?? ""}
-                  className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-                >
-                  <option value="">Sin asignar</option>
-                  {masterData.choferes.map((c) => (
-                    <option key={c.id} value={c.id}>{c.name}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Día de entrega</label>
-                <input
-                  name="dia_entrega"
-                  defaultValue={order.dia_entrega ?? ""}
-                  className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Fecha de envío</label>
-                <input
-                  type="date"
-                  name="fecha_envio"
-                  defaultValue={order.fecha_envio ?? ""}
-                  className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-                />
-              </div>
-              <div className="flex flex-col gap-1 sm:col-span-2">
-                <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Observaciones</label>
-                <textarea
-                  name="observaciones"
-                  rows={2}
-                  defaultValue={order.observaciones ?? ""}
-                  className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-                />
-              </div>
-              <button
-                type="submit"
-                className="self-start rounded-full border border-btm-navy px-5 py-2 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white sm:col-span-2"
-              >
-                Guardar cambios
-              </button>
-            </form>
+            <ShippingForm
+              action={updateShippingAction}
+              choferes={masterData.choferes}
+              choferId={order.chofer?.id ?? ""}
+              fechaEntrega={order.fecha_entrega ?? ""}
+              fechaEnvio={order.fecha_envio ?? ""}
+              observaciones={order.observaciones ?? ""}
+            />
           </Card>
         </div>
 

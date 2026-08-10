@@ -80,7 +80,7 @@ export type Database = {
           cliente: string
           created_at: string
           created_by: string | null
-          dia_entrega: string | null
+          fecha_entrega: string | null
           estado_logistica: Database["public"]["Enums"]["logistica_status"]
           estado_produccion: Database["public"]["Enums"]["produccion_status"]
           fecha: string
@@ -99,7 +99,7 @@ export type Database = {
           cliente: string
           created_at?: string
           created_by?: string | null
-          dia_entrega?: string | null
+          fecha_entrega?: string | null
           estado_logistica?: Database["public"]["Enums"]["logistica_status"]
           estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           fecha?: string
@@ -118,7 +118,7 @@ export type Database = {
           cliente?: string
           created_at?: string
           created_by?: string | null
-          dia_entrega?: string | null
+          fecha_entrega?: string | null
           estado_logistica?: Database["public"]["Enums"]["logistica_status"]
           estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           fecha?: string
@@ -344,8 +344,8 @@ export type Database = {
         Args: {
           p_chofer_id: string
           p_cliente: string
-          p_dia_entrega: string
           p_fecha: string
+          p_fecha_entrega: string
           p_items: Json
           p_localidad?: string
           p_observaciones: string

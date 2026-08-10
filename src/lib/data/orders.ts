@@ -16,7 +16,7 @@ export type OrderListFilters = {
   hasta?: string;
 };
 
-const LIST_SELECT_BASE = `id, numero, cliente, fecha, dia_entrega, fecha_envio, estado_logistica, estado_produccion, provincia, localidad,
+const LIST_SELECT_BASE = `id, numero, cliente, fecha, fecha_entrega, fecha_envio, estado_logistica, estado_produccion, provincia, localidad,
   zona:zones(name), vendedor:vendedores(name), chofer:choferes(name)`;
 
 export async function getOrderNotesList(params: OrderListFilters) {
@@ -77,7 +77,7 @@ export async function getOrderNoteDetail(id: string) {
   const { data: order } = await supabase
     .from("order_notes")
     .select(
-      `id, numero, cliente, fecha, dia_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
+      `id, numero, cliente, fecha, fecha_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
        zona:zones(name), vendedor:vendedores(name), chofer:choferes(id, name),
        items:order_items(id, cantidad, tipo_envase, precio_unitario, product:products(name))`,
     )

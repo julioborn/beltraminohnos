@@ -3,6 +3,7 @@
 import { useActionState, useId, useMemo, useState } from "react";
 import { createOrderNote } from "@/lib/actions/order-notes";
 import { PACKAGING_TYPES, PACKAGING_LABELS, pricingPackagingType, type PackagingType } from "@/lib/packaging";
+import { formatDiaEntrega } from "@/lib/format";
 import { DestinoSelect } from "./destino-select";
 
 type Option = { id: string; name: string };
@@ -36,6 +37,7 @@ export function OrderForm({
 }) {
   const [state, action, pending] = useActionState(createOrderNote, undefined);
   const [zonaId, setZonaId] = useState("");
+  const [fechaEntrega, setFechaEntrega] = useState("");
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const clientListId = useId();
 
@@ -129,13 +131,18 @@ export function OrderForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="dia_entrega" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Día de entrega
+          <label htmlFor="fecha_entrega" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+            Fecha de entrega
+            {fechaEntrega && (
+              <span className="ml-1.5 font-normal normal-case text-btm-black/50">· {formatDiaEntrega(fechaEntrega)}</span>
+            )}
           </label>
           <input
-            id="dia_entrega"
-            name="dia_entrega"
-            placeholder="Ej: Viernes 03"
+            id="fecha_entrega"
+            name="fecha_entrega"
+            type="date"
+            value={fechaEntrega}
+            onChange={(e) => setFechaEntrega(e.target.value)}
             className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           />
         </div>

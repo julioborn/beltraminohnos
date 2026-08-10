@@ -1,6 +1,7 @@
 import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
+import { formatDiaEntrega } from "@/lib/format";
 import type { OrderNoteDetail } from "./types";
 
 const styles = StyleSheet.create({
@@ -78,7 +79,7 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
             <Field label="Fecha" value={order.fecha} />
             <Field label="Provincia" value={order.provincia ?? "—"} />
             <Field label="Localidad" value={order.localidad ?? "—"} />
-            <Field label="Día de entrega" value={order.dia_entrega ?? "—"} />
+            <Field label="Día de entrega" value={formatDiaEntrega(order.fecha_entrega) ?? "—"} />
             <Field label="Vendedor" value={order.vendedor?.name ?? "—"} />
             <Field label="Chofer" value={order.chofer?.name ?? "—"} />
           </View>

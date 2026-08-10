@@ -14,7 +14,7 @@ export async function createOrderNote(
   const cliente = String(formData.get("cliente") ?? "").trim();
   const zonaId = String(formData.get("zona_id") ?? "") || null;
   const fecha = String(formData.get("fecha") ?? "") || null;
-  const diaEntrega = String(formData.get("dia_entrega") ?? "").trim() || null;
+  const fechaEntrega = String(formData.get("fecha_entrega") ?? "") || null;
   const vendedorId = String(formData.get("vendedor_id") ?? "") || null;
   const choferId = String(formData.get("chofer_id") ?? "") || null;
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
@@ -42,7 +42,7 @@ export async function createOrderNote(
     p_cliente: cliente,
     p_zona_id: zonaId,
     p_fecha: fecha,
-    p_dia_entrega: diaEntrega,
+    p_fecha_entrega: fechaEntrega,
     p_vendedor_id: vendedorId,
     p_chofer_id: choferId,
     p_observaciones: observaciones,
@@ -77,7 +77,7 @@ export async function marcarFabricado(orderId: string) {
 
 export async function updateShippingDetails(orderId: string, formData: FormData) {
   const choferId = String(formData.get("chofer_id") ?? "") || null;
-  const diaEntrega = String(formData.get("dia_entrega") ?? "").trim() || null;
+  const fechaEntrega = String(formData.get("fecha_entrega") ?? "") || null;
   const fechaEnvio = String(formData.get("fecha_envio") ?? "") || null;
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
 
@@ -86,7 +86,7 @@ export async function updateShippingDetails(orderId: string, formData: FormData)
     .from("order_notes")
     .update({
       chofer_id: choferId,
-      dia_entrega: diaEntrega,
+      fecha_entrega: fechaEntrega,
       fecha_envio: fechaEnvio,
       observaciones,
     })
