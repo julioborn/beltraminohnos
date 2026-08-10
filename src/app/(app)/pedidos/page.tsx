@@ -2,6 +2,8 @@ import Link from "next/link";
 import { getMasterData } from "@/lib/data/master-data";
 import { getOrderNotesList, type OrderListFilters } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
+import { ClickableRow } from "@/components/clickable-row";
+import { RowLink } from "@/components/row-link";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 
 type SearchParams = OrderListFilters;
@@ -245,11 +247,11 @@ export default async function PedidosPage({
           </thead>
           <tbody className="divide-y divide-black/5">
             {orders.map((order) => (
-              <tr key={order.id} className="hover:bg-black/[.02]">
+              <ClickableRow key={order.id} href={`/pedidos/${order.id}`}>
                 <td className="px-4 py-3">
-                  <Link href={`/pedidos/${order.id}`} className="font-semibold text-btm-navy hover:text-btm-red">
+                  <RowLink href={`/pedidos/${order.id}`} className="font-semibold text-btm-navy hover:text-btm-red">
                     {order.numero}
-                  </Link>
+                  </RowLink>
                 </td>
                 <td className="px-4 py-3 text-btm-black/70">{order.fecha}</td>
                 <td className="px-4 py-3">{order.cliente}</td>
@@ -267,7 +269,7 @@ export default async function PedidosPage({
                 <td className="px-4 py-3">
                   <ProduccionBadge estado={order.estado_produccion} />
                 </td>
-              </tr>
+              </ClickableRow>
             ))}
             {orders.length === 0 && (
               <tr>
