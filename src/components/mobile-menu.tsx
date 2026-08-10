@@ -22,7 +22,7 @@ export function MobileMenu({ navLinks, fullName }: { navLinks: NavLink[]; fullNa
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Abrir menú"
-        className="flex h-9 w-9 items-center justify-center text-white sm:hidden"
+        className="flex h-9 w-9 items-center justify-center text-white"
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className="h-6 w-6">
           <path strokeLinecap="round" d="M4 6h16M4 12h16M4 18h16" />
@@ -30,7 +30,7 @@ export function MobileMenu({ navLinks, fullName }: { navLinks: NavLink[]; fullNa
       </button>
 
       {open && (
-        <div className="fixed inset-0 z-50 sm:hidden">
+        <div className="fixed inset-0 z-50">
           <div className="absolute inset-0 bg-black/40" onClick={close} />
           <div className="absolute inset-y-0 left-0 flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
             <div className="flex items-center justify-between border-b border-black/10 px-4 py-4">
