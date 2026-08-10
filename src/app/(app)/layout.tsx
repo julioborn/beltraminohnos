@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "@/components/mobile-menu";
 
 const NAV_LINKS = [
+  { href: "/inicio", label: "Inicio" },
   { href: "/pedidos", label: "Notas de pedido" },
   { href: "/productos", label: "Productos" },
   { href: "/precios", label: "Precios" },
@@ -29,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     <div className="flex min-h-full flex-1 flex-col">
       <header className="flex items-center gap-2 bg-btm-navy px-4 py-3 sm:px-6">
         <MobileMenu navLinks={NAV_LINKS} fullName={fullName} />
-        <Link href="/pedidos" className="flex items-center">
+        <Link href="/inicio" className="flex items-center">
           <Image
             src="/brand/btm-horizontal-tagline.png"
             alt="BTM Nutrición Animal"

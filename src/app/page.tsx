@@ -35,7 +35,7 @@ export default async function HomePage({
           </p>
         </div>
 
-        <LoginForm next={next ?? "/pedidos"} />
+        <LoginForm next={next ?? "/inicio"} />
       </div>
     </div>
   );
