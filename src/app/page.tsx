@@ -9,29 +9,17 @@ export default async function HomePage({
   const { next } = await searchParams;
 
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-6 bg-white px-6 py-16">
-      <div className="w-full max-w-70 overflow-hidden sm:max-w-xs">
-        <div className="animate-truck-enter">
-          <Image
-            src="/brand/truck-hero.png"
-            alt="Camión BTM Nutrición Animal"
-            width={1200}
-            height={807}
-            className="h-auto w-full"
-            priority
-          />
-        </div>
-      </div>
+    <div className="flex flex-1 flex-col items-center justify-center gap-8 bg-white px-6 py-16">
+      <Image
+        src="/brand/btm-horizontal-tagline.png"
+        alt="BTM Nutrición Animal"
+        width={400}
+        height={102}
+        className="h-auto w-70 sm:w-100"
+        priority
+      />
 
       <LoginForm next={next ?? "/pedidos"} />
-
-      <Image
-        src="/brand/btm-icon.png"
-        alt="BTM"
-        width={32}
-        height={36}
-        className="h-9 w-auto"
-      />
     </div>
   );
 }
