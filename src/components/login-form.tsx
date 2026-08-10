@@ -10,8 +10,8 @@ export function LoginForm({ next, compact = false }: { next: string; compact?: b
     ? "rounded border border-black/10 px-[clamp(0.35rem,1vw,0.6rem)] py-[clamp(0.2rem,0.7vw,0.45rem)] text-[clamp(0.55rem,1vw,0.8rem)] focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
     : "rounded-lg border border-black/10 px-3.5 py-2.5 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy";
   const labelClass = compact
-    ? "text-[clamp(0.5rem,0.85vw,0.65rem)] font-semibold uppercase tracking-wide text-btm-black/70"
-    : "text-xs font-semibold uppercase tracking-wide text-btm-black/70";
+    ? "text-[clamp(0.5rem,0.85vw,0.65rem)] font-semibold tracking-wide text-btm-black/70"
+    : "text-xs font-semibold tracking-wide text-btm-black/70";
 
   return (
     <form action={action} className={compact ? "flex w-full flex-col gap-[clamp(0.35rem,1vw,0.6rem)]" : "flex w-full max-w-sm flex-col gap-4"}>
@@ -49,8 +49,8 @@ export function LoginForm({ next, compact = false }: { next: string; compact?: b
         disabled={pending}
         className={
           compact
-            ? "mt-1 w-full rounded bg-btm-navy px-3 py-[clamp(0.3rem,0.9vw,0.55rem)] font-display text-[clamp(0.55rem,1vw,0.8rem)] font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
-            : "mt-2 w-full rounded-lg bg-btm-navy px-6 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
+            ? "mt-1 w-full rounded bg-btm-navy px-3 py-[clamp(0.3rem,0.9vw,0.55rem)] font-display text-[clamp(0.55rem,1vw,0.8rem)] font-bold tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
+            : "mt-2 w-full rounded-lg bg-btm-navy px-6 py-3 font-display text-sm font-bold tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
         }
       >
         {pending ? "Ingresando..." : "Ingresar"}
