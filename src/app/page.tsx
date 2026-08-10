@@ -25,7 +25,7 @@ export default async function HomePage({
             src="/brand/truck-hero.png"
             alt="Camión BTM Nutrición Animal"
             width={1200}
-            height={801}
+            height={807}
             className="h-auto w-full"
           />
         </div>
