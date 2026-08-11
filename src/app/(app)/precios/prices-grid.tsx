@@ -17,6 +17,10 @@ function key(productId: string, packagingType: PackagingType, zoneId: string) {
   return `${productId}_${packagingType}_${zoneId}`;
 }
 
+const TAB_LABELS: Partial<Record<PackagingType, string>> = {
+  GRANEL: "Granel y Big Bag",
+};
+
 export function PricesGrid({
   products,
   zones,
@@ -64,11 +68,10 @@ export function PricesGrid({
               tab === t ? "bg-btm-navy text-white" : "border border-btm-navy text-btm-navy hover:bg-btm-navy/10"
             }`}
           >
-            {PACKAGING_LABELS[t]}
+            {TAB_LABELS[t] ?? PACKAGING_LABELS[t]}
           </button>
         ))}
       </div>
-      <p className="text-xs text-btm-black/50">Big Bag usa los mismos precios que Granel.</p>
 
       <p className="text-xs text-btm-black/50 md:hidden">Deslizá hacia los costados para ver todas las zonas →</p>
 
