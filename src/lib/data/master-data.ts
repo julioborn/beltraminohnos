@@ -31,13 +31,8 @@ export async function getPriceMap() {
   return map;
 }
 
-export async function getClientSuggestions() {
+export async function getClientes() {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("order_notes")
-    .select("cliente")
-    .order("created_at", { ascending: false })
-    .limit(500);
-
-  return Array.from(new Set((data ?? []).map((r) => r.cliente))).slice(0, 100);
+  const { data } = await supabase.from("clientes").select("id, name").order("name");
+  return data ?? [];
 }

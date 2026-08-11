@@ -1,11 +1,11 @@
-import { getMasterData, getPriceMap, getClientSuggestions } from "@/lib/data/master-data";
+import { getMasterData, getPriceMap, getClientes } from "@/lib/data/master-data";
 import { OrderForm } from "./order-form";
 
 export default async function NuevaNotaPage() {
-  const [masterData, priceMap, clientSuggestions] = await Promise.all([
+  const [masterData, priceMap, clientes] = await Promise.all([
     getMasterData(),
     getPriceMap(),
-    getClientSuggestions(),
+    getClientes(),
   ]);
 
   return (
@@ -19,7 +19,7 @@ export default async function NuevaNotaPage() {
         vendedores={masterData.vendedores}
         choferes={masterData.choferes}
         priceMap={priceMap}
-        clientSuggestions={clientSuggestions}
+        clientes={clientes}
       />
     </div>
   );

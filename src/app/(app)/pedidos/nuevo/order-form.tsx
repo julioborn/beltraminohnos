@@ -1,13 +1,15 @@
 "use client";
 
-import { useActionState, useId, useMemo, useState } from "react";
+import { useActionState, useMemo, useState } from "react";
 import { createOrderNote } from "@/lib/actions/order-notes";
 import { PACKAGING_TYPES, PACKAGING_LABELS, pricingPackagingType, type PackagingType } from "@/lib/packaging";
 import { formatDiaEntrega } from "@/lib/format";
 import { DestinoSelect } from "./destino-select";
+import { ClienteAutocomplete } from "./cliente-autocomplete";
 
 type Option = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
+type Cliente = { id: string; name: string };
 
 type Item = {
   key: string;
@@ -26,20 +28,19 @@ export function OrderForm({
   vendedores,
   choferes,
   priceMap,
-  clientSuggestions,
+  clientes,
 }: {
   products: Option[];
   zones: Zone[];
   vendedores: Option[];
   choferes: Option[];
   priceMap: Record<string, number | null>;
-  clientSuggestions: string[];
+  clientes: Cliente[];
 }) {
   const [state, action, pending] = useActionState(createOrderNote, undefined);
   const [zonaId, setZonaId] = useState("");
   const [fechaEntrega, setFechaEntrega] = useState("");
   const [items, setItems] = useState<Item[]>([emptyItem()]);
-  const clientListId = useId();
 
   function updateItem(key: string, patch: Partial<Item>) {
     setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -76,23 +77,7 @@ export function OrderForm({
       <input type="hidden" name="items" value={JSON.stringify(itemsPayload)} />
 
       <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="cliente" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Cliente
-          </label>
-          <input
-            id="cliente"
-            name="cliente"
-            required
-            list={clientListId}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-          />
-          <datalist id={clientListId}>
-            {clientSuggestions.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
-        </div>
+        <ClienteAutocomplete clientes={clientes} />
 
         <div className="flex flex-col gap-1">
           <label htmlFor="zona_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
