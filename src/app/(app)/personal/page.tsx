@@ -1,16 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { PersonTable } from "./person-table";
-import { CamionesTable } from "./camiones-table";
-import {
-  createVendedor,
-  renameVendedor,
-  setVendedorActive,
-  deleteVendedor,
-  createChofer,
-  renameChofer,
-  setChoferActive,
-  deleteChofer,
-} from "@/lib/actions/personal";
+import { PersonalSections } from "./personal-sections";
 
 export default async function PersonalPage() {
   const supabase = await createClient();
@@ -21,46 +10,17 @@ export default async function PersonalPage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6">
       <div>
         <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
           Personal
         </h1>
         <p className="text-sm text-btm-black/60">
-          Vendedores, choferes y flota disponibles para las notas de pedido. Los inactivos dejan de aparecer como opción al cargar una nota nueva, pero se conservan en las notas existentes.
+          Vendedores, choferes y flota disponibles para las notas de pedido. Tocá una tarjeta para ver y editar esa sección.
         </p>
       </div>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-bold uppercase tracking-wide text-btm-black">Vendedores</h2>
-        <PersonTable
-          people={vendedores ?? []}
-          placeholder="Ej: JUAN PABLO"
-          emptyLabel="No hay vendedores cargados."
-          createAction={createVendedor}
-          renameAction={renameVendedor}
-          setActiveAction={setVendedorActive}
-          deleteAction={deleteVendedor}
-        />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-bold uppercase tracking-wide text-btm-black">Choferes</h2>
-        <PersonTable
-          people={choferes ?? []}
-          placeholder="Ej: BRITEZ ANTONIO"
-          emptyLabel="No hay choferes cargados."
-          createAction={createChofer}
-          renameAction={renameChofer}
-          setActiveAction={setChoferActive}
-          deleteAction={deleteChofer}
-        />
-      </section>
-
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-lg font-bold uppercase tracking-wide text-btm-black">Flota</h2>
-        <CamionesTable camiones={camiones ?? []} choferes={choferes ?? []} />
-      </section>
+      <PersonalSections vendedores={vendedores ?? []} choferes={choferes ?? []} camiones={camiones ?? []} />
     </div>
   );
 }

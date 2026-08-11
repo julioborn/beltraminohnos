@@ -26,6 +26,19 @@ const ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/personal",
+    label: "Personal",
+    description: "Vendedores, choferes y flota",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <circle cx="9" cy="8" r="3.25" />
+        <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+        <circle cx="17.5" cy="8.5" r="2.5" />
+        <path d="M16 13.2a5.5 5.5 0 0 1 5.5 6.3" />
+      </svg>
+    ),
+  },
 ];
 
 const SECONDARY_ITEMS = [
@@ -70,7 +83,7 @@ export default function InicioPage() {
         </p>
       </div>
 
-      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
         {ITEMS.map((item) => (
           <Link
             key={item.href}
