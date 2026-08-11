@@ -61,7 +61,8 @@ export async function createOrderNote(
 
 export async function marcarEntregado(orderId: string) {
   const supabase = await createClient();
-  await supabase.from("order_notes").update({ estado_logistica: "ENTREGADO" }).eq("id", orderId);
+  const { error } = await supabase.from("order_notes").update({ estado_logistica: "ENTREGADO" }).eq("id", orderId);
+  if (error) throw new Error(`No se pudo marcar como entregado: ${error.message}`);
 
   revalidatePath(`/pedidos/${orderId}`);
   revalidatePath("/pedidos");
@@ -69,7 +70,8 @@ export async function marcarEntregado(orderId: string) {
 
 export async function marcarFabricado(orderId: string) {
   const supabase = await createClient();
-  await supabase.from("order_notes").update({ estado_produccion: "FABRICADO" }).eq("id", orderId);
+  const { error } = await supabase.from("order_notes").update({ estado_produccion: "FABRICADO" }).eq("id", orderId);
+  if (error) throw new Error(`No se pudo marcar como fabricado: ${error.message}`);
 
   revalidatePath(`/pedidos/${orderId}`);
   revalidatePath("/pedidos");
@@ -82,7 +84,7 @@ export async function updateShippingDetails(orderId: string, formData: FormData)
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
 
   const supabase = await createClient();
-  await supabase
+  const { error } = await supabase
     .from("order_notes")
     .update({
       chofer_id: choferId,
@@ -91,6 +93,7 @@ export async function updateShippingDetails(orderId: string, formData: FormData)
       observaciones,
     })
     .eq("id", orderId);
+  if (error) throw new Error(`No se pudieron guardar los cambios: ${error.message}`);
 
   revalidatePath(`/pedidos/${orderId}`);
 }
