@@ -285,27 +285,32 @@ export function ProductsPricesTable({
                   {selectedZone && (
                     <div className="border-t border-black/10 pt-3">
                       <label className="flex flex-col gap-1">
-                        <span className="text-[11px] text-btm-black/50">Precio USD/tn · {selectedZone.name}</span>
+                        <span className="text-[11px] text-btm-black/50">Precio · {selectedZone.name}</span>
                         {(() => {
                           const k = priceKey(product.id, tab, selectedZone.id);
                           const value = priceValues[k] ?? "";
                           return (
-                            <input
-                              type="number"
-                              step="0.001"
-                              min="0"
-                              value={value}
-                              onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
-                              onBlur={(e) => handlePriceBlur(product.id, selectedZone.id, e.target.value)}
-                              placeholder="—"
-                              className={`w-full rounded-md border px-2 py-1.5 text-sm ${
-                                errorPriceKey === k
-                                  ? "border-btm-red"
-                                  : savingPriceKey === k
-                                    ? "border-btm-navy"
-                                    : "border-black/15"
-                              }`}
-                            />
+                            <div className="relative">
+                              <input
+                                type="number"
+                                step="0.001"
+                                min="0"
+                                value={value}
+                                onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
+                                onBlur={(e) => handlePriceBlur(product.id, selectedZone.id, e.target.value)}
+                                placeholder="—"
+                                className={`w-full rounded-md border px-2 py-1.5 pr-14 text-sm ${
+                                  errorPriceKey === k
+                                    ? "border-btm-red"
+                                    : savingPriceKey === k
+                                      ? "border-btm-navy"
+                                      : "border-black/15"
+                                }`}
+                              />
+                              <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-btm-black/40">
+                                USD/tn
+                              </span>
+                            </div>
                           );
                         })()}
                       </label>
@@ -330,7 +335,7 @@ export function ProductsPricesTable({
             <tr>
               <th className="px-4 py-3">Producto</th>
               <th className="w-28 px-3 py-3">Estado</th>
-              <th className="w-44 px-3 py-3">Precio USD/tn{selectedZone ? ` · ${selectedZone.name}` : ""}</th>
+              <th className="w-48 px-3 py-3">Precio{selectedZone ? ` · ${selectedZone.name}` : ""}</th>
               <th className="w-24 px-3 py-3">Acciones</th>
             </tr>
           </thead>
@@ -374,22 +379,27 @@ export function ProductsPricesTable({
                       const k = priceKey(product.id, tab, selectedZone.id);
                       const value = priceValues[k] ?? "";
                       return (
-                        <input
-                          type="number"
-                          step="0.001"
-                          min="0"
-                          value={value}
-                          onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
-                          onBlur={(e) => handlePriceBlur(product.id, selectedZone.id, e.target.value)}
-                          placeholder="—"
-                          className={`w-32 rounded-md border px-2 py-1.5 text-sm ${
-                            errorPriceKey === k
-                              ? "border-btm-red"
-                              : savingPriceKey === k
-                                ? "border-btm-navy"
-                                : "border-black/15"
-                          }`}
-                        />
+                        <div className="relative w-40">
+                          <input
+                            type="number"
+                            step="0.001"
+                            min="0"
+                            value={value}
+                            onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
+                            onBlur={(e) => handlePriceBlur(product.id, selectedZone.id, e.target.value)}
+                            placeholder="—"
+                            className={`w-full rounded-md border px-2 py-1.5 pr-14 text-sm ${
+                              errorPriceKey === k
+                                ? "border-btm-red"
+                                : savingPriceKey === k
+                                  ? "border-btm-navy"
+                                  : "border-black/15"
+                            }`}
+                          />
+                          <span className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[11px] text-btm-black/40">
+                            USD/tn
+                          </span>
+                        </div>
                       );
                     })()}
                   </td>
