@@ -48,6 +48,8 @@ export function ProductsPricesTable({
 }) {
   const [createState, createAction, createPending] = useActionState(createProduct, undefined);
   const [tab, setTab] = useState<PackagingType>("GRANEL");
+  const [zoneId, setZoneId] = useState<string>(zones[0]?.id ?? "");
+  const selectedZone = zones.find((z) => z.id === zoneId) ?? zones[0];
 
   const [names, setNames] = useState<Record<string, string>>(() =>
     Object.fromEntries(products.map((p) => [p.id, p.name])),
@@ -159,21 +161,34 @@ export function ProductsPricesTable({
       </form>
       {createState?.error && <p className="text-sm font-medium text-btm-red">{createState.error}</p>}
 
-      <div className="flex gap-2">
-        {PRICEABLE_PACKAGING_TYPES.map((t) => (
-          <button
-            key={t}
-            type="button"
-            onClick={() => setTab(t)}
-            className={`cursor-pointer rounded-full px-4 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors ${
-              tab === t ? "bg-btm-navy text-white" : "border border-btm-navy text-btm-navy hover:bg-btm-navy/10"
-            }`}
-          >
-            {TAB_LABELS[t] ?? PACKAGING_LABELS[t]}
-          </button>
-        ))}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="flex gap-2">
+          {PRICEABLE_PACKAGING_TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              className={`cursor-pointer rounded-full px-4 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors ${
+                tab === t ? "bg-btm-navy text-white" : "border border-btm-navy text-btm-navy hover:bg-btm-navy/10"
+              }`}
+            >
+              {TAB_LABELS[t] ?? PACKAGING_LABELS[t]}
+            </button>
+          ))}
+        </div>
+        <select
+          value={zoneId}
+          onChange={(e) => setZoneId(e.target.value)}
+          className="cursor-pointer rounded-full border border-btm-navy px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+        >
+          {zones.map((z) => (
+            <option key={z.id} value={z.id}>
+              {z.name}
+            </option>
+          ))}
+        </select>
       </div>
-      <p className="text-xs text-btm-black/50">Precios en USD por tonelada para el envase seleccionado. Los cambios se guardan automáticamente.</p>
+      <p className="text-xs text-btm-black/50">Precios en USD por tonelada para el envase y la zona seleccionados. Los cambios se guardan automáticamente.</p>
 
       {/* Mobile: one card per product, zone prices stacked inside */}
       <div className="flex flex-col gap-3 lg:hidden">
@@ -267,33 +282,35 @@ export function ProductsPricesTable({
                   >
                     {product.active ? "Activo" : "Inactivo"}
                   </button>
-                  <div className="grid grid-cols-2 gap-2 border-t border-black/10 pt-3">
-                    {zones.map((zone) => {
-                      const k = priceKey(product.id, tab, zone.id);
-                      const value = priceValues[k] ?? "";
-                      return (
-                        <label key={zone.id} className="flex flex-col gap-1">
-                          <span className="text-[11px] text-btm-black/50">{zone.name}</span>
-                          <input
-                            type="number"
-                            step="0.001"
-                            min="0"
-                            value={value}
-                            onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
-                            onBlur={(e) => handlePriceBlur(product.id, zone.id, e.target.value)}
-                            placeholder="—"
-                            className={`w-full rounded-md border px-2 py-1.5 text-sm ${
-                              errorPriceKey === k
-                                ? "border-btm-red"
-                                : savingPriceKey === k
-                                  ? "border-btm-navy"
-                                  : "border-black/15"
-                            }`}
-                          />
-                        </label>
-                      );
-                    })}
-                  </div>
+                  {selectedZone && (
+                    <div className="border-t border-black/10 pt-3">
+                      <label className="flex flex-col gap-1">
+                        <span className="text-[11px] text-btm-black/50">Precio · {selectedZone.name}</span>
+                        {(() => {
+                          const k = priceKey(product.id, tab, selectedZone.id);
+                          const value = priceValues[k] ?? "";
+                          return (
+                            <input
+                              type="number"
+                              step="0.001"
+                              min="0"
+                              value={value}
+                              onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
+                              onBlur={(e) => handlePriceBlur(product.id, selectedZone.id, e.target.value)}
+                              placeholder="—"
+                              className={`w-full rounded-md border px-2 py-1.5 text-sm ${
+                                errorPriceKey === k
+                                  ? "border-btm-red"
+                                  : savingPriceKey === k
+                                    ? "border-btm-navy"
+                                    : "border-black/15"
+                              }`}
+                            />
+                          );
+                        })()}
+                      </label>
+                    </div>
+                  )}
                 </>
               )}
             </div>
@@ -306,16 +323,14 @@ export function ProductsPricesTable({
         )}
       </div>
 
-      {/* Desktop: single table with product management + price grid */}
-      <div className="hidden overflow-x-auto rounded-lg border border-black/10 lg:block">
-        <table className="w-full min-w-[1100px] text-sm">
+      {/* Desktop: single table with product management + price for the selected envase/zona */}
+      <div className="hidden rounded-lg border border-black/10 lg:block">
+        <table className="w-full text-sm">
           <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
             <tr>
-              <th className="sticky left-0 bg-btm-navy px-4 py-3">Producto</th>
+              <th className="px-4 py-3">Producto</th>
               <th className="w-28 px-3 py-3">Estado</th>
-              {zones.map((z) => (
-                <th key={z.id} className="px-3 py-3">{z.name}</th>
-              ))}
+              <th className="w-40 px-3 py-3">Precio{selectedZone ? ` · ${selectedZone.name}` : ""}</th>
               <th className="w-24 px-3 py-3">Acciones</th>
             </tr>
           </thead>
@@ -325,7 +340,7 @@ export function ProductsPricesTable({
               const isConfirmingDelete = confirmDeleteId === product.id;
               return (
                 <tr key={product.id} className={product.active ? "" : "opacity-50"}>
-                  <td className="sticky left-0 bg-white px-4 py-2 font-medium">
+                  <td className="px-4 py-2 font-medium">
                     {isEditing ? (
                       <input
                         autoFocus
@@ -354,20 +369,20 @@ export function ProductsPricesTable({
                       {product.active ? "Activo" : "Inactivo"}
                     </button>
                   </td>
-                  {zones.map((zone) => {
-                    const k = priceKey(product.id, tab, zone.id);
-                    const value = priceValues[k] ?? "";
-                    return (
-                      <td key={zone.id} className="px-2 py-1.5">
+                  <td className="px-2 py-1.5">
+                    {selectedZone && (() => {
+                      const k = priceKey(product.id, tab, selectedZone.id);
+                      const value = priceValues[k] ?? "";
+                      return (
                         <input
                           type="number"
                           step="0.001"
                           min="0"
                           value={value}
                           onChange={(e) => setPriceValues((prev) => ({ ...prev, [k]: e.target.value }))}
-                          onBlur={(e) => handlePriceBlur(product.id, zone.id, e.target.value)}
+                          onBlur={(e) => handlePriceBlur(product.id, selectedZone.id, e.target.value)}
                           placeholder="—"
-                          className={`w-24 rounded-md border px-2 py-1.5 text-sm ${
+                          className={`w-32 rounded-md border px-2 py-1.5 text-sm ${
                             errorPriceKey === k
                               ? "border-btm-red"
                               : savingPriceKey === k
@@ -375,9 +390,9 @@ export function ProductsPricesTable({
                                 : "border-black/15"
                           }`}
                         />
-                      </td>
-                    );
-                  })}
+                      );
+                    })()}
+                  </td>
                   <td className="px-3 py-2">
                     {isEditing ? (
                       <div className="flex gap-1">
@@ -444,7 +459,7 @@ export function ProductsPricesTable({
             })}
             {products.length === 0 && (
               <tr>
-                <td colSpan={zones.length + 3} className="px-4 py-8 text-center text-btm-black/50">
+                <td colSpan={4} className="px-4 py-8 text-center text-btm-black/50">
                   No hay productos cargados.
                 </td>
               </tr>
