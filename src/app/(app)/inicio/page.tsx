@@ -66,7 +66,7 @@ const SECONDARY_ITEMS = [
 
 export default function InicioPage() {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-10 px-6 py-16">
+    <div className="flex flex-1 flex-col items-center gap-10 px-6 pt-8 pb-16 sm:pt-12">
       <div className="flex flex-col items-center gap-2 text-center">
         <Image
           src="/brand/btm-horizontal.png"
