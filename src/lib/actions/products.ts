@@ -44,3 +44,20 @@ export async function setProductActive(productId: string, active: boolean) {
   await supabase.from("products").update({ active }).eq("id", productId);
   revalidatePath("/productos");
 }
+
+export async function deleteProduct(productId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("products").delete().eq("id", productId);
+
+  revalidatePath("/productos");
+
+  if (error) {
+    return {
+      error:
+        error.code === "23503"
+          ? "No se puede eliminar: tiene notas de pedido asociadas. Podés desactivarlo en su lugar."
+          : `No se pudo eliminar: ${error.message}`,
+    };
+  }
+  return { error: undefined };
+}
