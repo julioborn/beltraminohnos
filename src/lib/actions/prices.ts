@@ -22,6 +22,6 @@ export async function updatePrice(
     .eq("packaging_type", packagingType)
     .eq("zone_id", zoneId);
 
-  revalidatePath("/precios");
+  revalidatePath("/productos");
   return { error: error?.message };
 }

@@ -16,24 +16,13 @@ const ITEMS = [
   },
   {
     href: "/productos",
-    label: "Productos",
-    description: "Catálogo y estado de productos",
+    label: "Productos y precios",
+    description: "Catálogo, estado y lista de precios por zona",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
         <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
         <path d="M3.27 6.96 12 12.01l8.73-5.05" />
         <path d="M12 22.08V12" />
-      </svg>
-    ),
-  },
-  {
-    href: "/precios",
-    label: "Precios",
-    description: "Lista de precios por zona",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <path d="M12 2v20" />
-        <path d="M17 5.5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
       </svg>
     ),
   },
@@ -81,7 +70,7 @@ export default function InicioPage() {
         </p>
       </div>
 
-      <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
         {ITEMS.map((item) => (
           <Link
             key={item.href}
