@@ -285,7 +285,7 @@ export function ProductsPricesTable({
                   {selectedZone && (
                     <div className="border-t border-black/10 pt-3">
                       <label className="flex flex-col gap-1">
-                        <span className="text-[11px] text-btm-black/50">Precio · {selectedZone.name}</span>
+                        <span className="text-[11px] text-btm-black/50">Precio USD/tn · {selectedZone.name}</span>
                         {(() => {
                           const k = priceKey(product.id, tab, selectedZone.id);
                           const value = priceValues[k] ?? "";
@@ -330,7 +330,7 @@ export function ProductsPricesTable({
             <tr>
               <th className="px-4 py-3">Producto</th>
               <th className="w-28 px-3 py-3">Estado</th>
-              <th className="w-40 px-3 py-3">Precio{selectedZone ? ` · ${selectedZone.name}` : ""}</th>
+              <th className="w-44 px-3 py-3">Precio USD/tn{selectedZone ? ` · ${selectedZone.name}` : ""}</th>
               <th className="w-24 px-3 py-3">Acciones</th>
             </tr>
           </thead>
