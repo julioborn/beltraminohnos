@@ -1,8 +1,13 @@
-import { Document, Page, Text, View, StyleSheet } from "@react-pdf/renderer";
+import fs from "fs";
+import path from "path";
+import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { formatDiaEntrega } from "@/lib/format";
 import type { OrderNoteDetail } from "./types";
+
+const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
+const ICON_SRC = { data: iconBuffer, format: "png" as const };
 
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 10, fontFamily: "Helvetica", color: "#373534" },
@@ -15,6 +20,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
+  brandRow: { flexDirection: "row", alignItems: "center", gap: 8 },
+  brandIcon: { width: 18, height: 18 },
   brand: { fontSize: 16, fontFamily: "Helvetica-Bold" },
   numero: { fontSize: 14, fontFamily: "Helvetica-Bold" },
   section: { marginBottom: 14 },
@@ -67,7 +74,10 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
     <Document>
       <Page size="A4" style={styles.page}>
         <View style={styles.headerBar}>
-          <Text style={styles.brand}>BTM · Nutrición Animal</Text>
+          <View style={styles.brandRow}>
+            <Image src={ICON_SRC} style={styles.brandIcon} />
+            <Text style={styles.brand}>BTM · Nutrición Animal</Text>
+          </View>
           <Text style={styles.numero}>{order.numero}</Text>
         </View>
 

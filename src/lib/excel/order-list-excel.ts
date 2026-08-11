@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { formatDiaEntrega } from "@/lib/format";
+import { addBrandHeader } from "./brand-header";
 import type { OrderListItem } from "@/lib/pdf/types";
 
 const NAVY = "FF21305D";
@@ -9,6 +10,9 @@ const NAVY = "FF21305D";
 export async function buildOrderListWorkbook(orders: OrderListItem[]) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Notas de pedido");
+
+  addBrandHeader(workbook, sheet);
+  sheet.addRow([]);
 
   const headerRow = sheet.addRow([
     "N°",

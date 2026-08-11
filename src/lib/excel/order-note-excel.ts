@@ -2,6 +2,7 @@ import ExcelJS from "exceljs";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { formatDiaEntrega } from "@/lib/format";
+import { addBrandHeader } from "./brand-header";
 import type { OrderNoteDetail } from "@/lib/pdf/types";
 
 const NAVY = "FF21305D";
@@ -10,10 +11,10 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Nota de pedido");
 
-  sheet.addRow(["BTM · Nutrición Animal", "", order.numero]);
-  sheet.getRow(1).font = { bold: true, size: 14 };
+  addBrandHeader(workbook, sheet);
   sheet.addRow([]);
 
+  sheet.addRow(["Nota N°", order.numero]);
   sheet.addRow(["Cliente", order.cliente]);
   sheet.addRow(["Zona", order.zona?.name ?? ""]);
   sheet.addRow(["Provincia", order.provincia ?? ""]);

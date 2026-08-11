@@ -6,6 +6,7 @@ import {
   aggregateByZona,
   type ReportOrder,
 } from "@/lib/reports/aggregate";
+import { addBrandHeader } from "./brand-header";
 
 const NAVY = "FF21305D";
 
@@ -16,6 +17,8 @@ function addAggregateSheet(
   rows: { label: string; count: number; total: number }[],
 ) {
   const sheet = workbook.addWorksheet(name);
+  addBrandHeader(workbook, sheet);
+  sheet.addRow([]);
   const headerRow = sheet.addRow([nameColumn, "Notas", "Total USD"]);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
@@ -35,6 +38,8 @@ export async function buildReportsWorkbook(orders: ReportOrder[]) {
   addAggregateSheet(workbook, "Por zona", "Zona", aggregateByZona(orders));
 
   const productoSheet = workbook.addWorksheet("Por producto");
+  addBrandHeader(workbook, productoSheet);
+  productoSheet.addRow([]);
   const productoHeader = productoSheet.addRow(["Producto", "Cantidad", "Total USD"]);
   productoHeader.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
