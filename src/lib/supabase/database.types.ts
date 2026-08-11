@@ -14,19 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      camiones: {
+        Row: {
+          active: boolean
+          anio: number | null
+          chofer_id: string | null
+          created_at: string
+          dominio: string
+          empresa: string | null
+          id: string
+          marca_modelo: string | null
+          tipo: string
+        }
+        Insert: {
+          active?: boolean
+          anio?: number | null
+          chofer_id?: string | null
+          created_at?: string
+          dominio: string
+          empresa?: string | null
+          id?: string
+          marca_modelo?: string | null
+          tipo: string
+        }
+        Update: {
+          active?: boolean
+          anio?: number | null
+          chofer_id?: string | null
+          created_at?: string
+          dominio?: string
+          empresa?: string | null
+          id?: string
+          marca_modelo?: string | null
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "camiones_chofer_id_fkey"
+            columns: ["chofer_id"]
+            isOneToOne: false
+            referencedRelation: "choferes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       choferes: {
         Row: {
           active: boolean
+          cuil: string | null
           id: string
           name: string
         }
         Insert: {
           active?: boolean
+          cuil?: string | null
           id?: string
           name: string
         }
         Update: {
           active?: boolean
+          cuil?: string | null
           id?: string
           name?: string
         }
@@ -98,10 +145,10 @@ export type Database = {
           cliente: string
           created_at: string
           created_by: string | null
-          fecha_entrega: string | null
           estado_logistica: Database["public"]["Enums"]["logistica_status"]
           estado_produccion: Database["public"]["Enums"]["produccion_status"]
           fecha: string
+          fecha_entrega: string | null
           fecha_envio: string | null
           id: string
           localidad: string | null
@@ -117,10 +164,10 @@ export type Database = {
           cliente: string
           created_at?: string
           created_by?: string | null
-          fecha_entrega?: string | null
           estado_logistica?: Database["public"]["Enums"]["logistica_status"]
           estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           fecha?: string
+          fecha_entrega?: string | null
           fecha_envio?: string | null
           id?: string
           localidad?: string | null
@@ -136,10 +183,10 @@ export type Database = {
           cliente?: string
           created_at?: string
           created_by?: string | null
-          fecha_entrega?: string | null
           estado_logistica?: Database["public"]["Enums"]["logistica_status"]
           estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           fecha?: string
+          fecha_entrega?: string | null
           fecha_envio?: string | null
           id?: string
           localidad?: string | null

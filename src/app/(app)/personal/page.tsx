@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { PersonTable } from "./person-table";
+import { CamionesTable } from "./camiones-table";
 import {
   createVendedor,
   renameVendedor,
@@ -13,19 +14,20 @@ import {
 
 export default async function PersonalPage() {
   const supabase = await createClient();
-  const [{ data: vendedores }, { data: choferes }] = await Promise.all([
+  const [{ data: vendedores }, { data: choferes }, { data: camiones }] = await Promise.all([
     supabase.from("vendedores").select("id, name, active").order("name"),
     supabase.from("choferes").select("id, name, active").order("name"),
+    supabase.from("camiones").select("id, tipo, marca_modelo, anio, empresa, dominio, chofer_id, active").order("dominio"),
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-10 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-col gap-10 px-4 py-6 sm:px-6">
       <div>
         <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
           Personal
         </h1>
         <p className="text-sm text-btm-black/60">
-          Vendedores y choferes disponibles para las notas de pedido. Los inactivos dejan de aparecer como opción al cargar una nota nueva, pero se conservan en las notas existentes.
+          Vendedores, choferes y flota disponibles para las notas de pedido. Los inactivos dejan de aparecer como opción al cargar una nota nueva, pero se conservan en las notas existentes.
         </p>
       </div>
 
@@ -46,13 +48,18 @@ export default async function PersonalPage() {
         <h2 className="font-display text-lg font-bold uppercase tracking-wide text-btm-black">Choferes</h2>
         <PersonTable
           people={choferes ?? []}
-          placeholder="Ej: BRITEZ"
+          placeholder="Ej: BRITEZ ANTONIO"
           emptyLabel="No hay choferes cargados."
           createAction={createChofer}
           renameAction={renameChofer}
           setActiveAction={setChoferActive}
           deleteAction={deleteChofer}
         />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-lg font-bold uppercase tracking-wide text-btm-black">Flota</h2>
+        <CamionesTable camiones={camiones ?? []} choferes={choferes ?? []} />
       </section>
     </div>
   );
