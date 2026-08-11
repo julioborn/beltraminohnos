@@ -40,7 +40,7 @@ export async function buildReportsWorkbook(orders: ReportOrder[]) {
   const productoSheet = workbook.addWorksheet("Por producto");
   addBrandHeader(workbook, productoSheet);
   productoSheet.addRow([]);
-  const productoHeader = productoSheet.addRow(["Producto", "Cantidad", "Total USD"]);
+  const productoHeader = productoSheet.addRow(["Producto", "Cantidad (tn)", "Total USD"]);
   productoHeader.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };

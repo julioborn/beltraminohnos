@@ -126,7 +126,7 @@ function ProductTable({ title, rows }: { title: string; rows: ProductAggregateRo
           <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
             <tr>
               <th className="px-3 py-2.5">Producto</th>
-              <th className="px-3 py-2.5 text-right">Cantidad</th>
+              <th className="px-3 py-2.5 text-right">Cantidad (tn)</th>
               <th className="px-3 py-2.5 text-right">Total</th>
             </tr>
           </thead>
@@ -134,7 +134,9 @@ function ProductTable({ title, rows }: { title: string; rows: ProductAggregateRo
             {rows.map((row) => (
               <tr key={row.label}>
                 <td className="max-w-0 truncate px-3 py-2 font-medium">{row.label}</td>
-                <td className="px-3 py-2 text-right text-btm-black/70">{row.cantidad}</td>
+                <td className="px-3 py-2 text-right text-btm-black/70">
+                  {row.cantidad.toLocaleString("es-AR", { maximumFractionDigits: 2 })}
+                </td>
                 <td className="px-3 py-2 text-right font-semibold text-btm-navy">{formatUsd(row.total)}</td>
               </tr>
             ))}
