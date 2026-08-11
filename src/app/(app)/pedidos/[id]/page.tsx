@@ -61,7 +61,7 @@ export default async function NotaDetallePage({
                 <form action={marcarFabricadoAction} className="flex-1">
                   <button
                     type="submit"
-                    className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                    className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                   >
                     Marcar como {PRODUCCION_LABELS.FABRICADO}
                   </button>
@@ -71,7 +71,7 @@ export default async function NotaDetallePage({
                 <form action={marcarEntregadoAction} className="flex-1">
                   <button
                     type="submit"
-                    className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                    className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                   >
                     Marcar como {LOGISTICA_LABELS.ENTREGADO}
                   </button>
@@ -108,8 +108,25 @@ export default async function NotaDetallePage({
           </Card>
 
           <Card title="Productos">
-            <p className="-mt-1 mb-1 text-xs text-btm-black/50 sm:hidden">Deslizá para ver precio y subtotal →</p>
-            <div className="overflow-x-auto rounded-lg border border-black/10">
+            {/* Mobile: stacked cards, no horizontal scroll needed */}
+            <div className="flex flex-col gap-2 sm:hidden">
+              {order.items.map((item) => (
+                <div key={item.id} className="flex flex-col gap-1 rounded-lg border border-black/10 p-3">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-sm font-medium">{item.product?.name}</p>
+                    <p className="shrink-0 font-semibold text-btm-navy">
+                      ${(item.cantidad * item.precio_unitario).toFixed(2)}
+                    </p>
+                  </div>
+                  <p className="text-xs text-btm-black/60">
+                    {PACKAGING_LABELS[item.tipo_envase as PackagingType]} · {item.cantidad} x ${item.precio_unitario.toFixed(3)}
+                  </p>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop: table */}
+            <div className="hidden overflow-x-auto rounded-lg border border-black/10 sm:block">
               <table className="w-full min-w-[500px] text-sm">
                 <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
                   <tr>
@@ -135,16 +152,10 @@ export default async function NotaDetallePage({
                     </tr>
                   ))}
                 </tbody>
-                <tfoot>
-                  <tr className="border-t border-black/10 bg-black/[.02]">
-                    <td colSpan={4} className="px-4 py-2.5 text-right text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-                      Total
-                    </td>
-                    <td className="px-4 py-2.5 font-display font-bold text-btm-navy">${total.toFixed(2)}</td>
-                  </tr>
-                </tfoot>
               </table>
             </div>
+
+            <p className="text-right font-display text-sm font-bold text-btm-navy">Total: ${total.toFixed(2)}</p>
           </Card>
 
           <Card title="Detalles de envío">
@@ -167,7 +178,7 @@ export default async function NotaDetallePage({
                   <form action={marcarFabricadoAction}>
                     <button
                       type="submit"
-                      className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                      className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
                       Marcar como {PRODUCCION_LABELS.FABRICADO}
                     </button>
@@ -177,7 +188,7 @@ export default async function NotaDetallePage({
                   <form action={marcarEntregadoAction}>
                     <button
                       type="submit"
-                      className="w-full rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                      className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
                       Marcar como {LOGISTICA_LABELS.ENTREGADO}
                     </button>

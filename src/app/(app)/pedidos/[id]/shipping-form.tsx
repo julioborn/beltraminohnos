@@ -79,7 +79,7 @@ export function ShippingForm({
       </div>
       <button
         type="submit"
-        className="self-start rounded-full border border-btm-navy px-5 py-2 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white sm:col-span-2"
+        className="w-full cursor-pointer rounded-full border border-btm-navy px-5 py-2 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white sm:col-span-2 sm:w-auto sm:self-start"
       >
         Guardar cambios
       </button>
