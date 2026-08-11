@@ -86,7 +86,7 @@ export default function InicioPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="group flex flex-col items-center gap-4 rounded-2xl border border-black/10 bg-white px-6 py-10 text-center shadow-sm transition-all hover:-translate-y-1 hover:border-btm-navy hover:shadow-lg"
+            className="group flex flex-col items-center gap-4 rounded-2xl border border-black/10 bg-white px-6 py-10 text-center shadow-sm transition-colors hover:border-btm-navy"
           >
             <span className="flex h-16 w-16 items-center justify-center rounded-full bg-btm-navy/10 text-btm-navy transition-colors group-hover:bg-btm-navy group-hover:text-white">
               {item.icon}
@@ -104,7 +104,7 @@ export default function InicioPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="group flex items-center gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 text-left shadow-sm transition-all hover:-translate-y-0.5 hover:border-btm-navy hover:shadow-lg"
+            className="group flex items-center gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 text-left shadow-sm transition-colors hover:border-btm-navy"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-navy/10 text-btm-navy transition-colors group-hover:bg-btm-navy group-hover:text-white">
               {item.icon}
