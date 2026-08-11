@@ -5,6 +5,7 @@ import { getOrderNoteDetail } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge, LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { marcarEntregado, marcarFabricado, updateShippingDetails } from "@/lib/actions/order-notes";
+import { formatFecha } from "@/lib/format";
 import { ShippingForm } from "./shipping-form";
 
 export default async function NotaDetallePage({
@@ -42,7 +43,7 @@ export default async function NotaDetallePage({
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-btm-black/50">
-              Nota {order.numero} · {order.fecha}
+              Nota {order.numero} · {formatFecha(order.fecha)}
             </p>
             <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy sm:text-3xl">
               {order.cliente}

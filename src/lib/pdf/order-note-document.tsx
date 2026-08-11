@@ -3,7 +3,7 @@ import path from "path";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
-import { formatDiaEntrega } from "@/lib/format";
+import { formatDiaEntrega, formatFecha } from "@/lib/format";
 import type { OrderNoteDetail } from "./types";
 
 const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
@@ -86,7 +86,7 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
           <View style={styles.fieldGrid}>
             <Field label="Cliente" value={order.cliente} />
             <Field label="Zona" value={order.zona?.name ?? "—"} />
-            <Field label="Fecha" value={order.fecha} />
+            <Field label="Fecha" value={formatFecha(order.fecha)} />
             <Field label="Provincia" value={order.provincia ?? "—"} />
             <Field label="Localidad" value={order.localidad ?? "—"} />
             <Field label="Día de entrega" value={formatDiaEntrega(order.fecha_entrega) ?? "—"} />

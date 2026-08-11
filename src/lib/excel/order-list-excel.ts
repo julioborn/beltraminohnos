@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
-import { formatDiaEntrega } from "@/lib/format";
+import { formatDiaEntrega, formatFecha } from "@/lib/format";
 import { addBrandHeader } from "./brand-header";
 import type { OrderListItem } from "@/lib/pdf/types";
 
@@ -37,7 +37,7 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
   for (const order of orders) {
     sheet.addRow([
       order.numero,
-      order.fecha,
+      formatFecha(order.fecha),
       order.cliente,
       order.zona?.name ?? "",
       order.provincia ?? "",
@@ -50,7 +50,7 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
       LOGISTICA_LABELS[order.estado_logistica],
       PRODUCCION_LABELS[order.estado_produccion],
       formatDiaEntrega(order.fecha_entrega) ?? "",
-      order.fecha_envio ?? "",
+      order.fecha_envio ? formatFecha(order.fecha_envio) : "",
     ]);
   }
 

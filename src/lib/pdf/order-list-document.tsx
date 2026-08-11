@@ -3,6 +3,7 @@ import path from "path";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
+import { formatFecha } from "@/lib/format";
 import type { OrderListItem } from "./types";
 
 const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
@@ -68,7 +69,7 @@ export function OrderListDocument({ orders }: { orders: OrderListItem[] }) {
           {orders.map((order) => (
             <View key={order.id} style={styles.tableRow}>
               <Text style={styles.cNumero}>{order.numero}</Text>
-              <Text style={styles.cFecha}>{order.fecha}</Text>
+              <Text style={styles.cFecha}>{formatFecha(order.fecha)}</Text>
               <Text style={styles.cCliente}>{order.cliente}</Text>
               <Text style={styles.cZona}>{order.zona?.name ?? "—"}</Text>
               <Text style={styles.cProductos}>
