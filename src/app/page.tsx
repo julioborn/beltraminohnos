@@ -20,7 +20,7 @@ export default async function HomePage({
         aria-hidden
       />
 
-      <div className="relative flex flex-col items-center gap-8 rounded-2xl bg-white p-8 shadow-[0_1px_2px_rgba(0,0,0,0.04),0_24px_48px_-24px_rgba(33,48,93,0.35)] sm:p-12">
+      <div className="relative flex flex-col items-center gap-8 rounded-2xl bg-white p-8 shadow-[0_0_2px_rgba(0,0,0,0.06),0_0_40px_rgba(33,48,93,0.2)] sm:p-12">
         <div className="flex flex-col items-center gap-2">
           <Image
             src="/brand/btm-horizontal-tagline.png"
