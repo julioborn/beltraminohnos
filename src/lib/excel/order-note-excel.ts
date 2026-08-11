@@ -28,7 +28,7 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   sheet.addRow(["Observaciones", order.observaciones ?? ""]);
   sheet.addRow([]);
 
-  const headerRow = sheet.addRow(["Producto", "Envase", "Cantidad", "Precio USD/kg", "Subtotal USD"]);
+  const headerRow = sheet.addRow(["Producto", "Envase", "Cantidad", "Precio USD/tn", "Subtotal USD"]);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };

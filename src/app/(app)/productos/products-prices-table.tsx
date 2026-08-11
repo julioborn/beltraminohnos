@@ -173,7 +173,7 @@ export function ProductsPricesTable({
           </button>
         ))}
       </div>
-      <p className="text-xs text-btm-black/50">Precios en USD por kg para el envase seleccionado. Los cambios se guardan automáticamente.</p>
+      <p className="text-xs text-btm-black/50">Precios en USD por tonelada para el envase seleccionado. Los cambios se guardan automáticamente.</p>
 
       {/* Mobile: one card per product, zone prices stacked inside */}
       <div className="flex flex-col gap-3 lg:hidden">

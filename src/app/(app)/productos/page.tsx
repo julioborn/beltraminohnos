@@ -16,7 +16,7 @@ export default async function ProductosPage() {
           Productos y precios
         </h1>
         <p className="text-sm text-btm-black/60">
-          Catálogo de productos y su lista de precios en USD por kg, según envase y zona.
+          Catálogo de productos y su lista de precios en USD por tonelada, según envase y zona.
         </p>
       </div>
       <ProductsPricesTable products={products ?? []} zones={zones ?? []} prices={prices ?? []} />

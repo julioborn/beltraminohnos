@@ -253,7 +253,7 @@ export function OrderForm({
 
                 <div className="flex flex-col gap-1">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    Precio USD/kg
+                    Precio USD/tn
                   </span>
                   <span className="px-2 py-1.5 text-sm">
                     {price === null ? (
