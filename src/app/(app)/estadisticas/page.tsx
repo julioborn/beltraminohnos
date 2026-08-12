@@ -9,7 +9,7 @@ import {
   totalFacturado,
 } from "@/lib/reports/aggregate";
 import { formatUsd } from "@/lib/format";
-import { BarList } from "@/components/bar-list";
+import { TopSections } from "./top-sections";
 
 export default async function EstadisticasPage({
   searchParams,
@@ -93,22 +93,7 @@ export default async function EstadisticasPage({
         />
       </div>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Top zonas</h2>
-          <BarList rows={porZona.map((r) => ({ label: r.label, value: r.total }))} formatValue={formatUsd} />
-        </section>
-
-        <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Top productos</h2>
-          <BarList rows={porProducto.map((r) => ({ label: r.label, value: r.total }))} formatValue={formatUsd} />
-        </section>
-
-        <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Top vendedores</h2>
-          <BarList rows={porVendedor.map((r) => ({ label: r.label, value: r.total }))} formatValue={formatUsd} />
-        </section>
-      </div>
+      <TopSections porZona={porZona} porProducto={porProducto} porVendedor={porVendedor} />
     </div>
   );
 }

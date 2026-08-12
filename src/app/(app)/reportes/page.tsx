@@ -6,10 +6,9 @@ import {
   aggregateByVendedor,
   aggregateByZona,
   totalFacturado,
-  type AggregateRow,
-  type ProductAggregateRow,
 } from "@/lib/reports/aggregate";
 import { formatUsd } from "@/lib/format";
+import { ReportSections } from "./report-sections";
 
 export default async function ReportesPage({
   searchParams,
@@ -72,84 +71,7 @@ export default async function ReportesPage({
         </div>
       </form>
 
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <ReportTable title="Ventas por cliente" rows={porCliente} />
-        <ReportTable title="Ventas por vendedor" rows={porVendedor} />
-        <ReportTable title="Ventas por zona" rows={porZona} />
-        <ProductTable title="Ventas por producto" rows={porProducto} />
-      </div>
+      <ReportSections porCliente={porCliente} porVendedor={porVendedor} porZona={porZona} porProducto={porProducto} />
     </div>
-  );
-}
-
-function ReportTable({ title, rows }: { title: string; rows: AggregateRow[] }) {
-  return (
-    <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-      <div className="overflow-hidden rounded-lg border border-black/10">
-        <table className="w-full text-sm">
-          <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
-            <tr>
-              <th className="px-3 py-2.5">Nombre</th>
-              <th className="px-3 py-2.5 text-right">Notas</th>
-              <th className="px-3 py-2.5 text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {rows.map((row) => (
-              <tr key={row.label}>
-                <td className="max-w-0 truncate px-3 py-2 font-medium">{row.label}</td>
-                <td className="px-3 py-2 text-right text-btm-black/70">{row.count}</td>
-                <td className="px-3 py-2 text-right font-semibold text-btm-navy">{formatUsd(row.total)}</td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-3 py-6 text-center text-btm-black/50">
-                  Sin datos para este período.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
-  );
-}
-
-function ProductTable({ title, rows }: { title: string; rows: ProductAggregateRow[] }) {
-  return (
-    <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-      <div className="overflow-hidden rounded-lg border border-black/10">
-        <table className="w-full text-sm">
-          <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
-            <tr>
-              <th className="px-3 py-2.5">Producto</th>
-              <th className="px-3 py-2.5 text-right">Cantidad (tn)</th>
-              <th className="px-3 py-2.5 text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {rows.map((row) => (
-              <tr key={row.label}>
-                <td className="max-w-0 truncate px-3 py-2 font-medium">{row.label}</td>
-                <td className="px-3 py-2 text-right text-btm-black/70">
-                  {row.cantidad.toLocaleString("es-AR", { maximumFractionDigits: 2 })}
-                </td>
-                <td className="px-3 py-2 text-right font-semibold text-btm-navy">{formatUsd(row.total)}</td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-3 py-6 text-center text-btm-black/50">
-                  Sin datos para este período.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
   );
 }
