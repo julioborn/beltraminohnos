@@ -182,6 +182,8 @@ export default async function NotaDetallePage({
               action={updateShippingAction}
               choferes={masterData.choferes}
               choferId={order.chofer?.id ?? ""}
+              camiones={masterData.camiones}
+              camionId={order.camion?.id ?? ""}
               fechaEntrega={order.fecha_entrega ?? ""}
               fechaEnvio={order.fecha_envio ?? ""}
               observaciones={order.observaciones ?? ""}

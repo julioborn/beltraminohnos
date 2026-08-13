@@ -89,6 +89,7 @@ export async function marcarFabricado(orderId: string) {
 }
 
 export async function updateShippingDetails(orderId: string, formData: FormData) {
+  const camionId = String(formData.get("camion_id") ?? "") || null;
   const choferId = String(formData.get("chofer_id") ?? "") || null;
   const fechaEntrega = String(formData.get("fecha_entrega") ?? "") || null;
   const fechaEnvio = String(formData.get("fecha_envio") ?? "") || null;
@@ -98,6 +99,7 @@ export async function updateShippingDetails(orderId: string, formData: FormData)
   const { error } = await supabase
     .from("order_notes")
     .update({
+      camion_id: camionId,
       chofer_id: choferId,
       fecha_entrega: fechaEntrega,
       fecha_envio: fechaEnvio,
