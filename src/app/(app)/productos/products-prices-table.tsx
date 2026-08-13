@@ -138,57 +138,84 @@ export function ProductsPricesTable({
 
   return (
     <div className="flex flex-col gap-6">
-      <form action={createAction} className="flex items-end gap-3 rounded-lg border border-black/10 p-4">
-        <div className="flex flex-1 flex-col gap-1">
-          <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-            Nuevo producto
-          </label>
-          <input
-            id="name"
-            name="name"
-            required
-            placeholder="Ej: TERNERO 16%"
-            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={createPending}
-          className="cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60"
-        >
-          {createPending ? "Agregando..." : "Agregar"}
-        </button>
-      </form>
-      {createState?.error && <p className="text-sm font-medium text-btm-red">{createState.error}</p>}
-
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="flex gap-2">
-          {PRICEABLE_PACKAGING_TYPES.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`cursor-pointer rounded-full px-4 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors ${
-                tab === t ? "bg-btm-navy text-white" : "border border-btm-navy text-btm-navy hover:bg-btm-navy/10"
-              }`}
+      <div className="btm-card flex flex-col gap-6 p-5 sm:p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
+              Productos y precios
+            </h1>
+            <p className="text-sm text-btm-black/60">
+              Catálogo de productos y su lista de precios en USD por tonelada, según envase y zona.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <a
+              href="/productos/pdf"
+              className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
-              {TAB_LABELS[t] ?? PACKAGING_LABELS[t]}
-            </button>
-          ))}
+              PDF
+            </a>
+            <a
+              href="/productos/excel"
+              className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            >
+              Excel
+            </a>
+          </div>
         </div>
-        <select
-          value={zoneId}
-          onChange={(e) => setZoneId(e.target.value)}
-          className="cursor-pointer rounded-full border border-btm-navy px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-        >
-          {zones.map((z) => (
-            <option key={z.id} value={z.id}>
-              {z.name}
-            </option>
-          ))}
-        </select>
+
+        <form action={createAction} className="flex items-end gap-3 rounded-lg border border-black/10 p-4">
+          <div className="flex flex-1 flex-col gap-1">
+            <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+              Nuevo producto
+            </label>
+            <input
+              id="name"
+              name="name"
+              required
+              placeholder="Ej: TERNERO 16%"
+              className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            />
+          </div>
+          <button
+            type="submit"
+            disabled={createPending}
+            className="cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60"
+          >
+            {createPending ? "Agregando..." : "Agregar"}
+          </button>
+        </form>
+        {createState?.error && <p className="text-sm font-medium text-btm-red">{createState.error}</p>}
+
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex gap-2">
+            {PRICEABLE_PACKAGING_TYPES.map((t) => (
+              <button
+                key={t}
+                type="button"
+                onClick={() => setTab(t)}
+                className={`cursor-pointer rounded-full px-4 py-2 font-display text-xs font-bold uppercase tracking-wide transition-colors ${
+                  tab === t ? "bg-btm-navy text-white" : "border border-btm-navy text-btm-navy hover:bg-btm-navy/10"
+                }`}
+              >
+                {TAB_LABELS[t] ?? PACKAGING_LABELS[t]}
+              </button>
+            ))}
+          </div>
+          <select
+            value={zoneId}
+            onChange={(e) => setZoneId(e.target.value)}
+            className="cursor-pointer rounded-full border border-btm-navy px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+          >
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>
+                {z.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <p className="text-xs text-btm-black/50">Precios en USD por tonelada para el envase y la zona seleccionados. Los cambios se guardan automáticamente.</p>
       </div>
-      <p className="text-xs text-btm-black/50">Precios en USD por tonelada para el envase y la zona seleccionados. Los cambios se guardan automáticamente.</p>
 
       {/* Mobile: one card per product, zone prices stacked inside */}
       <div className="flex flex-col gap-3 lg:hidden">

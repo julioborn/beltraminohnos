@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { BrandTexture } from "@/components/brand-texture";
 import { ProductsPricesTable } from "./products-prices-table";
 
 export default async function ProductosPage() {
@@ -10,32 +11,11 @@ export default async function ProductosPage() {
   ]);
 
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
-            Productos y precios
-          </h1>
-          <p className="text-sm text-btm-black/60">
-            Catálogo de productos y su lista de precios en USD por tonelada, según envase y zona.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <a
-            href="/productos/pdf"
-            className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            PDF
-          </a>
-          <a
-            href="/productos/excel"
-            className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            Excel
-          </a>
-        </div>
+    <div className="relative overflow-hidden">
+      <BrandTexture opacity={0.05} />
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-6 sm:px-6">
+        <ProductsPricesTable products={products ?? []} zones={zones ?? []} prices={prices ?? []} />
       </div>
-      <ProductsPricesTable products={products ?? []} zones={zones ?? []} prices={prices ?? []} />
     </div>
   );
 }
