@@ -21,9 +21,9 @@ const ITEMS = [
     description: "Catálogo, estado y lista de precios por zona",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-        <path d="M3.27 6.96 12 12.01l8.73-5.05" />
-        <path d="M12 22.08V12" />
+        <path d="M9 7c0-2.5 1.3-4 3-4s3 1.5 3 4" />
+        <path d="M7 7h10l1.2 12.6a2 2 0 0 1-2 2.4H7.8a2 2 0 0 1-2-2.4L7 7Z" />
+        <path d="M9.5 11h5M9.3 15h5.4" />
       </svg>
     ),
   },
@@ -85,7 +85,7 @@ export default function InicioPage() {
         </p>
       </div>
 
-      <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="relative grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
         {ITEMS.map((item) => (
           <Link
             key={item.href}
@@ -103,7 +103,7 @@ export default function InicioPage() {
         ))}
       </div>
 
-      <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="relative grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
         {SECONDARY_ITEMS.map((item) => (
           <Link
             key={item.href}
