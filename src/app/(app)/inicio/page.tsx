@@ -71,14 +71,6 @@ export default function InicioPage() {
   return (
     <div className="relative flex flex-1 flex-col items-center gap-10 overflow-hidden px-6 pt-8 pb-16 sm:pt-12">
       <BrandTexture opacity={0.05} />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(ellipse 60% 55% at 50% 38%, var(--background) 45%, transparent 85%)",
-        }}
-        aria-hidden
-      />
       <div className="relative flex flex-col items-center gap-2 text-center">
         <Image
           src="/brand/btm-horizontal.png"
