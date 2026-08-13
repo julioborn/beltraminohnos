@@ -18,6 +18,7 @@ export default async function NuevaNotaPage() {
         zones={masterData.zones}
         vendedores={masterData.vendedores}
         choferes={masterData.choferes}
+        camiones={masterData.camiones}
         priceMap={priceMap}
         clientes={clientes}
       />

@@ -17,6 +17,7 @@ export async function createOrderNote(
   const fechaEntrega = String(formData.get("fecha_entrega") ?? "") || null;
   const vendedorId = String(formData.get("vendedor_id") ?? "") || null;
   const choferId = String(formData.get("chofer_id") ?? "") || null;
+  const camionId = String(formData.get("camion_id") ?? "") || null;
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
   const provincia = String(formData.get("provincia") ?? "").trim() || null;
   const localidad = String(formData.get("localidad") ?? "").trim() || null;
@@ -53,6 +54,10 @@ export async function createOrderNote(
 
   if (error) {
     return { error: `No se pudo crear la nota: ${error.message}` };
+  }
+
+  if (camionId) {
+    await supabase.from("order_notes").update({ camion_id: camionId }).eq("id", orderId);
   }
 
   revalidatePath("/pedidos");

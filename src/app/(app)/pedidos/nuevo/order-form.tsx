@@ -10,6 +10,7 @@ import { ClienteAutocomplete } from "./cliente-autocomplete";
 type Option = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
 type Cliente = { id: string; name: string };
+type Camion = { id: string; dominio: string; tipo: string; chofer_id: string | null };
 
 type Item = {
   key: string;
@@ -27,6 +28,7 @@ export function OrderForm({
   zones,
   vendedores,
   choferes,
+  camiones,
   priceMap,
   clientes,
 }: {
@@ -34,6 +36,7 @@ export function OrderForm({
   zones: Zone[];
   vendedores: Option[];
   choferes: Option[];
+  camiones: Camion[];
   priceMap: Record<string, number | null>;
   clientes: Cliente[];
 }) {
@@ -41,6 +44,16 @@ export function OrderForm({
   const [zonaId, setZonaId] = useState("");
   const [fechaEntrega, setFechaEntrega] = useState("");
   const [items, setItems] = useState<Item[]>([emptyItem()]);
+  const [choferId, setChoferId] = useState("");
+  const [camionId, setCamionId] = useState("");
+
+  function handleCamionChange(newCamionId: string) {
+    setCamionId(newCamionId);
+    const camion = camiones.find((c) => c.id === newCamionId);
+    if (camion?.chofer_id) {
+      setChoferId(camion.chofer_id);
+    }
+  }
 
   function updateItem(key: string, patch: Partial<Item>) {
     setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -151,12 +164,34 @@ export function OrderForm({
         </div>
 
         <div className="flex flex-col gap-1">
+          <label htmlFor="camion_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+            Flota
+          </label>
+          <select
+            id="camion_id"
+            name="camion_id"
+            value={camionId}
+            onChange={(e) => handleCamionChange(e.target.value)}
+            className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+          >
+            <option value="">Sin asignar</option>
+            {camiones.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.dominio} · {c.tipo}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div className="flex flex-col gap-1">
           <label htmlFor="chofer_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
             Chofer
           </label>
           <select
             id="chofer_id"
             name="chofer_id"
+            value={choferId}
+            onChange={(e) => setChoferId(e.target.value)}
             className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           >
             <option value="">Sin asignar</option>
