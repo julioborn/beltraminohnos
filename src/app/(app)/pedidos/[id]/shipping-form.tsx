@@ -37,6 +37,8 @@ export function ShippingForm({
   const [fechaEnvioValue, setFechaEnvioValue] = useState(fechaEnvio);
   const [selectedChoferId, setSelectedChoferId] = useState(choferId);
   const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>(initialCamionIds);
+  const [buscarPorFlota, setBuscarPorFlota] = useState(false);
+  const choferNameById = useMemo(() => new Map(choferes.map((c) => [c.id, c.name])), [choferes]);
 
   const camionesDelChofer = useMemo(
     () => camiones.filter((c) => c.chofer_id === selectedChoferId),
@@ -47,6 +49,12 @@ export function ShippingForm({
     setSelectedChoferId(newChoferId);
     const camionesNuevoChofer = camiones.filter((c) => c.chofer_id === newChoferId);
     setSelectedCamionIds(camionesNuevoChofer.map((c) => c.id));
+  }
+
+  function handleFlotaPick(camionId: string) {
+    const camion = camiones.find((c) => c.id === camionId);
+    if (!camion) return;
+    handleChoferChange(camion.chofer_id ?? "");
   }
 
   function toggleCamion(camionId: string) {
@@ -62,18 +70,52 @@ export function ShippingForm({
       ))}
 
       <div className="flex flex-col gap-1">
-        <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Chofer</label>
-        <select
-          name="chofer_id"
-          value={selectedChoferId}
-          onChange={(e) => handleChoferChange(e.target.value)}
-          className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-        >
-          <option value="">Sin asignar</option>
-          {choferes.map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-1 flex-col gap-1">
+            <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Chofer</label>
+            <select
+              name="chofer_id"
+              value={selectedChoferId}
+              onChange={(e) => handleChoferChange(e.target.value)}
+              className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            >
+              <option value="">Sin asignar</option>
+              {choferes.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBuscarPorFlota((v) => !v)}
+            className={`w-full shrink-0 cursor-pointer rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors sm:w-auto ${
+              buscarPorFlota
+                ? "border-btm-navy bg-btm-navy text-white"
+                : "border-btm-navy text-btm-navy hover:bg-btm-navy/10"
+            }`}
+          >
+            Buscar por flota
+          </button>
+        </div>
+        {buscarPorFlota && (
+          <div className="mt-2 flex flex-col gap-1">
+            <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Flota</label>
+            <select
+              value=""
+              onChange={(e) => handleFlotaPick(e.target.value)}
+              className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            >
+              <option value="">Seleccionar...</option>
+              {camiones.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.dominio} · {c.tipo}
+                  {c.chofer_id ? ` · ${choferNameById.get(c.chofer_id) ?? ""}` : " · Sin chofer"}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-btm-black/50">Elegí una flota y se completa el chofer asociado.</p>
+          </div>
+        )}
       </div>
       <div className="flex flex-col gap-1">
         <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">

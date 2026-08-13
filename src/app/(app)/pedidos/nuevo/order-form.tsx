@@ -80,6 +80,8 @@ export function OrderForm({
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [choferId, setChoferId] = useState("");
   const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>([]);
+  const [buscarPorFlota, setBuscarPorFlota] = useState(false);
+  const choferNameById = useMemo(() => new Map(choferes.map((c) => [c.id, c.name])), [choferes]);
 
   const camionesDelChofer = useMemo(
     () => camiones.filter((c) => c.chofer_id === choferId),
@@ -90,6 +92,12 @@ export function OrderForm({
     setChoferId(newChoferId);
     const camionesNuevoChofer = camiones.filter((c) => c.chofer_id === newChoferId);
     setSelectedCamionIds(camionesNuevoChofer.map((c) => c.id));
+  }
+
+  function handleFlotaPick(camionId: string) {
+    const camion = camiones.find((c) => c.id === camionId);
+    if (!camion) return;
+    handleChoferChange(camion.chofer_id ?? "");
   }
 
   function toggleCamion(camionId: string) {
@@ -218,25 +226,61 @@ export function OrderForm({
       </Section>
 
       <Section number={5} title="Chofer y flota">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="chofer_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Chofer
-          </label>
-          <select
-            id="chofer_id"
-            name="chofer_id"
-            value={choferId}
-            onChange={(e) => handleChoferChange(e.target.value)}
-            className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div className="flex flex-1 flex-col gap-1">
+            <label htmlFor="chofer_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+              Chofer
+            </label>
+            <select
+              id="chofer_id"
+              name="chofer_id"
+              value={choferId}
+              onChange={(e) => handleChoferChange(e.target.value)}
+              className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            >
+              <option value="">Sin asignar</option>
+              {choferes.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            onClick={() => setBuscarPorFlota((v) => !v)}
+            className={`w-full shrink-0 cursor-pointer rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors sm:w-auto ${
+              buscarPorFlota
+                ? "border-btm-navy bg-btm-navy text-white"
+                : "border-btm-navy text-btm-navy hover:bg-btm-navy/10"
+            }`}
           >
-            <option value="">Sin asignar</option>
-            {choferes.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+            Buscar por flota
+          </button>
         </div>
+
+        {buscarPorFlota && (
+          <div className="flex flex-col gap-1">
+            <label htmlFor="flota_search" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+              Flota
+            </label>
+            <select
+              id="flota_search"
+              value=""
+              onChange={(e) => handleFlotaPick(e.target.value)}
+              className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            >
+              <option value="">Seleccionar...</option>
+              {camiones.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.dominio} · {c.tipo}
+                  {c.chofer_id ? ` · ${choferNameById.get(c.chofer_id) ?? ""}` : " · Sin chofer"}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-btm-black/50">Elegí una flota y se completa el chofer asociado.</p>
+          </div>
+        )}
 
         {choferId && (
           <div className="flex flex-col gap-2">
@@ -298,79 +342,80 @@ export function OrderForm({
             const price = priceFor(item);
             const cantidad = Number(item.cantidad) || 0;
             return (
-              <div
-                key={item.key}
-                className="grid grid-cols-1 items-end gap-2 rounded-md border border-black/10 p-3 sm:grid-cols-[2fr_1fr_1fr_1fr_auto]"
-              >
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    Producto
-                  </label>
-                  <select
-                    value={item.productId}
-                    onChange={(e) => updateItem(item.key, { productId: e.target.value })}
-                    className="rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
+              <div key={item.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3">
+                <div className="flex items-end gap-2">
+                  <div className="flex flex-1 flex-col gap-1">
+                    <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                      Producto
+                    </label>
+                    <select
+                      value={item.productId}
+                      onChange={(e) => updateItem(item.key, { productId: e.target.value })}
+                      className="w-full rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
+                    >
+                      <option value="">Seleccionar...</option>
+                      {products.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="flex w-32 shrink-0 flex-col gap-1 sm:w-40">
+                    <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                      Envase
+                    </label>
+                    <select
+                      value={item.tipoEnvase}
+                      onChange={(e) => updateItem(item.key, { tipoEnvase: e.target.value as PackagingType })}
+                      className="w-full rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
+                    >
+                      {PACKAGING_TYPES.map((t) => (
+                        <option key={t} value={t}>
+                          {PACKAGING_LABELS[t]}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.key)}
+                    className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
                   >
-                    <option value="">Seleccionar...</option>
-                    {products.map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                      </option>
-                    ))}
-                  </select>
+                    Quitar
+                  </button>
                 </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    Envase
-                  </label>
-                  <select
-                    value={item.tipoEnvase}
-                    onChange={(e) => updateItem(item.key, { tipoEnvase: e.target.value as PackagingType })}
-                    className="rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
-                  >
-                    {PACKAGING_TYPES.map((t) => (
-                      <option key={t} value={t}>
-                        {PACKAGING_LABELS[t]}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                <div className="flex items-end gap-2">
+                  <div className="flex w-28 shrink-0 flex-col gap-1 sm:w-32">
+                    <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                      Cantidad
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={item.cantidad}
+                      onChange={(e) => updateItem(item.key, { cantidad: e.target.value })}
+                      className="w-full rounded-md border border-black/15 px-2 py-1.5 text-sm"
+                    />
+                  </div>
 
-                <div className="flex flex-col gap-1">
-                  <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    Cantidad
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    value={item.cantidad}
-                    onChange={(e) => updateItem(item.key, { cantidad: e.target.value })}
-                    className="rounded-md border border-black/15 px-2 py-1.5 text-sm"
-                  />
+                  <div className="flex flex-1 flex-col gap-1">
+                    <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                      Precio USD/tn
+                    </span>
+                    <span className="px-2 py-1.5 text-sm">
+                      {price === null ? (
+                        <span className="text-btm-red">Sin precio</span>
+                      ) : (
+                        `$${price.toFixed(3)} · $${(price * cantidad).toFixed(2)}`
+                      )}
+                    </span>
+                  </div>
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    Precio USD/tn
-                  </span>
-                  <span className="px-2 py-1.5 text-sm">
-                    {price === null ? (
-                      <span className="text-btm-red">Sin precio</span>
-                    ) : (
-                      `$${price.toFixed(3)} · $${(price * cantidad).toFixed(2)}`
-                    )}
-                  </span>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={() => removeItem(item.key)}
-                  className="justify-self-start rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10 sm:justify-self-center"
-                >
-                  Quitar
-                </button>
               </div>
             );
           })}
