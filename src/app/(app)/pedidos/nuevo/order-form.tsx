@@ -63,6 +63,7 @@ export function OrderForm({
   camiones,
   priceMap,
   clientes,
+  defaultVendedorId,
 }: {
   products: Option[];
   zones: Zone[];
@@ -71,6 +72,7 @@ export function OrderForm({
   camiones: Camion[];
   priceMap: Record<string, number | null>;
   clientes: Cliente[];
+  defaultVendedorId?: string;
 }) {
   const [state, action, pending] = useActionState(createOrderNote, undefined);
   const [zonaId, setZonaId] = useState("");
@@ -149,6 +151,7 @@ export function OrderForm({
           <select
             id="vendedor_id"
             name="vendedor_id"
+            defaultValue={defaultVendedorId || ""}
             className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           >
             <option value="">Sin asignar</option>

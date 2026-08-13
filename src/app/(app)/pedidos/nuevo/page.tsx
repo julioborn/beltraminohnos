@@ -1,4 +1,5 @@
 import { getMasterData, getPriceMap, getClientes } from "@/lib/data/master-data";
+import { createClient } from "@/lib/supabase/server";
 import { OrderForm } from "./order-form";
 
 export default async function NuevaNotaPage() {
@@ -7,6 +8,12 @@ export default async function NuevaNotaPage() {
     getPriceMap(),
     getClientes(),
   ]);
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const defaultVendedorId = masterData.vendedores.find((v) => v.profile_id === user?.id)?.id ?? "";
 
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-8">
@@ -21,6 +28,7 @@ export default async function NuevaNotaPage() {
         camiones={masterData.camiones}
         priceMap={priceMap}
         clientes={clientes}
+        defaultVendedorId={defaultVendedorId}
       />
     </div>
   );

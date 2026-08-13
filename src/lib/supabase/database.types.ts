@@ -396,18 +396,29 @@ export type Database = {
           active: boolean
           id: string
           name: string
+          profile_id: string | null
         }
         Insert: {
           active?: boolean
           id?: string
           name: string
+          profile_id?: string | null
         }
         Update: {
           active?: boolean
           id?: string
           name?: string
+          profile_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "vendedores_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       zones: {
         Row: {
