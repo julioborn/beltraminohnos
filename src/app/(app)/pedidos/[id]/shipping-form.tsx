@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { formatDiaEntrega } from "@/lib/format";
 
 type Chofer = { id: string; name: string };
@@ -29,6 +29,7 @@ export function ShippingForm({
   const [fechaEnvioValue, setFechaEnvioValue] = useState(fechaEnvio);
   const [selectedChoferId, setSelectedChoferId] = useState(choferId);
   const [selectedCamionId, setSelectedCamionId] = useState(camionId);
+  const choferNameById = useMemo(() => new Map(choferes.map((c) => [c.id, c.name])), [choferes]);
 
   function handleCamionChange(newCamionId: string) {
     setSelectedCamionId(newCamionId);
@@ -50,7 +51,10 @@ export function ShippingForm({
         >
           <option value="">Sin asignar</option>
           {camiones.map((c) => (
-            <option key={c.id} value={c.id}>{c.dominio} · {c.tipo}</option>
+            <option key={c.id} value={c.id}>
+              {c.dominio} · {c.tipo}
+              {c.chofer_id ? ` · ${choferNameById.get(c.chofer_id) ?? ""}` : ""}
+            </option>
           ))}
         </select>
       </div>

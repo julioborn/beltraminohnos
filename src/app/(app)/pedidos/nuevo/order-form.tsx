@@ -46,6 +46,7 @@ export function OrderForm({
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [choferId, setChoferId] = useState("");
   const [camionId, setCamionId] = useState("");
+  const choferNameById = useMemo(() => new Map(choferes.map((c) => [c.id, c.name])), [choferes]);
 
   function handleCamionChange(newCamionId: string) {
     setCamionId(newCamionId);
@@ -178,6 +179,7 @@ export function OrderForm({
             {camiones.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.dominio} · {c.tipo}
+                {c.chofer_id ? ` · ${choferNameById.get(c.chofer_id) ?? ""}` : ""}
               </option>
             ))}
           </select>
