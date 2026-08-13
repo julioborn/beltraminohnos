@@ -61,6 +61,17 @@ export async function createOrderNote(
 
 export async function marcarEntregado(orderId: string) {
   const supabase = await createClient();
+
+  const { data: order } = await supabase
+    .from("order_notes")
+    .select("estado_produccion")
+    .eq("id", orderId)
+    .single();
+
+  if (order?.estado_produccion !== "FABRICADO") {
+    throw new Error("No se puede marcar como entregado: la producción todavía está pendiente.");
+  }
+
   const { error } = await supabase.from("order_notes").update({ estado_logistica: "ENTREGADO" }).eq("id", orderId);
   if (error) throw new Error(`No se pudo marcar como entregado: ${error.message}`);
 

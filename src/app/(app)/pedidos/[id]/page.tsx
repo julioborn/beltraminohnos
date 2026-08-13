@@ -21,8 +21,10 @@ export default async function NotaDetallePage({
   const { order, history } = detail;
 
   const total = order.items.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
-  const puedeMarcarEntregado = order.estado_logistica === "PENDIENTE";
+  const pendienteDeEntrega = order.estado_logistica === "PENDIENTE";
   const puedeMarcarFabricado = order.estado_produccion === "PENDIENTE";
+  const bloqueadoPorProduccion = pendienteDeEntrega && puedeMarcarFabricado;
+  const puedeMarcarEntregado = pendienteDeEntrega && !bloqueadoPorProduccion;
   const marcarEntregadoAction = puedeMarcarEntregado ? marcarEntregado.bind(null, order.id) : null;
   const marcarFabricadoAction = puedeMarcarFabricado ? marcarFabricado.bind(null, order.id) : null;
   const updateShippingAction = updateShippingDetails.bind(null, order.id);
@@ -56,27 +58,43 @@ export default async function NotaDetallePage({
         </div>
 
         <div className="flex flex-col gap-3 lg:hidden">
-          {(marcarEntregadoAction || marcarFabricadoAction) && (
-            <div className="flex flex-col gap-2 sm:flex-row">
-              {marcarFabricadoAction && (
-                <form action={marcarFabricadoAction} className="flex-1">
-                  <button
-                    type="submit"
-                    className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
-                  >
-                    Marcar como {PRODUCCION_LABELS.FABRICADO}
-                  </button>
-                </form>
-              )}
-              {marcarEntregadoAction && (
-                <form action={marcarEntregadoAction} className="flex-1">
-                  <button
-                    type="submit"
-                    className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
-                  >
-                    Marcar como {LOGISTICA_LABELS.ENTREGADO}
-                  </button>
-                </form>
+          {(marcarEntregadoAction || marcarFabricadoAction || bloqueadoPorProduccion) && (
+            <div className="flex flex-col gap-2">
+              <div className="flex flex-col gap-2 sm:flex-row">
+                {marcarFabricadoAction && (
+                  <form action={marcarFabricadoAction} className="flex-1">
+                    <button
+                      type="submit"
+                      className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                    >
+                      Marcar como {PRODUCCION_LABELS.FABRICADO}
+                    </button>
+                  </form>
+                )}
+                {marcarEntregadoAction ? (
+                  <form action={marcarEntregadoAction} className="flex-1">
+                    <button
+                      type="submit"
+                      className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+                    >
+                      Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                    </button>
+                  </form>
+                ) : (
+                  bloqueadoPorProduccion && (
+                    <button
+                      type="button"
+                      disabled
+                      title="Marcá primero como Fabricado"
+                      className="flex-1 cursor-not-allowed rounded-full bg-btm-black/10 px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-black/40"
+                    >
+                      Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                    </button>
+                  )
+                )}
+              </div>
+              {bloqueadoPorProduccion && (
+                <p className="text-xs text-btm-black/50">Marcá primero como Fabricado para poder entregar la nota.</p>
               )}
             </div>
           )}
@@ -185,7 +203,7 @@ export default async function NotaDetallePage({
                     </button>
                   </form>
                 )}
-                {marcarEntregadoAction && (
+                {marcarEntregadoAction ? (
                   <form action={marcarEntregadoAction}>
                     <button
                       type="submit"
@@ -194,6 +212,20 @@ export default async function NotaDetallePage({
                       Marcar como {LOGISTICA_LABELS.ENTREGADO}
                     </button>
                   </form>
+                ) : (
+                  bloqueadoPorProduccion && (
+                    <div className="flex flex-col gap-1.5">
+                      <button
+                        type="button"
+                        disabled
+                        title="Marcá primero como Fabricado"
+                        className="w-full cursor-not-allowed rounded-full bg-btm-black/10 px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-black/40"
+                      >
+                        Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                      </button>
+                      <p className="text-xs text-btm-black/50">Marcá primero como Fabricado para poder entregar la nota.</p>
+                    </div>
+                  )
                 )}
                 <div className="flex gap-2">
                   <a
