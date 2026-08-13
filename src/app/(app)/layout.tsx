@@ -30,7 +30,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
-      <header className="relative flex items-center gap-2 bg-gradient-to-r from-btm-navy to-btm-navy-deep px-4 py-3 shadow-[0_2px_12px_rgba(20,29,58,0.25)] sm:px-6">
+      <header className="relative flex items-center gap-2 border-b-[3px] border-btm-red bg-btm-navy px-4 py-3 shadow-[0_2px_12px_rgba(20,29,58,0.25)] sm:px-6">
         <MobileMenu navLinks={NAV_LINKS} fullName={fullName} />
         <Link href="/inicio" className="flex items-center">
           <Image
@@ -42,7 +42,6 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             priority
           />
         </Link>
-        <div className="absolute inset-x-0 bottom-0 h-[3px] bg-gradient-to-r from-btm-red via-btm-red/70 to-transparent" />
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>
