@@ -73,7 +73,7 @@ export function PersonalSections({
   choferes: Person[];
   camiones: Camion[];
 }) {
-  const [open, setOpen] = useState<SectionKey | null>(null);
+  const [open, setOpen] = useState<SectionKey | null>("vendedores");
 
   function toggle(key: SectionKey) {
     setOpen((prev) => (prev === key ? null : key));

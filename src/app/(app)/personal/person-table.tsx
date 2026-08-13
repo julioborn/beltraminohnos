@@ -105,7 +105,7 @@ export function PersonTable({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="btm-card flex flex-col gap-4 p-4 sm:p-6">
       <form action={action} className="flex items-end gap-3 rounded-lg border border-black/10 p-4">
         <div className="flex flex-1 flex-col gap-1">
           <label htmlFor={`name-${placeholder}`} className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">

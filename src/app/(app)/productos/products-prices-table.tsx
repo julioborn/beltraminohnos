@@ -217,6 +217,7 @@ export function ProductsPricesTable({
         <p className="text-xs text-btm-black/50">Precios en USD por tonelada para el envase y la zona seleccionados. Los cambios se guardan automáticamente.</p>
       </div>
 
+      <div className="btm-card p-3 sm:p-4">
       {/* Mobile: one card per product, zone prices stacked inside */}
       <div className="flex flex-col gap-3 lg:hidden">
         {products.map((product) => {
@@ -503,6 +504,7 @@ export function ProductsPricesTable({
             )}
           </tbody>
         </table>
+      </div>
       </div>
     </div>
   );

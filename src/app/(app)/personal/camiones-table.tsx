@@ -118,7 +118,7 @@ export function CamionesTable({ camiones, choferes }: { camiones: Camion[]; chof
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="btm-card flex flex-col gap-4 p-4 sm:p-6">
       <form action={createAction} className="flex flex-wrap items-end gap-3 rounded-lg border border-black/10 p-4">
         <div className="flex flex-col gap-1">
           <label htmlFor="dominio" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Dominio</label>
