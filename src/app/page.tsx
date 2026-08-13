@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
+import { BrandTexture } from "@/components/brand-texture";
 
 export default async function HomePage({
   searchParams,
@@ -9,16 +10,8 @@ export default async function HomePage({
   const { next } = await searchParams;
 
   return (
-    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-white px-6 py-16">
-      <div
-        className="pointer-events-none absolute inset-0 opacity-[0.06]"
-        style={{
-          backgroundImage: "url('/brand/pattern-tile.png')",
-          backgroundRepeat: "repeat",
-          backgroundSize: "85px 85px",
-        }}
-        aria-hidden
-      />
+    <div className="relative flex flex-1 flex-col items-center justify-center overflow-hidden bg-gradient-to-b from-[#eef0f6] to-[#e3e6f0] px-6 py-16">
+      <BrandTexture opacity={0.05} />
 
       <div className="relative flex flex-col items-center gap-8 rounded-2xl bg-white p-8 shadow-[0_0_2px_rgba(0,0,0,0.06),0_0_40px_rgba(33,48,93,0.2)] sm:p-12">
         <div className="flex flex-col items-center gap-2">

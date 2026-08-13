@@ -88,9 +88,9 @@ export default function InicioPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="group flex flex-col items-center gap-3 rounded-2xl border border-black/10 bg-white px-5 py-7 text-center shadow-sm transition-shadow hover:shadow-md"
+            className="btm-card btm-card-hover group flex flex-col items-center gap-3 px-5 py-8 text-center"
           >
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-btm-red/10 text-btm-red transition-colors group-hover:bg-btm-red group-hover:text-white">
+            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
               {item.icon}
             </span>
             <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
@@ -106,9 +106,9 @@ export default function InicioPage() {
           <Link
             key={item.href}
             href={item.href}
-            className="group flex items-center gap-4 rounded-2xl border border-black/10 bg-white px-5 py-5 text-left shadow-sm transition-shadow hover:shadow-md"
+            className="btm-card btm-card-hover group flex items-center gap-4 px-5 py-5 text-left"
           >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-red/10 text-btm-red transition-colors group-hover:bg-btm-red group-hover:text-white">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
               {item.icon}
             </span>
             <span className="flex flex-col gap-0.5">
