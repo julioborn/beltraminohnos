@@ -2,6 +2,7 @@
 
 import { useActionState, useMemo, useState } from "react";
 import { createOrderNote } from "@/lib/actions/order-notes";
+import { updateCamion } from "@/lib/actions/camiones";
 import { PACKAGING_TYPES, PACKAGING_LABELS, pricingPackagingType, type PackagingType } from "@/lib/packaging";
 import { formatDiaEntrega } from "@/lib/format";
 import { DestinoSelect } from "./destino-select";
@@ -81,23 +82,50 @@ export function OrderForm({
   const [choferId, setChoferId] = useState("");
   const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>([]);
   const [buscarPorFlota, setBuscarPorFlota] = useState(false);
+  const [camionesState, setCamionesState] = useState<Camion[]>(camiones);
+  const [camionSinChofer, setCamionSinChofer] = useState<Camion | null>(null);
+  const [nuevoChoferParaCamion, setNuevoChoferParaCamion] = useState("");
+  const [asignandoChofer, setAsignandoChofer] = useState(false);
   const choferNameById = useMemo(() => new Map(choferes.map((c) => [c.id, c.name])), [choferes]);
 
   const camionesDelChofer = useMemo(
-    () => camiones.filter((c) => c.chofer_id === choferId),
-    [camiones, choferId],
+    () => camionesState.filter((c) => c.chofer_id === choferId),
+    [camionesState, choferId],
   );
 
   function handleChoferChange(newChoferId: string) {
     setChoferId(newChoferId);
-    const camionesNuevoChofer = camiones.filter((c) => c.chofer_id === newChoferId);
+    const camionesNuevoChofer = camionesState.filter((c) => c.chofer_id === newChoferId);
     setSelectedCamionIds(camionesNuevoChofer.map((c) => c.id));
   }
 
   function handleFlotaPick(camionId: string) {
-    const camion = camiones.find((c) => c.id === camionId);
+    const camion = camionesState.find((c) => c.id === camionId);
     if (!camion) return;
-    handleChoferChange(camion.chofer_id ?? "");
+    if (camion.chofer_id) {
+      setCamionSinChofer(null);
+      handleChoferChange(camion.chofer_id);
+    } else {
+      setCamionSinChofer(camion);
+      setNuevoChoferParaCamion("");
+    }
+  }
+
+  async function handleAsignarChofer() {
+    if (!camionSinChofer || !nuevoChoferParaCamion) return;
+    setAsignandoChofer(true);
+    const result = await updateCamion(camionSinChofer.id, { chofer_id: nuevoChoferParaCamion });
+    setAsignandoChofer(false);
+    if (result?.error) return;
+
+    const updatedCamiones = camionesState.map((c) =>
+      c.id === camionSinChofer.id ? { ...c, chofer_id: nuevoChoferParaCamion } : c,
+    );
+    setCamionesState(updatedCamiones);
+    setChoferId(nuevoChoferParaCamion);
+    setSelectedCamionIds(updatedCamiones.filter((c) => c.chofer_id === nuevoChoferParaCamion).map((c) => c.id));
+    setCamionSinChofer(null);
+    setNuevoChoferParaCamion("");
   }
 
   function toggleCamion(camionId: string) {
@@ -271,7 +299,7 @@ export function OrderForm({
               className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
             >
               <option value="">Seleccionar...</option>
-              {camiones.map((c) => (
+              {camionesState.map((c) => (
                 <option key={c.id} value={c.id}>
                   {c.dominio} · {c.tipo}
                   {c.chofer_id ? ` · ${choferNameById.get(c.chofer_id) ?? ""}` : " · Sin chofer"}
@@ -279,6 +307,37 @@ export function OrderForm({
               ))}
             </select>
             <p className="text-xs text-btm-black/50">Elegí una flota y se completa el chofer asociado.</p>
+          </div>
+        )}
+
+        {camionSinChofer && (
+          <div className="flex flex-col gap-2 rounded-md border border-btm-red/30 bg-btm-red/5 p-3">
+            <p className="text-sm">
+              <span className="font-semibold">{camionSinChofer.dominio} · {camionSinChofer.tipo}</span> no tiene chofer
+              asignado todavía.
+            </p>
+            <div className="flex flex-col gap-2 sm:flex-row">
+              <select
+                value={nuevoChoferParaCamion}
+                onChange={(e) => setNuevoChoferParaCamion(e.target.value)}
+                className="flex-1 rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+              >
+                <option value="">Elegir chofer...</option>
+                {choferes.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="button"
+                onClick={handleAsignarChofer}
+                disabled={!nuevoChoferParaCamion || asignandoChofer}
+                className="cursor-pointer rounded-full bg-btm-navy px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {asignandoChofer ? "Asignando..." : "Asignar chofer"}
+              </button>
+            </div>
           </div>
         )}
 
