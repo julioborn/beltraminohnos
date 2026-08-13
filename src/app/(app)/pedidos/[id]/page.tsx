@@ -183,7 +183,7 @@ export default async function NotaDetallePage({
               choferes={masterData.choferes}
               choferId={order.chofer?.id ?? ""}
               camiones={masterData.camiones}
-              camionId={order.camion?.id ?? ""}
+              camionIds={order.camiones?.map((c) => c.camion?.id).filter((id): id is string => Boolean(id)) ?? []}
               fechaEntrega={order.fecha_entrega ?? ""}
               fechaEnvio={order.fecha_envio ?? ""}
               observaciones={order.observaciones ?? ""}

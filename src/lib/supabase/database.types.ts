@@ -139,9 +139,38 @@ export type Database = {
           },
         ]
       }
+      order_note_camiones: {
+        Row: {
+          camion_id: string
+          order_note_id: string
+        }
+        Insert: {
+          camion_id: string
+          order_note_id: string
+        }
+        Update: {
+          camion_id?: string
+          order_note_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_note_camiones_camion_id_fkey"
+            columns: ["camion_id"]
+            isOneToOne: false
+            referencedRelation: "camiones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_note_camiones_order_note_id_fkey"
+            columns: ["order_note_id"]
+            isOneToOne: false
+            referencedRelation: "order_notes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_notes: {
         Row: {
-          camion_id: string | null
           chofer_id: string | null
           cliente: string
           created_at: string
@@ -161,7 +190,6 @@ export type Database = {
           zona_id: string | null
         }
         Insert: {
-          camion_id?: string | null
           chofer_id?: string | null
           cliente: string
           created_at?: string
@@ -181,7 +209,6 @@ export type Database = {
           zona_id?: string | null
         }
         Update: {
-          camion_id?: string | null
           chofer_id?: string | null
           cliente?: string
           created_at?: string
@@ -201,13 +228,6 @@ export type Database = {
           zona_id?: string | null
         }
         Relationships: [
-          {
-            foreignKeyName: "order_notes_camion_id_fkey"
-            columns: ["camion_id"]
-            isOneToOne: false
-            referencedRelation: "camiones"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "order_notes_chofer_id_fkey"
             columns: ["chofer_id"]

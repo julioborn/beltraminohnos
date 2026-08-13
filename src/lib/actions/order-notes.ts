@@ -17,7 +17,7 @@ export async function createOrderNote(
   const fechaEntrega = String(formData.get("fecha_entrega") ?? "") || null;
   const vendedorId = String(formData.get("vendedor_id") ?? "") || null;
   const choferId = String(formData.get("chofer_id") ?? "") || null;
-  const camionId = String(formData.get("camion_id") ?? "") || null;
+  const camionIds = formData.getAll("camion_id").map(String).filter(Boolean);
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
   const provincia = String(formData.get("provincia") ?? "").trim() || null;
   const localidad = String(formData.get("localidad") ?? "").trim() || null;
@@ -56,8 +56,10 @@ export async function createOrderNote(
     return { error: `No se pudo crear la nota: ${error.message}` };
   }
 
-  if (camionId) {
-    await supabase.from("order_notes").update({ camion_id: camionId }).eq("id", orderId);
+  if (camionIds.length > 0) {
+    await supabase
+      .from("order_note_camiones")
+      .insert(camionIds.map((camion_id) => ({ order_note_id: orderId as string, camion_id })));
   }
 
   revalidatePath("/pedidos");
@@ -94,7 +96,7 @@ export async function marcarFabricado(orderId: string) {
 }
 
 export async function updateShippingDetails(orderId: string, formData: FormData) {
-  const camionId = String(formData.get("camion_id") ?? "") || null;
+  const camionIds = formData.getAll("camion_id").map(String).filter(Boolean);
   const choferId = String(formData.get("chofer_id") ?? "") || null;
   const fechaEntrega = String(formData.get("fecha_entrega") ?? "") || null;
   const fechaEnvio = String(formData.get("fecha_envio") ?? "") || null;
@@ -104,7 +106,6 @@ export async function updateShippingDetails(orderId: string, formData: FormData)
   const { error } = await supabase
     .from("order_notes")
     .update({
-      camion_id: camionId,
       chofer_id: choferId,
       fecha_entrega: fechaEntrega,
       fecha_envio: fechaEnvio,
@@ -112,6 +113,13 @@ export async function updateShippingDetails(orderId: string, formData: FormData)
     })
     .eq("id", orderId);
   if (error) throw new Error(`No se pudieron guardar los cambios: ${error.message}`);
+
+  await supabase.from("order_note_camiones").delete().eq("order_note_id", orderId);
+  if (camionIds.length > 0) {
+    await supabase
+      .from("order_note_camiones")
+      .insert(camionIds.map((camion_id) => ({ order_note_id: orderId, camion_id })));
+  }
 
   revalidatePath(`/pedidos/${orderId}`);
 }

@@ -10,7 +10,15 @@ import { ClienteAutocomplete } from "./cliente-autocomplete";
 type Option = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
 type Cliente = { id: string; name: string };
-type Camion = { id: string; dominio: string; tipo: string; chofer_id: string | null };
+type Camion = {
+  id: string;
+  dominio: string;
+  tipo: string;
+  marca_modelo: string | null;
+  anio: number | null;
+  empresa: string | null;
+  chofer_id: string | null;
+};
 
 type Item = {
   key: string;
@@ -21,6 +29,30 @@ type Item = {
 
 function emptyItem(): Item {
   return { key: crypto.randomUUID(), productId: "", tipoEnvase: "BOLSA", cantidad: "" };
+}
+
+function Section({
+  number,
+  title,
+  twoCol,
+  children,
+}: {
+  number: number;
+  title: string;
+  twoCol?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className="btm-card flex flex-col gap-4 p-4 sm:p-5">
+      <div className="flex items-center gap-2">
+        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-btm-navy font-display text-[11px] font-bold text-white">
+          {number}
+        </span>
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
+      </div>
+      <div className={twoCol ? "grid grid-cols-1 gap-4 sm:grid-cols-2" : "flex flex-col gap-4"}>{children}</div>
+    </section>
+  );
 }
 
 export function OrderForm({
@@ -45,15 +77,23 @@ export function OrderForm({
   const [fechaEntrega, setFechaEntrega] = useState("");
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [choferId, setChoferId] = useState("");
-  const [camionId, setCamionId] = useState("");
-  const choferNameById = useMemo(() => new Map(choferes.map((c) => [c.id, c.name])), [choferes]);
+  const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>([]);
 
-  function handleCamionChange(newCamionId: string) {
-    setCamionId(newCamionId);
-    const camion = camiones.find((c) => c.id === newCamionId);
-    if (camion?.chofer_id) {
-      setChoferId(camion.chofer_id);
-    }
+  const camionesDelChofer = useMemo(
+    () => camiones.filter((c) => c.chofer_id === choferId),
+    [camiones, choferId],
+  );
+
+  function handleChoferChange(newChoferId: string) {
+    setChoferId(newChoferId);
+    const camionesNuevoChofer = camiones.filter((c) => c.chofer_id === newChoferId);
+    setSelectedCamionIds(camionesNuevoChofer.map((c) => c.id));
+  }
+
+  function toggleCamion(camionId: string) {
+    setSelectedCamionIds((prev) =>
+      prev.includes(camionId) ? prev.filter((id) => id !== camionId) : [...prev, camionId],
+    );
   }
 
   function updateItem(key: string, patch: Partial<Item>) {
@@ -87,65 +127,21 @@ export function OrderForm({
   const total = itemsPayload.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
 
   return (
-    <form action={action} className="flex flex-col gap-6">
+    <form action={action} className="flex flex-col gap-4">
       <input type="hidden" name="items" value={JSON.stringify(itemsPayload)} />
+      {selectedCamionIds.map((id) => (
+        <input key={id} type="hidden" name="camion_id" value={id} />
+      ))}
 
-      <fieldset className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <Section number={1} title="Cliente">
         <ClienteAutocomplete clientes={clientes} />
+      </Section>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="zona_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Zona
-          </label>
-          <select
-            id="zona_id"
-            name="zona_id"
-            required
-            value={zonaId}
-            onChange={(e) => setZonaId(e.target.value)}
-            className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-          >
-            <option value="">Seleccionar...</option>
-            {zones.map((z) => (
-              <option key={z.id} value={z.id}>
-                {z.name}
-              </option>
-            ))}
-          </select>
-        </div>
-
+      <Section number={2} title="Provincia y localidad" twoCol>
         <DestinoSelect />
+      </Section>
 
-        <div className="flex flex-col gap-1">
-          <label htmlFor="fecha" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Fecha
-          </label>
-          <input
-            id="fecha"
-            name="fecha"
-            type="date"
-            defaultValue={new Date().toISOString().slice(0, 10)}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-          />
-        </div>
-
-        <div className="flex flex-col gap-1">
-          <label htmlFor="fecha_entrega" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Fecha de entrega
-            {fechaEntrega && (
-              <span className="ml-1.5 font-normal normal-case text-btm-black/50">· {formatDiaEntrega(fechaEntrega)}</span>
-            )}
-          </label>
-          <input
-            id="fecha_entrega"
-            name="fecha_entrega"
-            type="date"
-            value={fechaEntrega}
-            onChange={(e) => setFechaEntrega(e.target.value)}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-          />
-        </div>
-
+      <Section number={3} title="Vendedor y zona comercial" twoCol>
         <div className="flex flex-col gap-1">
           <label htmlFor="vendedor_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
             Vendedor
@@ -165,26 +161,60 @@ export function OrderForm({
         </div>
 
         <div className="flex flex-col gap-1">
-          <label htmlFor="camion_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-            Flota
+          <label htmlFor="zona_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+            Zona comercial
           </label>
           <select
-            id="camion_id"
-            name="camion_id"
-            value={camionId}
-            onChange={(e) => handleCamionChange(e.target.value)}
+            id="zona_id"
+            name="zona_id"
+            required
+            value={zonaId}
+            onChange={(e) => setZonaId(e.target.value)}
             className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           >
-            <option value="">Sin asignar</option>
-            {camiones.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.dominio} · {c.tipo}
-                {c.chofer_id ? ` · ${choferNameById.get(c.chofer_id) ?? ""}` : ""}
+            <option value="">Seleccionar...</option>
+            {zones.map((z) => (
+              <option key={z.id} value={z.id}>
+                {z.name}
               </option>
             ))}
           </select>
         </div>
+      </Section>
 
+      <Section number={4} title="Fechas" twoCol>
+        <div className="flex flex-col gap-1">
+          <label htmlFor="fecha" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+            Fecha de emisión
+          </label>
+          <input
+            id="fecha"
+            name="fecha"
+            type="date"
+            defaultValue={new Date().toISOString().slice(0, 10)}
+            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label htmlFor="fecha_entrega" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+            Fecha de entrega estimada
+            {fechaEntrega && (
+              <span className="ml-1.5 font-normal normal-case text-btm-black/50">· {formatDiaEntrega(fechaEntrega)}</span>
+            )}
+          </label>
+          <input
+            id="fecha_entrega"
+            name="fecha_entrega"
+            type="date"
+            value={fechaEntrega}
+            onChange={(e) => setFechaEntrega(e.target.value)}
+            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+          />
+        </div>
+      </Section>
+
+      <Section number={5} title="Chofer y flota">
         <div className="flex flex-col gap-1">
           <label htmlFor="chofer_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
             Chofer
@@ -193,7 +223,7 @@ export function OrderForm({
             id="chofer_id"
             name="chofer_id"
             value={choferId}
-            onChange={(e) => setChoferId(e.target.value)}
+            onChange={(e) => handleChoferChange(e.target.value)}
             className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           >
             <option value="">Sin asignar</option>
@@ -204,23 +234,53 @@ export function OrderForm({
             ))}
           </select>
         </div>
-      </fieldset>
 
-      <div className="flex flex-col gap-1">
-        <label htmlFor="observaciones" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
-          Observaciones
-        </label>
+        {choferId && (
+          <div className="flex flex-col gap-2">
+            <span className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+              Flotas asociadas — marcá las que salen en esta nota
+            </span>
+            {camionesDelChofer.length === 0 ? (
+              <p className="text-sm text-btm-black/50">Este chofer no tiene vehículos asignados.</p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {camionesDelChofer.map((c) => (
+                  <label
+                    key={c.id}
+                    className="flex cursor-pointer items-start gap-3 rounded-md border border-black/10 p-3 hover:border-btm-navy"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCamionIds.includes(c.id)}
+                      onChange={() => toggleCamion(c.id)}
+                      className="mt-0.5 h-4 w-4 cursor-pointer accent-btm-navy"
+                    />
+                    <span className="flex flex-col text-sm">
+                      <span className="font-semibold">{c.dominio} · {c.tipo}</span>
+                      <span className="text-xs text-btm-black/50">
+                        {[c.marca_modelo, c.anio, c.empresa].filter(Boolean).join(" · ")}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </Section>
+
+      <Section number={6} title="Observaciones">
         <textarea
           id="observaciones"
           name="observaciones"
           rows={2}
           className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
         />
-      </div>
+      </Section>
 
-      <div className="flex flex-col gap-3">
+      <Section number={7} title="Productos">
         <div className="flex items-center justify-between">
-          <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Productos</h2>
+          <span />
           <button
             type="button"
             onClick={() => setItems((prev) => [...prev, emptyItem()])}
@@ -316,7 +376,7 @@ export function OrderForm({
         <p className="text-right font-display text-sm font-bold text-btm-navy">
           Total: ${total.toFixed(2)}
         </p>
-      </div>
+      </Section>
 
       {state?.error && (
         <p role="alert" className="text-sm font-medium text-btm-red">

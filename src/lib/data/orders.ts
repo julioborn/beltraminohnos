@@ -78,7 +78,8 @@ export async function getOrderNoteDetail(id: string) {
     .from("order_notes")
     .select(
       `id, numero, cliente, fecha, fecha_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
-       zona:zones(name), vendedor:vendedores(name), chofer:choferes(id, name), camion:camiones(id, dominio, tipo, chofer_id),
+       zona:zones(name), vendedor:vendedores(name), chofer:choferes(id, name),
+       camiones:order_note_camiones(camion:camiones(id, dominio, tipo, marca_modelo, anio, empresa, chofer_id)),
        items:order_items(id, cantidad, tipo_envase, precio_unitario, product:products(name))`,
     )
     .eq("id", id)

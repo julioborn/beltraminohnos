@@ -8,7 +8,11 @@ export async function getMasterData() {
     supabase.from("zones").select("id, code, name").order("sort_order"),
     supabase.from("vendedores").select("id, name").eq("active", true).order("name"),
     supabase.from("choferes").select("id, name").eq("active", true).order("name"),
-    supabase.from("camiones").select("id, dominio, tipo, chofer_id").eq("active", true).order("dominio"),
+    supabase
+      .from("camiones")
+      .select("id, dominio, tipo, marca_modelo, anio, empresa, chofer_id")
+      .eq("active", true)
+      .order("dominio"),
   ]);
 
   return {
