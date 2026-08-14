@@ -81,32 +81,43 @@ export function PersonalSections({
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-        {SECTIONS.map((section) => {
-          const isOpen = open === section.key;
-          return (
-            <button
-              key={section.key}
-              type="button"
-              onClick={() => toggle(section.key)}
-              className={`group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border px-5 py-7 text-center shadow-sm transition-shadow hover:shadow-md ${
-                isOpen ? "border-btm-navy bg-btm-navy/5" : "border-black/10 bg-white"
-              }`}
-            >
-              <span
-                className={`flex h-14 w-14 items-center justify-center rounded-full transition-colors ${
-                  isOpen ? "bg-btm-red text-white" : "bg-btm-red/10 text-btm-red group-hover:bg-btm-red group-hover:text-white"
+      <div className="btm-card flex flex-col gap-6 p-5 sm:p-6">
+        <div>
+          <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
+            Personal
+          </h1>
+          <p className="text-sm text-btm-black/60">
+            Vendedores, choferes y flota disponibles para las notas de pedido. Tocá una tarjeta para ver y editar esa sección.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {SECTIONS.map((section) => {
+            const isOpen = open === section.key;
+            return (
+              <button
+                key={section.key}
+                type="button"
+                onClick={() => toggle(section.key)}
+                className={`group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border px-5 py-7 text-center shadow-sm transition-shadow hover:shadow-md ${
+                  isOpen ? "border-btm-navy bg-btm-navy/5" : "border-black/10 bg-white"
                 }`}
               >
-                {section.icon}
-              </span>
-              <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
-                {section.label}
-              </span>
-              <span className="text-xs text-btm-black/50">{section.description}</span>
-            </button>
-          );
-        })}
+                <span
+                  className={`flex h-14 w-14 items-center justify-center rounded-full transition-colors ${
+                    isOpen ? "bg-btm-red text-white" : "bg-btm-red/10 text-btm-red group-hover:bg-btm-red group-hover:text-white"
+                  }`}
+                >
+                  {section.icon}
+                </span>
+                <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
+                  {section.label}
+                </span>
+                <span className="text-xs text-btm-black/50">{section.description}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {open === "vendedores" && (
