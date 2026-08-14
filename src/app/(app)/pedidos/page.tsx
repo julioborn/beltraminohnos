@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { getMasterData } from "@/lib/data/master-data";
-import { getOrderNotesList, type OrderListFilters } from "@/lib/data/orders";
+import { getOrderNotesList, getOrderNotesCount, ORDERS_PAGE_SIZE, type OrderListFilters } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
 import { ClickableRow } from "@/components/clickable-row";
 import { RowLink } from "@/components/row-link";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { formatFecha } from "@/lib/format";
 
-type SearchParams = OrderListFilters;
+type SearchParams = OrderListFilters & { page?: string };
 
 export default async function PedidosPage({
   searchParams,
@@ -15,10 +15,26 @@ export default async function PedidosPage({
   searchParams: Promise<SearchParams>;
 }) {
   const params = await searchParams;
-  const [orders, masterData] = await Promise.all([getOrderNotesList(params), getMasterData()]);
+  const { page: pageParam, ...filters } = params;
+  const page = Math.max(1, Number(pageParam) || 1);
+
+  const [orders, totalCount, masterData] = await Promise.all([
+    getOrderNotesList(filters, { page, pageSize: ORDERS_PAGE_SIZE }),
+    getOrderNotesCount(filters),
+    getMasterData(),
+  ]);
+  const totalPages = Math.max(1, Math.ceil(totalCount / ORDERS_PAGE_SIZE));
+
   const qs = new URLSearchParams(
-    Object.entries(params).filter(([, v]) => v) as [string, string][],
+    Object.entries(filters).filter(([, v]) => v) as [string, string][],
   ).toString();
+
+  function pageHref(targetPage: number) {
+    const sp = new URLSearchParams(Object.entries(filters).filter(([, v]) => v) as [string, string][]);
+    if (targetPage > 1) sp.set("page", String(targetPage));
+    const s = sp.toString();
+    return `/pedidos${s ? `?${s}` : ""}`;
+  }
 
   const advancedKeys = ["estado_logistica", "estado_produccion", "zona", "producto", "vendedor", "chofer", "desde", "hasta"] as const;
   const advancedFilterCount = advancedKeys.filter((key) => params[key]).length;
@@ -53,7 +69,7 @@ export default async function PedidosPage({
         </div>
       </div>
 
-      <form method="get" className="flex flex-col gap-4 rounded-lg border border-black/10 p-4">
+      <form key={qs} method="get" className="flex flex-col gap-4 rounded-lg border border-black/10 p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex flex-1 flex-col gap-1">
             <label htmlFor="q" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
@@ -129,7 +145,7 @@ export default async function PedidosPage({
 
             <div className="flex flex-col gap-1">
               <label htmlFor="zona" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-                Zona
+                Zona comercial
               </label>
               <select id="zona" name="zona" defaultValue={params.zona ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
                 <option value="">Todas</option>
@@ -238,7 +254,7 @@ export default async function PedidosPage({
               <th className="px-4 py-3">N°</th>
               <th className="px-4 py-3">Fecha</th>
               <th className="px-4 py-3">Cliente</th>
-              <th className="px-4 py-3">Zona</th>
+              <th className="px-4 py-3">Zona comercial</th>
               <th className="px-4 py-3">Productos</th>
               <th className="px-4 py-3">Vendedor</th>
               <th className="px-4 py-3">Chofer</th>
@@ -282,6 +298,40 @@ export default async function PedidosPage({
           </tbody>
         </table>
       </div>
+
+      {totalCount > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-btm-black/50">
+            Página {page} de {totalPages} · {totalCount} nota{totalCount === 1 ? "" : "s"} de pedido
+          </p>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link
+                href={pageHref(page - 1)}
+                className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+              >
+                Anterior
+              </Link>
+            ) : (
+              <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                Anterior
+              </span>
+            )}
+            {page < totalPages ? (
+              <Link
+                href={pageHref(page + 1)}
+                className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+              >
+                Siguiente
+              </Link>
+            ) : (
+              <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                Siguiente
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

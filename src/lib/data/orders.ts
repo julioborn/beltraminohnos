@@ -19,7 +19,12 @@ export type OrderListFilters = {
 const LIST_SELECT_BASE = `id, numero, cliente, fecha, fecha_entrega, fecha_envio, estado_logistica, estado_produccion, provincia, localidad,
   zona:zones(name), vendedor:vendedores(name), chofer:choferes(name)`;
 
-export async function getOrderNotesList(params: OrderListFilters) {
+export const ORDERS_PAGE_SIZE = 30;
+
+export async function getOrderNotesList(
+  params: OrderListFilters,
+  pagination?: { page: number; pageSize: number },
+) {
   const supabase = await createClient();
   const hasProducto = Boolean(params.producto);
 
@@ -46,8 +51,41 @@ export async function getOrderNotesList(params: OrderListFilters) {
   if (params.desde) query = query.gte("fecha", params.desde);
   if (params.hasta) query = query.lte("fecha", params.hasta);
 
+  if (pagination) {
+    const from = (pagination.page - 1) * pagination.pageSize;
+    const to = from + pagination.pageSize - 1;
+    const { data } = await query.range(from, to);
+    return data ?? [];
+  }
+
   const { data } = await query.limit(200);
   return data ?? [];
+}
+
+export async function getOrderNotesCount(params: OrderListFilters) {
+  const supabase = await createClient();
+  const hasProducto = Boolean(params.producto);
+
+  let query = supabase
+    .from("order_notes")
+    .select(hasProducto ? "id, order_items!inner(id)" : "id", { count: "exact", head: true });
+
+  if (params.q) {
+    query = query.or(
+      `numero.ilike.%${params.q}%,cliente.ilike.%${params.q}%,provincia.ilike.%${params.q}%,localidad.ilike.%${params.q}%`,
+    );
+  }
+  if (params.estado_logistica) query = query.eq("estado_logistica", params.estado_logistica as LogisticaEstado);
+  if (params.estado_produccion) query = query.eq("estado_produccion", params.estado_produccion as ProduccionEstado);
+  if (params.zona) query = query.eq("zona_id", params.zona);
+  if (params.vendedor) query = query.eq("vendedor_id", params.vendedor);
+  if (params.chofer) query = query.eq("chofer_id", params.chofer);
+  if (params.producto) query = query.eq("order_items.product_id", params.producto);
+  if (params.desde) query = query.gte("fecha", params.desde);
+  if (params.hasta) query = query.lte("fecha", params.hasta);
+
+  const { count } = await query;
+  return count ?? 0;
 }
 
 export type ReportFilters = { desde?: string; hasta?: string };
