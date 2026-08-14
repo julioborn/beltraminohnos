@@ -69,58 +69,61 @@ const SECONDARY_ITEMS = [
 
 export default function InicioPage() {
   return (
-    <div className="relative flex flex-1 flex-col items-center gap-10 overflow-hidden px-6 pt-8 pb-16 sm:pt-12">
+    <div className="relative flex flex-1 flex-col items-center overflow-hidden px-6 py-8 sm:py-12">
       <BrandTexture opacity={0.05} />
-      <div className="relative flex flex-col items-center gap-2 text-center">
-        <Image
-          src="/brand/btm-horizontal.png"
-          alt="BTM"
-          width={280}
-          height={72}
-          className="h-auto w-56 sm:w-64"
-          priority
-        />
-        <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
-          Pedidos y Logística
-        </p>
-      </div>
 
-      <div className="relative grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-        {ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="btm-card btm-card-hover group flex flex-col items-center gap-3 px-5 py-8 text-center"
-          >
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
-              {item.icon}
-            </span>
-            <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
-              {item.label}
-            </span>
-            <span className="text-xs text-btm-black/50">{item.description}</span>
-          </Link>
-        ))}
-      </div>
+      <div className="btm-card relative flex w-full max-w-4xl flex-col items-center gap-10 px-6 py-10 sm:px-10 sm:py-12">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <Image
+            src="/brand/btm-horizontal.png"
+            alt="BTM"
+            width={280}
+            height={72}
+            className="h-auto w-56 sm:w-64"
+            priority
+          />
+          <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
+            Pedidos y Logística
+          </p>
+        </div>
 
-      <div className="relative grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
-        {SECONDARY_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="btm-card btm-card-hover group flex items-center gap-4 px-5 py-5 text-left"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
-              {item.icon}
-            </span>
-            <span className="flex flex-col gap-0.5">
-              <span className="font-display text-sm font-extrabold uppercase tracking-wide text-btm-navy">
+        <div className="grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+          {ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="btm-card btm-card-hover group flex flex-col items-center gap-3 px-5 py-8 text-center"
+            >
+              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
+                {item.icon}
+              </span>
+              <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
                 {item.label}
               </span>
               <span className="text-xs text-btm-black/50">{item.description}</span>
-            </span>
-          </Link>
-        ))}
+            </Link>
+          ))}
+        </div>
+
+        <div className="grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+          {SECONDARY_ITEMS.map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="btm-card btm-card-hover group flex items-center gap-4 px-5 py-5 text-left"
+            >
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
+                {item.icon}
+              </span>
+              <span className="flex flex-col gap-0.5">
+                <span className="font-display text-sm font-extrabold uppercase tracking-wide text-btm-navy">
+                  {item.label}
+                </span>
+                <span className="text-xs text-btm-black/50">{item.description}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
       </div>
     </div>
   );
