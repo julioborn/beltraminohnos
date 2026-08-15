@@ -65,6 +65,17 @@ const SECONDARY_ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/cotizaciones",
+    label: "Cotizaciones",
+    description: "Armar y descargar una cotización en PDF",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M12.586 2.586a2 2 0 0 0-1.414-.586H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l7.172-7.172a2 2 0 0 0 0-2.828l-9-9Z" />
+        <circle cx="7.5" cy="7.5" r="1.25" />
+      </svg>
+    ),
+  },
 ];
 
 export default function InicioPage() {
@@ -103,7 +114,7 @@ export default function InicioPage() {
         ))}
       </div>
 
-      <div className="relative grid w-full max-w-2xl grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="relative grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
         {SECONDARY_ITEMS.map((item) => (
           <Link
             key={item.href}

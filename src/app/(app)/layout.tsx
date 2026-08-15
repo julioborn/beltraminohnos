@@ -6,6 +6,7 @@ import { MobileMenu } from "@/components/mobile-menu";
 const NAV_LINKS = [
   { href: "/inicio", label: "Inicio" },
   { href: "/pedidos", label: "Notas de pedido" },
+  { href: "/cotizaciones", label: "Cotizaciones" },
   { href: "/productos", label: "Productos y precios" },
   { href: "/personal", label: "Personal" },
   { href: "/reportes", label: "Reportes" },
