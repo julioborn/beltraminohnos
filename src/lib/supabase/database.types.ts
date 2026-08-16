@@ -97,6 +97,33 @@ export type Database = {
         }
         Relationships: []
       }
+      locality_coords: {
+        Row: {
+          created_at: string
+          id: string
+          lat: number
+          lng: number
+          localidad_norm: string
+          provincia_norm: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lat: number
+          lng: number
+          localidad_norm: string
+          provincia_norm: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lat?: number
+          lng?: number
+          localidad_norm?: string
+          provincia_norm?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           cantidad: number

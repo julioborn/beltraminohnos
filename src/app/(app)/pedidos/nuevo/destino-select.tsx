@@ -49,6 +49,7 @@ export function DestinoSelect({
         </label>
         <select
           id="provincia_select"
+          required
           value={provinciaId}
           onChange={(e) => {
             const id = e.target.value;
@@ -74,6 +75,7 @@ export function DestinoSelect({
         </label>
         <select
           id="localidad_select"
+          required
           value={localidadNombre}
           disabled={!provinciaId || loadingLocalidades}
           onChange={(e) => setLocalidadNombre(e.target.value)}

@@ -16,7 +16,7 @@ export type OrderListFilters = {
   hasta?: string;
 };
 
-const LIST_SELECT_BASE = `id, numero, cliente, fecha, fecha_entrega, fecha_envio, estado_logistica, estado_produccion, provincia, localidad,
+export const LIST_SELECT_BASE = `id, numero, cliente, fecha, fecha_entrega, fecha_envio, estado_logistica, estado_produccion, provincia, localidad,
   zona:zones(name), vendedor:vendedores(name), chofer:choferes(name)`;
 
 export const ORDERS_PAGE_SIZE = 30;
