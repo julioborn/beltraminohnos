@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { getOrdersForReports, type ReportFilters } from "@/lib/data/orders";
+import { getOrdersForReports, getOrderNotesList, type ReportFilters } from "@/lib/data/orders";
 import {
   aggregateByMonth,
   aggregateByProducto,
@@ -8,7 +8,7 @@ import {
   estadoCounts,
   totalFacturado,
 } from "@/lib/reports/aggregate";
-import { formatUsd } from "@/lib/format";
+import { formatUsd, formatFecha } from "@/lib/format";
 import { TopSections } from "./top-sections";
 
 export default async function EstadisticasPage({
@@ -17,7 +17,11 @@ export default async function EstadisticasPage({
   searchParams: Promise<ReportFilters>;
 }) {
   const params = await searchParams;
-  const orders = await getOrdersForReports(params);
+  const [orders, pendientesFabricacion, pendientesEntrega] = await Promise.all([
+    getOrdersForReports(params),
+    getOrderNotesList({ estado_produccion: "PENDIENTE" }),
+    getOrderNotesList({ estado_logistica: "PENDIENTE" }),
+  ]);
   const hasFilter = Boolean(params.desde || params.hasta);
 
   const total = totalFacturado(orders);
@@ -34,6 +38,11 @@ export default async function EstadisticasPage({
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">Estadísticas</h1>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <PendingNotesCard title="Pendientes de fabricación" notes={pendientesFabricacion} emptyLabel="No hay notas pendientes de fabricación." />
+        <PendingNotesCard title="Pendientes de entrega" notes={pendientesEntrega} emptyLabel="No hay notas pendientes de entrega." />
       </div>
 
       <form method="get" className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:items-end">
@@ -109,6 +118,46 @@ function Kpi({ label, value }: { label: string; value: string }) {
       <p className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">{label}</p>
       <p className="font-display text-xl font-extrabold text-btm-navy sm:text-2xl">{value}</p>
     </div>
+  );
+}
+
+function PendingNotesCard({
+  title,
+  notes,
+  emptyLabel,
+}: {
+  title: string;
+  notes: { id: string; numero: string; cliente: string; fecha: string }[];
+  emptyLabel: string;
+}) {
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-black/10 bg-white p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-2">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
+        <span className="rounded-full bg-btm-pendiente-bg px-2.5 py-1 text-xs font-bold text-amber-900">
+          {notes.length}
+        </span>
+      </div>
+      {notes.length === 0 ? (
+        <p className="text-sm text-btm-black/50">{emptyLabel}</p>
+      ) : (
+        <div className="flex flex-col divide-y divide-black/5">
+          {notes.map((n) => (
+            <Link
+              key={n.id}
+              href={`/pedidos/${n.id}`}
+              className="flex items-center justify-between gap-3 py-2 text-sm hover:text-btm-red"
+            >
+              <span className="flex flex-col">
+                <span className="font-semibold text-btm-navy">{n.numero}</span>
+                <span className="text-btm-black/70">{n.cliente}</span>
+              </span>
+              <span className="shrink-0 text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
+            </Link>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }
 
