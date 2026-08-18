@@ -141,21 +141,34 @@ function PendingNotesCard({
       {notes.length === 0 ? (
         <p className="text-sm text-btm-black/50">{emptyLabel}</p>
       ) : (
-        <div className="flex flex-col divide-y divide-black/5">
-          {notes.map((n) => (
-            <Link
-              key={n.id}
-              href={`/pedidos/${n.id}`}
-              className="flex items-center justify-between gap-3 py-2 text-sm hover:text-btm-red"
+        <details className="group">
+          <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy [&::-webkit-details-marker]:hidden">
+            <svg
+              className="h-3.5 w-3.5 transition-transform group-open:rotate-90"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
             >
-              <span className="flex flex-col">
-                <span className="font-semibold text-btm-navy">{n.numero}</span>
-                <span className="text-btm-black/70">{n.cliente}</span>
-              </span>
-              <span className="shrink-0 text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
-            </Link>
-          ))}
-        </div>
+              <path d="M6 4l6 6-6 6V4z" />
+            </svg>
+            Ver notas
+          </summary>
+          <div className="mt-2 flex max-h-80 flex-col divide-y divide-black/5 overflow-y-auto">
+            {notes.map((n) => (
+              <Link
+                key={n.id}
+                href={`/pedidos/${n.id}`}
+                className="flex items-center justify-between gap-3 py-2 text-sm hover:text-btm-red"
+              >
+                <span className="flex flex-col">
+                  <span className="font-semibold text-btm-navy">{n.numero}</span>
+                  <span className="text-btm-black/70">{n.cliente}</span>
+                </span>
+                <span className="shrink-0 text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
+              </Link>
+            ))}
+          </div>
+        </details>
       )}
     </section>
   );
