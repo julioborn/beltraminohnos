@@ -96,20 +96,20 @@ export default function InicioPage() {
         </p>
       </div>
 
-      <div className="relative grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="relative grid w-full max-w-3xl grid-cols-3 gap-2 sm:gap-4">
         {ITEMS.map((item) => (
           <Link
             key={item.href}
             href={item.href}
-            className="btm-card btm-card-hover group flex flex-col items-center gap-3 px-5 py-8 text-center"
+            className="btm-card btm-card-hover group flex flex-col items-center gap-1.5 px-2 py-4 text-center sm:gap-3 sm:px-5 sm:py-8"
           >
-            <span className="flex h-14 w-14 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
+            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white sm:h-14 sm:w-14 [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-6 sm:[&_svg]:w-6">
               {item.icon}
             </span>
-            <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
+            <span className="font-display text-[11px] font-extrabold uppercase tracking-wide text-btm-navy sm:text-base">
               {item.label}
             </span>
-            <span className="text-xs text-btm-black/50">{item.description}</span>
+            <span className="hidden text-xs text-btm-black/50 sm:block">{item.description}</span>
           </Link>
         ))}
       </div>
