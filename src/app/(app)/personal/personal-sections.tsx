@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { PersonTable } from "./person-table";
 import { CamionesTable } from "./camiones-table";
 import {
@@ -74,9 +74,18 @@ export function PersonalSections({
   camiones: Camion[];
 }) {
   const [open, setOpen] = useState<SectionKey | null>("vendedores");
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   function toggle(key: SectionKey) {
-    setOpen((prev) => (prev === key ? null : key));
+    setOpen((prev) => {
+      const next = prev === key ? null : key;
+      if (next) {
+        requestAnimationFrame(() => {
+          resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+      }
+      return next;
+    });
   }
 
   return (
@@ -91,7 +100,7 @@ export function PersonalSections({
           </p>
         </div>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           {SECTIONS.map((section) => {
             const isOpen = open === section.key;
             return (
@@ -99,26 +108,28 @@ export function PersonalSections({
                 key={section.key}
                 type="button"
                 onClick={() => toggle(section.key)}
-                className={`group flex cursor-pointer flex-col items-center gap-3 rounded-2xl border px-5 py-7 text-center shadow-sm transition-shadow hover:shadow-md ${
+                className={`group flex cursor-pointer flex-col items-center gap-1.5 rounded-xl border px-2 py-3 text-center shadow-sm transition-shadow hover:shadow-md sm:gap-3 sm:rounded-2xl sm:px-5 sm:py-7 ${
                   isOpen ? "border-btm-navy bg-btm-navy/5" : "border-black/10 bg-white"
                 }`}
               >
                 <span
-                  className={`flex h-14 w-14 items-center justify-center rounded-full transition-colors ${
+                  className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-14 sm:w-14 [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-6 sm:[&_svg]:w-6 ${
                     isOpen ? "bg-btm-red text-white" : "bg-btm-red/10 text-btm-red group-hover:bg-btm-red group-hover:text-white"
                   }`}
                 >
                   {section.icon}
                 </span>
-                <span className="font-display text-base font-extrabold uppercase tracking-wide text-btm-navy">
+                <span className="font-display text-[11px] font-extrabold uppercase tracking-wide text-btm-navy sm:text-base">
                   {section.label}
                 </span>
-                <span className="text-xs text-btm-black/50">{section.description}</span>
+                <span className="hidden text-xs text-btm-black/50 sm:block">{section.description}</span>
               </button>
             );
           })}
         </div>
       </div>
+
+      <div ref={resultsRef} className="scroll-mt-4" />
 
       {open === "vendedores" && (
         <section className="flex flex-col gap-3">
