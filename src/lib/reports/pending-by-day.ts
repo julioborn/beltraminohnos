@@ -77,14 +77,16 @@ export function notesForProduct(
   orders: PendingDayOrder[],
   productId: string,
   mode: PendingDayMode,
-  day?: string,
+  range?: { start: string; end: string },
 ): PendingProductNoteRef[] {
   const refs: PendingProductNoteRef[] = [];
 
   for (const o of orders) {
     const relevant = mode === "fabricacion" ? o.estado_produccion === "PENDIENTE" : o.estado_logistica === "PENDIENTE";
     if (!relevant) continue;
-    if (day && o.fecha_entrega !== day) continue;
+    if (range) {
+      if (!o.fecha_entrega || o.fecha_entrega < range.start || o.fecha_entrega > range.end) continue;
+    }
 
     for (const it of o.items) {
       if (it.product_id !== productId) continue;

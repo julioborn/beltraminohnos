@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { DateRangePicker, type DateRange } from "./date-range-picker";
 import {
   buildPendingDayMatrix,
@@ -24,6 +24,7 @@ function dayHeaderParts(iso: string) {
 }
 
 type Selection = { productId: string; productName: string; day: string | null };
+type View = { type: "matrix" } | { type: "product"; productId: string; productName: string; day: string | null };
 
 export function PendingByDayReport({
   products,
@@ -35,16 +36,26 @@ export function PendingByDayReport({
   const [range, setRange] = useState<DateRange>({ start: null, end: null });
   const [mode, setMode] = useState<PendingDayMode>("fabricacion");
   const [selection, setSelection] = useState<Selection | null>(null);
+  const [view, setView] = useState<View>({ type: "matrix" });
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   const matrix = useMemo(() => {
     if (!range.start || !range.end) return null;
     return buildPendingDayMatrix(products, orders, range.start, range.end, mode);
   }, [products, orders, range, mode]);
 
-  const selectionNotes = useMemo(() => {
-    if (!selection) return [];
-    return notesForProduct(orders, selection.productId, mode, selection.day ?? undefined);
+  const selectionSummary = useMemo(() => {
+    if (!selection) return { count: 0, total: 0 };
+    const dayRange = selection.day ? { start: selection.day, end: selection.day } : undefined;
+    const notes = notesForProduct(orders, selection.productId, mode, dayRange);
+    return { count: notes.length, total: notes.reduce((sum, n) => sum + n.cantidad, 0) };
   }, [orders, mode, selection]);
+
+  useEffect(() => {
+    if (selection && scrollRef.current) {
+      scrollRef.current.scrollTo({ left: 0, behavior: "smooth" });
+    }
+  }, [selection]);
 
   function toggleSelection(next: Selection) {
     setSelection((prev) => (prev && prev.productId === next.productId && prev.day === next.day ? null : next));
@@ -53,6 +64,23 @@ export function PendingByDayReport({
   function changeMode(next: PendingDayMode) {
     setMode(next);
     setSelection(null);
+  }
+
+  if (view.type === "product") {
+    return (
+      <ProductNotesView
+        orders={orders}
+        mode={mode}
+        onModeChange={setMode}
+        productId={view.productId}
+        productName={view.productName}
+        initialDay={view.day}
+        onBack={() => {
+          setView({ type: "matrix" });
+          setSelection(null);
+        }}
+      />
+    );
   }
 
   return (
@@ -78,7 +106,7 @@ export function PendingByDayReport({
           <p className="text-xs text-btm-black/50">
             Tocá el nombre de un producto para ver todas sus notas pendientes, o tocá un día puntual para ver solo las de ese día.
           </p>
-          <div className="overflow-x-auto rounded-lg border border-black/10">
+          <div ref={scrollRef} className="overflow-x-auto rounded-lg border border-black/10">
             <table className="w-full text-sm">
               <thead className="bg-btm-navy text-center text-[11px] font-semibold uppercase tracking-wide text-white">
                 <tr>
@@ -100,38 +128,66 @@ export function PendingByDayReport({
                   const empty = row.total === 0;
                   const isSelectedProduct = selection?.productId === row.productId;
                   return (
-                    <tr key={row.productId} className={empty ? "opacity-40" : ""}>
-                      <td className="sticky left-0 z-10 max-w-[100px] bg-white p-0 font-medium sm:max-w-none">
-                        <button
-                          type="button"
-                          onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: null })}
-                          className={`w-full cursor-pointer px-2 py-1.5 text-left text-xs leading-tight whitespace-normal hover:bg-btm-navy/5 hover:text-btm-red sm:px-4 sm:py-2 sm:text-sm sm:whitespace-nowrap ${
-                            isSelectedProduct && !selection?.day ? "text-btm-red" : ""
-                          }`}
-                        >
-                          {row.productName}
-                        </button>
-                      </td>
-                      {matrix.days.map((d) => {
-                        const isSelectedCell = isSelectedProduct && selection?.day === d;
-                        return (
-                          <td key={d} className="whitespace-nowrap p-0 text-center text-btm-black/70">
-                            <button
-                              type="button"
-                              onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: d })}
-                              className={`w-full cursor-pointer px-2 py-1.5 text-xs hover:bg-btm-navy/5 hover:text-btm-red sm:px-3 sm:py-2 sm:text-sm ${
-                                isSelectedCell ? "bg-btm-navy/10 font-semibold text-btm-red" : ""
-                              }`}
-                            >
-                              {formatCantidad(row.byDay[d] ?? 0)}
-                            </button>
+                    <Fragment key={row.productId}>
+                      <tr className={empty ? "opacity-40" : ""}>
+                        <td className="sticky left-0 z-10 max-w-[100px] bg-white p-0 font-medium sm:max-w-none">
+                          <button
+                            type="button"
+                            onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: null })}
+                            className={`w-full cursor-pointer px-2 py-1.5 text-left text-xs leading-tight whitespace-normal hover:bg-btm-navy/5 hover:text-btm-red sm:px-4 sm:py-2 sm:text-sm sm:whitespace-nowrap ${
+                              isSelectedProduct && !selection?.day ? "text-btm-red" : ""
+                            }`}
+                          >
+                            {row.productName}
+                          </button>
+                        </td>
+                        {matrix.days.map((d) => {
+                          const isSelectedCell = isSelectedProduct && selection?.day === d;
+                          return (
+                            <td key={d} className="whitespace-nowrap p-0 text-center text-btm-black/70">
+                              <button
+                                type="button"
+                                onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: d })}
+                                className={`w-full cursor-pointer px-2 py-1.5 text-xs hover:bg-btm-navy/5 hover:text-btm-red sm:px-3 sm:py-2 sm:text-sm ${
+                                  isSelectedCell ? "bg-btm-navy/10 font-semibold text-btm-red" : ""
+                                }`}
+                              >
+                                {formatCantidad(row.byDay[d] ?? 0)}
+                              </button>
+                            </td>
+                          );
+                        })}
+                        <td className="whitespace-nowrap px-2 py-1.5 text-center text-xs font-bold text-btm-navy sm:px-4 sm:py-2 sm:text-sm">
+                          {formatCantidad(row.total)}
+                        </td>
+                      </tr>
+                      {isSelectedProduct && (
+                        <tr>
+                          <td colSpan={matrix.days.length + 2} className="bg-btm-navy/5 p-0">
+                            <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
+                              <div>
+                                <p className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy sm:text-sm">
+                                  {row.productName}
+                                </p>
+                                <p className="text-xs text-btm-black/60">
+                                  {selectionSummary.count} nota{selectionSummary.count === 1 ? "" : "s"} · {formatCantidad(selectionSummary.total)} tn
+                                  {selection?.day ? ` · ${formatDiaEntrega(selection.day)}` : " · todas las fechas"}
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setView({ type: "product", productId: row.productId, productName: row.productName, day: selection?.day ?? null })
+                                }
+                                className="shrink-0 cursor-pointer self-start rounded-full border border-btm-navy px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white sm:self-auto"
+                              >
+                                Ver notas
+                              </button>
+                            </div>
                           </td>
-                        );
-                      })}
-                      <td className="whitespace-nowrap px-2 py-1.5 text-center text-xs font-bold text-btm-navy sm:px-4 sm:py-2 sm:text-sm">
-                        {formatCantidad(row.total)}
-                      </td>
-                    </tr>
+                        </tr>
+                      )}
+                    </Fragment>
                   );
                 })}
                 {matrix.rows.length === 0 && (
@@ -144,55 +200,65 @@ export function PendingByDayReport({
               </tbody>
             </table>
           </div>
-
-          {selection && (
-            <NotesPanel
-              productName={selection.productName}
-              day={selection.day}
-              mode={mode}
-              notes={selectionNotes}
-              onClose={() => setSelection(null)}
-            />
-          )}
         </>
       )}
     </section>
   );
 }
 
-function NotesPanel({
-  productName,
-  day,
+function ProductNotesView({
+  orders,
   mode,
-  notes,
-  onClose,
+  onModeChange,
+  productId,
+  productName,
+  initialDay,
+  onBack,
 }: {
-  productName: string;
-  day: string | null;
+  orders: PendingDayOrder[];
   mode: PendingDayMode;
-  notes: PendingProductNoteRef[];
-  onClose: () => void;
+  onModeChange: (mode: PendingDayMode) => void;
+  productId: string;
+  productName: string;
+  initialDay: string | null;
+  onBack: () => void;
 }) {
-  const modeLabel = mode === "fabricacion" ? "pendientes de fabricación" : "pendientes de entrega";
+  const [range, setRange] = useState<DateRange>({ start: initialDay, end: initialDay });
+
+  const notes = useMemo(() => {
+    const dayRange = range.start && range.end ? { start: range.start, end: range.end } : undefined;
+    return notesForProduct(orders, productId, mode, dayRange);
+  }, [orders, productId, mode, range]);
+
+  const total = notes.reduce((sum, n) => sum + n.cantidad, 0);
 
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-btm-navy/20 bg-btm-navy/5 p-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{productName}</h3>
-          <p className="text-xs text-btm-black/60">
-            Notas {modeLabel}
-            {day ? ` · ${formatDiaEntrega(day)}` : " · todas las fechas"}
-          </p>
+    <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
+      <button
+        type="button"
+        onClick={onBack}
+        className="flex w-fit cursor-pointer items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-btm-black/50 hover:text-btm-navy"
+      >
+        <svg viewBox="0 0 20 20" fill="currentColor" className="h-3.5 w-3.5" aria-hidden>
+          <path d="M12.7 3.3a1 1 0 010 1.4L8.4 9h9.6a1 1 0 110 2H8.4l4.3 4.3a1 1 0 11-1.4 1.4l-6-6a1 1 0 010-1.4l6-6a1 1 0 011.4 0z" />
+        </svg>
+        Volver a la tabla
+      </button>
+
+      <h2 className="font-display text-lg font-bold uppercase tracking-wide text-btm-navy">{productName}</h2>
+
+      <div className="flex flex-wrap items-center gap-3">
+        <DateRangePicker value={range} onChange={setRange} />
+        <div className="flex flex-wrap gap-2">
+          <ModeButton label="Pendiente de fabricación" active={mode === "fabricacion"} onClick={() => onModeChange("fabricacion")} />
+          <ModeButton label="Pendiente de entrega" active={mode === "entrega"} onClick={() => onModeChange("entrega")} />
         </div>
-        <button
-          type="button"
-          onClick={onClose}
-          className="shrink-0 cursor-pointer rounded-full border border-black/15 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-black/60 hover:bg-black/5"
-        >
-          Cerrar
-        </button>
       </div>
+
+      <p className="text-sm text-btm-black/60">
+        {notes.length} nota{notes.length === 1 ? "" : "s"} · {formatCantidad(total)} tn
+        {range.start && range.end ? "" : " · sin filtro de fecha"}
+      </p>
 
       {notes.length === 0 ? (
         <p className="text-sm text-btm-black/50">No hay notas para mostrar.</p>
@@ -202,7 +268,7 @@ function NotesPanel({
             <Link
               key={`${n.id}-${i}`}
               href={`/pedidos/${n.id}`}
-              className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-btm-navy/5 hover:text-btm-red"
+              className="flex items-center justify-between gap-3 px-3 py-2.5 text-sm hover:bg-btm-navy/5 hover:text-btm-red"
             >
               <span className="flex flex-col">
                 <span className="font-semibold text-btm-navy">{n.numero}</span>
@@ -216,7 +282,7 @@ function NotesPanel({
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }
 
