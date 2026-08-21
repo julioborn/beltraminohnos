@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Fragment, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { DateRangePicker, type DateRange } from "./date-range-picker";
 import {
   buildPendingDayMatrix,
@@ -82,17 +82,17 @@ export function PendingByDayReport({
             <table className="w-full text-sm">
               <thead className="bg-btm-navy text-center text-[11px] font-semibold uppercase tracking-wide text-white">
                 <tr>
-                  <th className="px-4 py-2.5 text-left">Producto</th>
+                  <th className="sticky left-0 z-10 bg-btm-navy px-2 py-2 text-left sm:px-4 sm:py-2.5">Producto</th>
                   {matrix.days.map((d) => {
                     const { day, weekday } = dayHeaderParts(d);
                     return (
-                      <th key={d} className="whitespace-nowrap px-3 py-2.5">
+                      <th key={d} className="whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5">
                         <span className="block">{day}</span>
                         <span className="block font-normal normal-case text-white/70">{weekday}</span>
                       </th>
                     );
                   })}
-                  <th className="whitespace-nowrap px-4 py-2.5">Total</th>
+                  <th className="whitespace-nowrap px-2 py-2 sm:px-4 sm:py-2.5">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
@@ -100,53 +100,38 @@ export function PendingByDayReport({
                   const empty = row.total === 0;
                   const isSelectedProduct = selection?.productId === row.productId;
                   return (
-                    <Fragment key={row.productId}>
-                      <tr className={empty ? "opacity-40" : ""}>
-                        <td className="whitespace-nowrap p-0 font-medium">
-                          <button
-                            type="button"
-                            onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: null })}
-                            className={`w-full cursor-pointer px-4 py-2 text-left hover:bg-btm-navy/5 hover:text-btm-red ${
-                              isSelectedProduct && !selection?.day ? "text-btm-red" : ""
-                            }`}
-                          >
-                            {row.productName}
-                          </button>
-                        </td>
-                        {matrix.days.map((d) => {
-                          const isSelectedCell = isSelectedProduct && selection?.day === d;
-                          return (
-                            <td key={d} className="whitespace-nowrap p-0 text-center text-btm-black/70">
-                              <button
-                                type="button"
-                                onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: d })}
-                                className={`w-full cursor-pointer px-3 py-2 hover:bg-btm-navy/5 hover:text-btm-red ${
-                                  isSelectedCell ? "bg-btm-navy/10 font-semibold text-btm-red" : ""
-                                }`}
-                              >
-                                {formatCantidad(row.byDay[d] ?? 0)}
-                              </button>
-                            </td>
-                          );
-                        })}
-                        <td className="whitespace-nowrap px-4 py-2 text-center font-bold text-btm-navy">
-                          {formatCantidad(row.total)}
-                        </td>
-                      </tr>
-                      {isSelectedProduct && (
-                        <tr>
-                          <td colSpan={matrix.days.length + 2} className="bg-btm-navy/5 p-0">
-                            <NotesPanel
-                              productName={row.productName}
-                              day={selection?.day ?? null}
-                              mode={mode}
-                              notes={selectionNotes}
-                              onClose={() => setSelection(null)}
-                            />
+                    <tr key={row.productId} className={empty ? "opacity-40" : ""}>
+                      <td className="sticky left-0 z-10 max-w-[100px] bg-white p-0 font-medium sm:max-w-none">
+                        <button
+                          type="button"
+                          onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: null })}
+                          className={`w-full cursor-pointer px-2 py-1.5 text-left text-xs leading-tight whitespace-normal hover:bg-btm-navy/5 hover:text-btm-red sm:px-4 sm:py-2 sm:text-sm sm:whitespace-nowrap ${
+                            isSelectedProduct && !selection?.day ? "text-btm-red" : ""
+                          }`}
+                        >
+                          {row.productName}
+                        </button>
+                      </td>
+                      {matrix.days.map((d) => {
+                        const isSelectedCell = isSelectedProduct && selection?.day === d;
+                        return (
+                          <td key={d} className="whitespace-nowrap p-0 text-center text-btm-black/70">
+                            <button
+                              type="button"
+                              onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: d })}
+                              className={`w-full cursor-pointer px-2 py-1.5 text-xs hover:bg-btm-navy/5 hover:text-btm-red sm:px-3 sm:py-2 sm:text-sm ${
+                                isSelectedCell ? "bg-btm-navy/10 font-semibold text-btm-red" : ""
+                              }`}
+                            >
+                              {formatCantidad(row.byDay[d] ?? 0)}
+                            </button>
                           </td>
-                        </tr>
-                      )}
-                    </Fragment>
+                        );
+                      })}
+                      <td className="whitespace-nowrap px-2 py-1.5 text-center text-xs font-bold text-btm-navy sm:px-4 sm:py-2 sm:text-sm">
+                        {formatCantidad(row.total)}
+                      </td>
+                    </tr>
                   );
                 })}
                 {matrix.rows.length === 0 && (
@@ -159,6 +144,16 @@ export function PendingByDayReport({
               </tbody>
             </table>
           </div>
+
+          {selection && (
+            <NotesPanel
+              productName={selection.productName}
+              day={selection.day}
+              mode={mode}
+              notes={selectionNotes}
+              onClose={() => setSelection(null)}
+            />
+          )}
         </>
       )}
     </section>
@@ -181,7 +176,7 @@ function NotesPanel({
   const modeLabel = mode === "fabricacion" ? "pendientes de fabricación" : "pendientes de entrega";
 
   return (
-    <div className="flex flex-col gap-3 p-4">
+    <div className="flex flex-col gap-3 rounded-lg border border-btm-navy/20 bg-btm-navy/5 p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <h3 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{productName}</h3>
