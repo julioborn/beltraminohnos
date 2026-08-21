@@ -98,7 +98,7 @@ export function ShippingForm({
       ))}
 
       <div className="flex flex-col gap-1">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-3">
           <div className="flex flex-1 flex-col gap-1">
             <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Chofer</label>
             <select
@@ -116,7 +116,7 @@ export function ShippingForm({
           <button
             type="button"
             onClick={() => setBuscarPorFlota((v) => !v)}
-            className={`w-full shrink-0 cursor-pointer rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors sm:w-auto ${
+            className={`w-full shrink-0 cursor-pointer rounded-full border px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
               buscarPorFlota
                 ? "border-btm-navy bg-btm-navy text-white"
                 : "border-btm-navy text-btm-navy hover:bg-btm-navy/10"
