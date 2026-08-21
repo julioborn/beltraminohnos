@@ -32,6 +32,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
+      <div className="bg-btm-navy" style={{ height: "env(safe-area-inset-top)" }} aria-hidden />
       <header className="relative flex items-center gap-2 border-b-[3px] border-btm-red bg-btm-navy px-4 py-3 shadow-[0_2px_12px_rgba(20,29,58,0.25)] sm:px-6">
         <MobileMenu navLinks={NAV_LINKS} fullName={fullName} />
         <Link href="/inicio" className="flex items-center">

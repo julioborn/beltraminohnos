@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Archivo, Inter } from "next/font/google";
 import { ServiceWorkerRegister } from "@/components/service-worker-register";
+import { PullToRefresh } from "@/components/pull-to-refresh";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -26,6 +27,7 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   themeColor: "#21305d",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -35,6 +37,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${archivo.variable} ${inter.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-white text-btm-black">
+        <PullToRefresh />
         {children}
         <ServiceWorkerRegister />
       </body>
