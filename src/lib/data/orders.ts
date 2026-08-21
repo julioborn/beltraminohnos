@@ -88,6 +88,22 @@ export async function getOrderNotesCount(params: OrderListFilters) {
   return count ?? 0;
 }
 
+export async function getOrdersPendingSummary() {
+  const supabase = await createClient();
+
+  const { data } = await supabase
+    .from("order_notes")
+    .select(
+      `id, numero, cliente, fecha, estado_logistica, estado_produccion,
+       items:order_items(cantidad, product_id, product:products(name))`,
+    )
+    .or("estado_produccion.eq.PENDIENTE,estado_logistica.eq.PENDIENTE")
+    .order("fecha", { ascending: true })
+    .limit(2000);
+
+  return data ?? [];
+}
+
 export type ReportFilters = { desde?: string; hasta?: string };
 
 export async function getOrdersForReports(filters: ReportFilters) {

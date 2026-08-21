@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useActionState, useState, useTransition } from "react";
 import { createProduct, renameProduct, setProductActive, deleteProduct } from "@/lib/actions/products";
 import { updatePrice } from "@/lib/actions/prices";
@@ -148,7 +149,13 @@ export function ProductsPricesTable({
               Catálogo de productos y su lista de precios en USD por tonelada, según envase y zona.
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Link
+              href="/productos/pendientes"
+              className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            >
+              Pendientes por producto
+            </Link>
             <a
               href="/productos/pdf"
               className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
