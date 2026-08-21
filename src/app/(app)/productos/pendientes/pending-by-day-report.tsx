@@ -32,12 +32,9 @@ export function PendingByDayReport({
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
-      <div className="flex flex-col gap-1">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Planificación por día</h2>
-        <p className="text-sm text-btm-black/60">
-          Elegí un rango de fechas de entrega para ver cuánto hay pendiente, día por día.
-        </p>
-      </div>
+      <p className="text-sm text-btm-black/60">
+        Elegí un rango de fechas de entrega para ver cuánto hay pendiente, día por día.
+      </p>
 
       <div className="flex flex-wrap items-center gap-3">
         <DateRangePicker value={range} onChange={setRange} />
