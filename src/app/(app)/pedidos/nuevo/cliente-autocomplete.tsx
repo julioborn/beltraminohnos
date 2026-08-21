@@ -16,8 +16,8 @@ function normalize(s: string) {
     .trim();
 }
 
-export function ClienteAutocomplete({ clientes }: { clientes: Cliente[] }) {
-  const [query, setQuery] = useState("");
+export function ClienteAutocomplete({ clientes, defaultValue }: { clientes: Cliente[]; defaultValue?: string }) {
+  const [query, setQuery] = useState(defaultValue ?? "");
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 

@@ -1,12 +1,20 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getMasterData } from "@/lib/data/master-data";
+import { getMasterData, getPriceMap, getClientes } from "@/lib/data/master-data";
 import { getOrderNoteDetail } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge, LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
-import { marcarEntregado, marcarFabricado, updateShippingDetails } from "@/lib/actions/order-notes";
+import {
+  marcarEntregado,
+  marcarFabricado,
+  updateShippingDetails,
+  updateOrderNoteCore,
+  deleteOrderNote,
+} from "@/lib/actions/order-notes";
 import { formatFecha } from "@/lib/format";
 import { ShippingForm } from "./shipping-form";
+import { OrderCoreEditor } from "./order-core-editor";
+import { DeleteNoteButton } from "./delete-note-button";
 
 export default async function NotaDetallePage({
   params,
@@ -15,7 +23,12 @@ export default async function NotaDetallePage({
 }) {
   const { id } = await params;
 
-  const [detail, masterData] = await Promise.all([getOrderNoteDetail(id), getMasterData()]);
+  const [detail, masterData, priceMap, clientes] = await Promise.all([
+    getOrderNoteDetail(id),
+    getMasterData(),
+    getPriceMap(),
+    getClientes(),
+  ]);
 
   if (!detail) notFound();
   const { order, history } = detail;
@@ -28,6 +41,8 @@ export default async function NotaDetallePage({
   const marcarEntregadoAction = puedeMarcarEntregado ? marcarEntregado.bind(null, order.id) : null;
   const marcarFabricadoAction = puedeMarcarFabricado ? marcarFabricado.bind(null, order.id) : null;
   const updateShippingAction = updateShippingDetails.bind(null, order.id);
+  const updateCoreAction = updateOrderNoteCore.bind(null, order.id);
+  const deleteAction = deleteOrderNote.bind(null, order.id);
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -112,70 +127,93 @@ export default async function NotaDetallePage({
               Excel
             </a>
           </div>
+          <DeleteNoteButton numero={order.numero} deleteAction={deleteAction} />
         </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="flex flex-col gap-6 lg:col-span-2">
-          <Card title="Datos del pedido">
-            <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
-              <Field label="Zona" value={order.zona?.name ?? "—"} />
-              <Field label="Provincia" value={order.provincia ?? "—"} />
-              <Field label="Localidad" value={order.localidad ?? "—"} />
-              <Field label="Vendedor" value={order.vendedor?.name ?? "—"} />
-            </div>
-          </Card>
+          <OrderCoreEditor
+            action={updateCoreAction}
+            products={masterData.products}
+            zones={masterData.zones}
+            vendedores={masterData.vendedores}
+            priceMap={priceMap}
+            clientes={clientes}
+            initial={{
+              cliente: order.cliente,
+              provincia: order.provincia ?? "",
+              localidad: order.localidad ?? "",
+              vendedorId: order.vendedor?.id ?? "",
+              zonaId: order.zona?.id ?? "",
+              fecha: order.fecha,
+              items: order.items.map((item) => ({
+                productId: item.product_id,
+                tipoEnvase: item.tipo_envase as PackagingType,
+                cantidad: String(item.cantidad),
+              })),
+            }}
+          >
+            <Card title="Datos del pedido">
+              <div className="grid grid-cols-2 gap-x-4 gap-y-4 sm:grid-cols-4">
+                <Field label="Zona" value={order.zona?.name ?? "—"} />
+                <Field label="Provincia" value={order.provincia ?? "—"} />
+                <Field label="Localidad" value={order.localidad ?? "—"} />
+                <Field label="Vendedor" value={order.vendedor?.name ?? "—"} />
+              </div>
+            </Card>
 
-          <Card title="Productos">
-            {/* Mobile: stacked cards, no horizontal scroll needed */}
-            <div className="flex flex-col gap-2 sm:hidden">
-              {order.items.map((item) => (
-                <div key={item.id} className="flex flex-col gap-1 rounded-lg border border-black/10 p-3">
-                  <div className="flex items-start justify-between gap-2">
-                    <p className="text-sm font-medium">{item.product?.name}</p>
-                    <p className="shrink-0 font-semibold text-btm-navy">
-                      ${(item.cantidad * item.precio_unitario).toFixed(2)}
+            <Card title="Productos">
+              {/* Mobile: stacked cards, no horizontal scroll needed */}
+              <div className="flex flex-col gap-2 sm:hidden">
+                {order.items.map((item) => (
+                  <div key={item.id} className="flex flex-col gap-1 rounded-lg border border-black/10 p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-sm font-medium">{item.product?.name}</p>
+                      <p className="shrink-0 font-semibold text-btm-navy">
+                        ${(item.cantidad * item.precio_unitario).toFixed(2)}
+                      </p>
+                    </div>
+                    <p className="text-xs text-btm-black/60">
+                      {PACKAGING_LABELS[item.tipo_envase as PackagingType]} · {item.cantidad} x ${item.precio_unitario.toFixed(3)}
                     </p>
                   </div>
-                  <p className="text-xs text-btm-black/60">
-                    {PACKAGING_LABELS[item.tipo_envase as PackagingType]} · {item.cantidad} x ${item.precio_unitario.toFixed(3)}
-                  </p>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
-            {/* Desktop: table */}
-            <div className="hidden overflow-x-auto rounded-lg border border-black/10 sm:block">
-              <table className="w-full min-w-[500px] text-sm">
-                <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
-                  <tr>
-                    <th className="px-4 py-2.5">Producto</th>
-                    <th className="px-4 py-2.5">Envase</th>
-                    <th className="px-4 py-2.5">Cantidad</th>
-                    <th className="px-4 py-2.5">Precio</th>
-                    <th className="px-4 py-2.5">Subtotal</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5">
-                  {order.items.map((item) => (
-                    <tr key={item.id}>
-                      <td className="px-4 py-2.5 font-medium">{item.product?.name}</td>
-                      <td className="px-4 py-2.5 text-btm-black/70">
-                        {PACKAGING_LABELS[item.tipo_envase as PackagingType]}
-                      </td>
-                      <td className="px-4 py-2.5 text-btm-black/70">{item.cantidad}</td>
-                      <td className="px-4 py-2.5 text-btm-black/70">${item.precio_unitario.toFixed(3)}</td>
-                      <td className="px-4 py-2.5 font-semibold text-btm-navy">
-                        ${(item.cantidad * item.precio_unitario).toFixed(2)}
-                      </td>
+              {/* Desktop: table */}
+              <div className="hidden overflow-x-auto rounded-lg border border-black/10 sm:block">
+                <table className="w-full min-w-[500px] text-sm">
+                  <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
+                    <tr>
+                      <th className="px-4 py-2.5">Producto</th>
+                      <th className="px-4 py-2.5">Envase</th>
+                      <th className="px-4 py-2.5">Cantidad</th>
+                      <th className="px-4 py-2.5">Precio</th>
+                      <th className="px-4 py-2.5">Subtotal</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="divide-y divide-black/5">
+                    {order.items.map((item) => (
+                      <tr key={item.id}>
+                        <td className="px-4 py-2.5 font-medium">{item.product?.name}</td>
+                        <td className="px-4 py-2.5 text-btm-black/70">
+                          {PACKAGING_LABELS[item.tipo_envase as PackagingType]}
+                        </td>
+                        <td className="px-4 py-2.5 text-btm-black/70">{item.cantidad}</td>
+                        <td className="px-4 py-2.5 text-btm-black/70">${item.precio_unitario.toFixed(3)}</td>
+                        <td className="px-4 py-2.5 font-semibold text-btm-navy">
+                          ${(item.cantidad * item.precio_unitario).toFixed(2)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-            <p className="text-right font-display text-sm font-bold text-btm-navy">Total: ${total.toFixed(2)}</p>
-          </Card>
+              <p className="text-right font-display text-sm font-bold text-btm-navy">Total: ${total.toFixed(2)}</p>
+            </Card>
+          </OrderCoreEditor>
 
           <Card title="Detalles de envío">
             <ShippingForm
@@ -243,6 +281,7 @@ export default async function NotaDetallePage({
                     Excel
                   </a>
                 </div>
+                <DeleteNoteButton numero={order.numero} deleteAction={deleteAction} />
               </div>
             </Card>
           </div>

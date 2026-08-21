@@ -66,6 +66,68 @@ export async function createOrderNote(
   redirect(`/pedidos/${orderId}`);
 }
 
+export type UpdateOrderState = { error: string } | undefined;
+
+export async function updateOrderNoteCore(
+  orderId: string,
+  _prevState: UpdateOrderState,
+  formData: FormData,
+): Promise<UpdateOrderState> {
+  const cliente = String(formData.get("cliente") ?? "").trim();
+  const zonaId = String(formData.get("zona_id") ?? "") || null;
+  const fecha = String(formData.get("fecha") ?? "") || null;
+  const vendedorId = String(formData.get("vendedor_id") ?? "") || null;
+  const provincia = String(formData.get("provincia") ?? "").trim() || null;
+  const localidad = String(formData.get("localidad") ?? "").trim() || null;
+  const itemsRaw = String(formData.get("items") ?? "[]");
+
+  if (!cliente) {
+    return { error: "Ingresá el cliente." };
+  }
+
+  let items: unknown;
+  try {
+    items = JSON.parse(itemsRaw);
+  } catch {
+    return { error: "Los productos de la nota son inválidos." };
+  }
+
+  if (!Array.isArray(items) || items.length === 0) {
+    return { error: "Agregá al menos un producto." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_order_note", {
+    p_order_id: orderId,
+    p_cliente: cliente,
+    p_zona_id: zonaId,
+    p_fecha: fecha,
+    p_vendedor_id: vendedorId,
+    p_items: items,
+    p_provincia: provincia,
+    p_localidad: localidad,
+  } as Database["public"]["Functions"]["update_order_note"]["Args"]);
+
+  if (error) {
+    return { error: `No se pudieron guardar los cambios: ${error.message}` };
+  }
+
+  revalidatePath(`/pedidos/${orderId}`);
+  revalidatePath("/pedidos");
+}
+
+export async function deleteOrderNote(orderId: string): Promise<{ error?: string } | undefined> {
+  const supabase = await createClient();
+  const { error } = await supabase.from("order_notes").delete().eq("id", orderId);
+
+  if (error) {
+    return { error: `No se pudo eliminar la nota: ${error.message}` };
+  }
+
+  revalidatePath("/pedidos");
+  redirect("/pedidos");
+}
+
 export async function marcarEntregado(orderId: string) {
   const supabase = await createClient();
 

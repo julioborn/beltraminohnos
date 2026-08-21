@@ -488,6 +488,19 @@ export type Database = {
         }
         Returns: string
       }
+      update_order_note: {
+        Args: {
+          p_cliente: string
+          p_fecha: string
+          p_items: Json
+          p_localidad?: string
+          p_order_id: string
+          p_provincia?: string
+          p_vendedor_id: string
+          p_zona_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       estado_campo: "LOGISTICA" | "PRODUCCION"

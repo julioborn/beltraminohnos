@@ -21,8 +21,16 @@ export function DestinoSelect({
   useEffect(() => {
     fetch("/api/georef/provincias")
       .then((r) => r.json())
-      .then((data) => setProvincias(data.provincias ?? []))
+      .then((data) => {
+        const list: GeorefItem[] = data.provincias ?? [];
+        setProvincias(list);
+        if (defaultProvincia) {
+          const match = list.find((p) => p.nombre === defaultProvincia);
+          if (match) setProvinciaId(match.id);
+        }
+      })
       .catch(() => setProvincias([]));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
