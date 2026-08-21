@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getOrdersPendingSummary } from "@/lib/data/orders";
 import { aggregatePendingByProduct, type PendingNoteRef, type PendingProductRow } from "@/lib/reports/pending-by-product";
 import { formatFecha } from "@/lib/format";
+import { PendingByDayReport } from "./pending-by-day-report";
 
 function formatToneladas(n: number) {
   return n.toLocaleString("es-AR", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -86,6 +87,8 @@ export default async function ProductosPendientesPage() {
           </tbody>
         </table>
       </div>
+
+      <PendingByDayReport products={products ?? []} orders={orders} />
     </div>
   );
 }

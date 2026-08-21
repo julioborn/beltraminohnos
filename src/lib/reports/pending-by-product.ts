@@ -3,6 +3,7 @@ export type PendingSummaryOrder = {
   numero: string;
   cliente: string;
   fecha: string;
+  fecha_entrega: string | null;
   estado_logistica: "PENDIENTE" | "ENTREGADO";
   estado_produccion: "PENDIENTE" | "FABRICADO";
   items: { cantidad: number; product_id: string; product: { name: string } | null }[];

@@ -94,7 +94,7 @@ export async function getOrdersPendingSummary() {
   const { data } = await supabase
     .from("order_notes")
     .select(
-      `id, numero, cliente, fecha, estado_logistica, estado_produccion,
+      `id, numero, cliente, fecha, fecha_entrega, estado_logistica, estado_produccion,
        items:order_items(cantidad, product_id, product:products(name))`,
     )
     .or("estado_produccion.eq.PENDIENTE,estado_logistica.eq.PENDIENTE")
