@@ -1,5 +1,6 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Archivo, Inter } from "next/font/google";
+import { ServiceWorkerRegister } from "@/components/service-worker-register";
 import "./globals.css";
 
 const archivo = Archivo({
@@ -16,6 +17,15 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "BTM",
   description: "Sistema de notas de pedido de Beltramino Hnos.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "BTM",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#21305d",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -24,7 +34,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="es"
       className={`${archivo.variable} ${inter.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-white text-btm-black">{children}</body>
+      <body className="min-h-full flex flex-col bg-white text-btm-black">
+        {children}
+        <ServiceWorkerRegister />
+      </body>
     </html>
   );
 }
