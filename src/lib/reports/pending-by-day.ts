@@ -1,6 +1,9 @@
 import { eachDateInRange } from "@/lib/date-range";
 
 export type PendingDayOrder = {
+  id: string;
+  numero: string;
+  cliente: string;
   fecha_entrega: string | null;
   estado_logistica: "PENDIENTE" | "ENTREGADO";
   estado_produccion: "PENDIENTE" | "FABRICADO";
@@ -8,6 +11,14 @@ export type PendingDayOrder = {
 };
 
 export type PendingDayMode = "fabricacion" | "entrega";
+
+export type PendingProductNoteRef = {
+  id: string;
+  numero: string;
+  cliente: string;
+  fecha_entrega: string | null;
+  cantidad: number;
+};
 
 export type PendingDayRow = {
   productId: string;
@@ -60,4 +71,26 @@ export function buildPendingDayMatrix(
   }));
 
   return { days, rows };
+}
+
+export function notesForProduct(
+  orders: PendingDayOrder[],
+  productId: string,
+  mode: PendingDayMode,
+  day?: string,
+): PendingProductNoteRef[] {
+  const refs: PendingProductNoteRef[] = [];
+
+  for (const o of orders) {
+    const relevant = mode === "fabricacion" ? o.estado_produccion === "PENDIENTE" : o.estado_logistica === "PENDIENTE";
+    if (!relevant) continue;
+    if (day && o.fecha_entrega !== day) continue;
+
+    for (const it of o.items) {
+      if (it.product_id !== productId) continue;
+      refs.push({ id: o.id, numero: o.numero, cliente: o.cliente, fecha_entrega: o.fecha_entrega, cantidad: it.cantidad });
+    }
+  }
+
+  return refs.sort((a, b) => (a.fecha_entrega ?? "").localeCompare(b.fecha_entrega ?? ""));
 }
