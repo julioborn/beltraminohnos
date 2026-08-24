@@ -61,12 +61,6 @@ export default async function PedidosPage({
             Exportar Excel
           </a>
           <Link
-            href="/pedidos/cercanos"
-            className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            Pedidos cercanos
-          </Link>
-          <Link
             href="/pedidos/nuevo"
             className="rounded-full bg-btm-navy px-6 py-2.5 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red"
           >

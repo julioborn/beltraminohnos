@@ -418,6 +418,108 @@ export type Database = {
         }
         Relationships: []
       }
+      reparto_camiones: {
+        Row: {
+          camion_id: string
+          reparto_id: string
+        }
+        Insert: {
+          camion_id: string
+          reparto_id: string
+        }
+        Update: {
+          camion_id?: string
+          reparto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reparto_camiones_camion_id_fkey"
+            columns: ["camion_id"]
+            isOneToOne: false
+            referencedRelation: "camiones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reparto_camiones_reparto_id_fkey"
+            columns: ["reparto_id"]
+            isOneToOne: false
+            referencedRelation: "repartos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      reparto_notes: {
+        Row: {
+          order_note_id: string
+          reparto_id: string
+        }
+        Insert: {
+          order_note_id: string
+          reparto_id: string
+        }
+        Update: {
+          order_note_id?: string
+          reparto_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "reparto_notes_order_note_id_fkey"
+            columns: ["order_note_id"]
+            isOneToOne: false
+            referencedRelation: "order_notes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reparto_notes_reparto_id_fkey"
+            columns: ["reparto_id"]
+            isOneToOne: false
+            referencedRelation: "repartos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      repartos: {
+        Row: {
+          chofer_id: string | null
+          created_at: string
+          created_by: string | null
+          descripcion: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          chofer_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          chofer_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          descripcion?: string | null
+          id?: string
+          nombre?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "repartos_chofer_id_fkey"
+            columns: ["chofer_id"]
+            isOneToOne: false
+            referencedRelation: "choferes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "repartos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendedores: {
         Row: {
           active: boolean
@@ -485,6 +587,16 @@ export type Database = {
           p_provincia?: string
           p_vendedor_id: string
           p_zona_id: string
+        }
+        Returns: string
+      }
+      create_reparto: {
+        Args: {
+          p_camion_ids: string[]
+          p_chofer_id: string
+          p_descripcion: string
+          p_nombre: string
+          p_order_note_ids: string[]
         }
         Returns: string
       }

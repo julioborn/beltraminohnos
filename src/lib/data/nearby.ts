@@ -11,6 +11,7 @@ export type NearbyFilters = {
   localidad?: string;
   radio?: string;
   estado_logistica?: string;
+  todas?: string;
 };
 
 const DEFAULT_RADIO_KM = 100;
@@ -19,30 +20,40 @@ function pairKey(provincia: string, localidad: string) {
   return `${provincia}␟${localidad}`;
 }
 
-export async function getOrderNotesNearby(filters: NearbyFilters) {
-  const radioKm = Number(filters.radio) || DEFAULT_RADIO_KM;
-
-  if (!filters.provincia || !filters.localidad) {
-    return { center: null, results: [], excludedCount: 0, radioKm };
-  }
-
-  const center = await resolveLocality(filters.provincia, filters.localidad);
-  if (!center) {
-    return { center: null, results: [], excludedCount: 0, radioKm };
-  }
-
+async function fetchCandidateNotes(estadoLogistica?: string) {
   const supabase = await createClient();
   let query = supabase
     .from("order_notes")
     .select(`${LIST_SELECT_BASE}, items:order_items(id, cantidad, tipo_envase, precio_unitario, product:products(name))`)
     .order("fecha", { ascending: false });
 
-  if (filters.estado_logistica) {
-    query = query.eq("estado_logistica", filters.estado_logistica as LogisticaEstado);
+  if (estadoLogistica) {
+    query = query.eq("estado_logistica", estadoLogistica as LogisticaEstado);
   }
 
   const { data } = await query.limit(2000);
-  const notes = data ?? [];
+  return data ?? [];
+}
+
+export async function getOrderNotesNearby(filters: NearbyFilters) {
+  const radioKm = Number(filters.radio) || DEFAULT_RADIO_KM;
+
+  if (filters.todas === "1") {
+    const notes = await fetchCandidateNotes(filters.estado_logistica);
+    const results = notes.map((n) => ({ ...n, distancia_km: null as number | null }));
+    return { center: null, results, excludedCount: 0, radioKm, todas: true as const };
+  }
+
+  if (!filters.provincia || !filters.localidad) {
+    return { center: null, results: [], excludedCount: 0, radioKm, todas: false as const };
+  }
+
+  const center = await resolveLocality(filters.provincia, filters.localidad);
+  if (!center) {
+    return { center: null, results: [], excludedCount: 0, radioKm, todas: false as const };
+  }
+
+  const notes = await fetchCandidateNotes(filters.estado_logistica);
 
   const uniquePairs = new Map<string, { provincia: string; localidad: string }>();
   for (const n of notes) {
@@ -73,5 +84,5 @@ export async function getOrderNotesNearby(filters: NearbyFilters) {
 
   withDistance.sort((a, b) => a.distancia_km - b.distancia_km);
 
-  return { center, results: withDistance, excludedCount, radioKm };
+  return { center, results: withDistance, excludedCount, radioKm, todas: false as const };
 }

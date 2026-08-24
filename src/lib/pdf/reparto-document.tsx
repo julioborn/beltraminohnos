@@ -4,9 +4,7 @@ import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/render
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { LOGISTICA_LABELS } from "@/components/estado-badge";
 import { formatFecha } from "@/lib/format";
-import type { getOrderNotesNearby } from "@/lib/data/nearby";
-
-type NearbyOrderItem = Awaited<ReturnType<typeof getOrderNotesNearby>>["results"][number];
+import type { RepartoDetail } from "./types";
 
 const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
 const ICON_SRC = { data: iconBuffer, format: "png" as const };
@@ -26,6 +24,11 @@ const styles = StyleSheet.create({
   brandIcon: { width: 16, height: 16 },
   brand: { fontSize: 14, fontFamily: "Helvetica-Bold" },
   subtitle: { fontSize: 9 },
+  section: { marginBottom: 12 },
+  fieldGrid: { flexDirection: "row", flexWrap: "wrap" },
+  field: { width: "25%", marginBottom: 6 },
+  fieldLabel: { fontSize: 7, color: "#8a8785", textTransform: "uppercase" },
+  fieldValue: { fontSize: 9 },
   table: { borderTopWidth: 1, borderTopColor: "#e5e5e5" },
   tableHeaderRow: { flexDirection: "row", backgroundColor: "#f3f3f1", paddingVertical: 5 },
   tableRow: {
@@ -35,25 +38,21 @@ const styles = StyleSheet.create({
     borderBottomColor: "#eeeeee",
   },
   headerCell: { fontFamily: "Helvetica-Bold", fontSize: 7.5, textTransform: "uppercase" },
-  cNumero: { width: "9%", paddingHorizontal: 3 },
-  cFecha: { width: "8%", paddingHorizontal: 3 },
-  cCliente: { width: "18%", paddingHorizontal: 3 },
-  cLocalidad: { width: "14%", paddingHorizontal: 3 },
-  cDistancia: { width: "8%", paddingHorizontal: 3, textAlign: "right" },
-  cProductos: { width: "22%", paddingHorizontal: 3 },
-  cVendedor: { width: "11%", paddingHorizontal: 3 },
-  cLogistica: { width: "10%", paddingHorizontal: 3 },
+  cNumero: { width: "10%", paddingHorizontal: 3 },
+  cFecha: { width: "9%", paddingHorizontal: 3 },
+  cCliente: { width: "20%", paddingHorizontal: 3 },
+  cLocalidad: { width: "17%", paddingHorizontal: 3 },
+  cProductos: { width: "26%", paddingHorizontal: 3 },
+  cVendedor: { width: "10%", paddingHorizontal: 3 },
+  cEstado: { width: "8%", paddingHorizontal: 3 },
 });
 
-export function OrderNearbyDocument({
-  orders,
-  centro,
-  radioKm,
-}: {
-  orders: NearbyOrderItem[];
-  centro: string;
-  radioKm: number;
-}) {
+export function RepartoDocument({ reparto, notes }: RepartoDetail) {
+  const camionesLabel =
+    reparto.camiones.length > 0
+      ? reparto.camiones.map((c) => c.camion?.dominio).filter(Boolean).join(", ")
+      : "—";
+
   return (
     <Document>
       <Page size="A4" orientation="landscape" style={styles.page}>
@@ -62,9 +61,34 @@ export function OrderNearbyDocument({
             <Image src={ICON_SRC} style={styles.brandIcon} />
             <Text style={styles.brand}>BTM · Nutrición Animal</Text>
           </View>
-          <Text style={styles.subtitle}>
-            Pedidos cercanos a {centro} (radio {radioKm} km) — {orders.length} resultados
-          </Text>
+          <Text style={styles.subtitle}>Reparto — {notes.length} notas</Text>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.fieldGrid}>
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Nombre</Text>
+              <Text style={styles.fieldValue}>{reparto.nombre}</Text>
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Fecha</Text>
+              <Text style={styles.fieldValue}>{formatFecha(reparto.created_at.slice(0, 10))}</Text>
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Chofer</Text>
+              <Text style={styles.fieldValue}>{reparto.chofer?.name ?? "—"}</Text>
+            </View>
+            <View style={styles.field}>
+              <Text style={styles.fieldLabel}>Flota</Text>
+              <Text style={styles.fieldValue}>{camionesLabel}</Text>
+            </View>
+            {reparto.descripcion && (
+              <View style={{ width: "100%", marginTop: 4 }}>
+                <Text style={styles.fieldLabel}>Descripción</Text>
+                <Text style={styles.fieldValue}>{reparto.descripcion}</Text>
+              </View>
+            )}
+          </View>
         </View>
 
         <View style={styles.table}>
@@ -73,33 +97,30 @@ export function OrderNearbyDocument({
             <Text style={[styles.cFecha, styles.headerCell]}>Fecha</Text>
             <Text style={[styles.cCliente, styles.headerCell]}>Cliente</Text>
             <Text style={[styles.cLocalidad, styles.headerCell]}>Localidad</Text>
-            <Text style={[styles.cDistancia, styles.headerCell]}>Distancia</Text>
             <Text style={[styles.cProductos, styles.headerCell]}>Productos</Text>
             <Text style={[styles.cVendedor, styles.headerCell]}>Vendedor</Text>
-            <Text style={[styles.cLogistica, styles.headerCell]}>Estado pedido</Text>
+            <Text style={[styles.cEstado, styles.headerCell]}>Pedido</Text>
           </View>
-          {orders.map((order) => (
+          {notes.map((order) => (
             <View key={order.id} style={styles.tableRow}>
               <Text style={styles.cNumero}>{order.numero}</Text>
               <Text style={styles.cFecha}>{formatFecha(order.fecha)}</Text>
               <Text style={styles.cCliente}>{order.cliente}</Text>
               <Text style={styles.cLocalidad}>
-                {order.localidad ?? "—"}
-                {order.provincia ? ` (${order.provincia})` : ""}
+                {order.localidad ? `${order.localidad} (${order.provincia})` : "—"}
               </Text>
-              <Text style={styles.cDistancia}>{order.distancia_km !== null ? `${Math.round(order.distancia_km)} km` : "—"}</Text>
               <Text style={styles.cProductos}>
                 {order.items
                   .map((it) => `${it.product?.name} (${PACKAGING_LABELS[it.tipo_envase as PackagingType]} x${it.cantidad})`)
                   .join(", ")}
               </Text>
               <Text style={styles.cVendedor}>{order.vendedor?.name ?? "—"}</Text>
-              <Text style={styles.cLogistica}>{LOGISTICA_LABELS[order.estado_logistica]}</Text>
+              <Text style={styles.cEstado}>{LOGISTICA_LABELS[order.estado_logistica]}</Text>
             </View>
           ))}
-          {orders.length === 0 && (
+          {notes.length === 0 && (
             <View style={styles.tableRow}>
-              <Text style={{ paddingHorizontal: 3 }}>No hay pedidos dentro de ese radio.</Text>
+              <Text>Este reparto no tiene notas.</Text>
             </View>
           )}
         </View>
