@@ -135,14 +135,14 @@ export function DestinoSelect({
             <option value="">
               {!provinciaId ? "Elegí una provincia primero" : loadingLocalidades ? "Cargando..." : "Seleccionar..."}
             </option>
+            {provinciaId && !loadingLocalidades && (
+              <option value={CUSTOM_OPTION}>+ Agregar nueva localidad...</option>
+            )}
             {localidades.map((l) => (
               <option key={l.id} value={l.nombre}>
                 {l.nombre}
               </option>
             ))}
-            {provinciaId && !loadingLocalidades && (
-              <option value={CUSTOM_OPTION}>+ Agregar nueva localidad...</option>
-            )}
           </select>
         )}
       </div>
