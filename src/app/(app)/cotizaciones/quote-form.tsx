@@ -15,10 +15,19 @@ type Item = {
   productId: string;
   tipoEnvase: PackagingType;
   cantidad: string;
+  overridePrice: boolean;
+  precioManual: string;
 };
 
 function emptyItem(): Item {
-  return { key: crypto.randomUUID(), productId: "", tipoEnvase: "BOLSA", cantidad: "" };
+  return {
+    key: crypto.randomUUID(),
+    productId: "",
+    tipoEnvase: "BOLSA",
+    cantidad: "",
+    overridePrice: false,
+    precioManual: "",
+  };
 }
 
 const COMBINING_MARKS = new RegExp(String.fromCharCode(91, 768, 45, 879, 93), "g");
@@ -109,10 +118,26 @@ export function QuoteForm({
     setItems((prev) => (prev.length > 1 ? prev.filter((it) => it.key !== key) : prev));
   }
 
-  function priceFor(item: Item) {
+  function listPriceFor(item: Item) {
     if (!item.productId || !zonaId) return null;
     const packagingType = pricingPackagingType(item.tipoEnvase);
     return priceMap[`${item.productId}_${packagingType}_${zonaId}`] ?? null;
+  }
+
+  function priceFor(item: Item) {
+    if (item.overridePrice) {
+      const v = Number(item.precioManual);
+      return item.precioManual.trim() && !Number.isNaN(v) ? v : null;
+    }
+    return listPriceFor(item);
+  }
+
+  function toggleOverride(item: Item) {
+    const next = !item.overridePrice;
+    updateItem(item.key, {
+      overridePrice: next,
+      precioManual: next ? (listPriceFor(item)?.toString() ?? "") : "",
+    });
   }
 
   const linedUpItems = useMemo(() => items.filter((it) => it.productId), [items]);
@@ -380,18 +405,45 @@ export function QuoteForm({
                   </div>
 
                   <div className="flex flex-1 flex-col gap-1">
-                    <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                      Precio USD/tn
-                    </span>
-                    <span className="px-2 py-1.5 text-sm">
-                      {price === null ? (
-                        <span className="text-btm-red">Sin precio</span>
-                      ) : cantidad > 0 ? (
-                        `$${price.toFixed(3)} · $${(price * cantidad).toFixed(2)}`
-                      ) : (
-                        `$${price.toFixed(3)} /tn`
-                      )}
-                    </span>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                        Precio USD/tn
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => toggleOverride(item)}
+                        className="cursor-pointer text-[11px] font-semibold uppercase tracking-wide text-btm-navy hover:text-btm-red"
+                      >
+                        {item.overridePrice ? "Usar precio de lista" : "Modificar precio"}
+                      </button>
+                    </div>
+                    {item.overridePrice ? (
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.001"
+                          autoFocus
+                          placeholder="Precio USD/tn"
+                          value={item.precioManual}
+                          onChange={(e) => updateItem(item.key, { precioManual: e.target.value })}
+                          className="w-full rounded-md border border-btm-navy px-2 py-1.5 text-sm"
+                        />
+                        {price !== null && cantidad > 0 && (
+                          <span className="shrink-0 text-sm text-btm-black/60">${(price * cantidad).toFixed(2)}</span>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="px-2 py-1.5 text-sm">
+                        {price === null ? (
+                          <span className="text-btm-red">Sin precio</span>
+                        ) : cantidad > 0 ? (
+                          `$${price.toFixed(3)} · $${(price * cantidad).toFixed(2)}`
+                        ) : (
+                          `$${price.toFixed(3)} /tn`
+                        )}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
