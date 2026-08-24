@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 
 type GeorefItem = { id: string; nombre: string };
 
+const CUSTOM_OPTION = "__custom__";
+
 export function DestinoSelect({
   defaultProvincia,
   defaultLocalidad,
@@ -17,6 +19,7 @@ export function DestinoSelect({
   const [provinciaNombre, setProvinciaNombre] = useState(defaultProvincia ?? "");
   const [localidadNombre, setLocalidadNombre] = useState(defaultLocalidad ?? "");
   const [loadingLocalidades, setLoadingLocalidades] = useState(false);
+  const [customLocalidad, setCustomLocalidad] = useState(false);
 
   useEffect(() => {
     fetch("/api/georef/provincias")
@@ -41,9 +44,16 @@ export function DestinoSelect({
     setLoadingLocalidades(true);
     fetch(`/api/georef/localidades?provincia=${provinciaId}`)
       .then((r) => r.json())
-      .then((data) => setLocalidades(data.localidades ?? []))
+      .then((data) => {
+        const list: GeorefItem[] = data.localidades ?? [];
+        setLocalidades(list);
+        if (defaultLocalidad && !list.some((l) => l.nombre === defaultLocalidad)) {
+          setCustomLocalidad(true);
+        }
+      })
       .catch(() => setLocalidades([]))
       .finally(() => setLoadingLocalidades(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [provinciaId]);
 
   return (
@@ -65,6 +75,7 @@ export function DestinoSelect({
             setProvinciaId(id);
             setProvinciaNombre(nombre);
             setLocalidadNombre("");
+            setCustomLocalidad(false);
           }}
           className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
         >
@@ -81,23 +92,59 @@ export function DestinoSelect({
         <label htmlFor="localidad_select" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
           Localidad
         </label>
-        <select
-          id="localidad_select"
-          required
-          value={localidadNombre}
-          disabled={!provinciaId || loadingLocalidades}
-          onChange={(e) => setLocalidadNombre(e.target.value)}
-          className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy disabled:bg-black/5"
-        >
-          <option value="">
-            {!provinciaId ? "Elegí una provincia primero" : loadingLocalidades ? "Cargando..." : "Seleccionar..."}
-          </option>
-          {localidades.map((l) => (
-            <option key={l.id} value={l.nombre}>
-              {l.nombre}
+        {customLocalidad ? (
+          <div className="flex flex-col gap-1">
+            <input
+              id="localidad_select"
+              type="text"
+              required
+              autoFocus
+              placeholder="Escribí el nombre de la localidad"
+              value={localidadNombre}
+              onChange={(e) => setLocalidadNombre(e.target.value)}
+              className="rounded-md border border-btm-navy px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            />
+            <button
+              type="button"
+              onClick={() => {
+                setCustomLocalidad(false);
+                setLocalidadNombre("");
+              }}
+              className="w-fit cursor-pointer text-xs font-semibold uppercase tracking-wide text-btm-black/50 hover:text-btm-navy"
+            >
+              Elegir de la lista
+            </button>
+          </div>
+        ) : (
+          <select
+            id="localidad_select"
+            required
+            value={localidadNombre}
+            disabled={!provinciaId || loadingLocalidades}
+            onChange={(e) => {
+              const v = e.target.value;
+              if (v === CUSTOM_OPTION) {
+                setCustomLocalidad(true);
+                setLocalidadNombre("");
+              } else {
+                setLocalidadNombre(v);
+              }
+            }}
+            className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy disabled:bg-black/5"
+          >
+            <option value="">
+              {!provinciaId ? "Elegí una provincia primero" : loadingLocalidades ? "Cargando..." : "Seleccionar..."}
             </option>
-          ))}
-        </select>
+            {localidades.map((l) => (
+              <option key={l.id} value={l.nombre}>
+                {l.nombre}
+              </option>
+            ))}
+            {provinciaId && !loadingLocalidades && (
+              <option value={CUSTOM_OPTION}>+ Agregar nueva localidad...</option>
+            )}
+          </select>
+        )}
       </div>
     </>
   );
