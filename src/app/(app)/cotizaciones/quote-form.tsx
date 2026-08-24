@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PACKAGING_TYPES, PACKAGING_LABELS, pricingPackagingType, type PackagingType } from "@/lib/packaging";
 import { ClienteAutocomplete } from "../pedidos/nuevo/cliente-autocomplete";
+
+const DOLAR_FORMATTER = new Intl.DateTimeFormat("es-AR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
 type Option = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
@@ -73,6 +75,31 @@ export function QuoteForm({
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dolar, setDolar] = useState("");
+  const [dolarFecha, setDolarFecha] = useState<string | null>(null);
+  const [dolarLoading, setDolarLoading] = useState(false);
+  const [dolarError, setDolarError] = useState(false);
+
+  function fetchDolar() {
+    setDolarLoading(true);
+    setDolarError(false);
+    fetch("/api/dolar/oficial")
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data.venta === "number") {
+          setDolar(String(data.venta));
+          setDolarFecha(data.fecha ?? null);
+        } else {
+          setDolarError(true);
+        }
+      })
+      .catch(() => setDolarError(true))
+      .finally(() => setDolarLoading(false));
+  }
+
+  useEffect(() => {
+    fetchDolar();
+  }, []);
 
   function updateItem(key: string, patch: Partial<Item>) {
     setItems((prev) => prev.map((it) => (it.key === key ? { ...it, ...patch } : it)));
@@ -96,6 +123,8 @@ export function QuoteForm({
   );
   const total = computableItems.reduce((sum, it) => sum + Number(it.cantidad) * (priceFor(it) ?? 0), 0);
   const hasExcludedItems = linedUpItems.length > computableItems.length;
+  const dolarValue = Number(dolar) || null;
+  const totalArs = dolarValue ? total * dolarValue : null;
 
   async function handleGenerar(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -130,6 +159,7 @@ export function QuoteForm({
           validoHasta,
           observaciones,
           items: itemsPayload,
+          dolar: dolarValue,
         }),
       });
       if (!res.ok) throw new Error("request failed");
@@ -196,7 +226,44 @@ export function QuoteForm({
         </div>
       </Section>
 
-      <Section number={3} title="Fecha y validez" twoCol>
+      <Section number={3} title="Cotización del dólar">
+        <div className="flex flex-col gap-1 sm:w-56">
+          <label htmlFor="dolar" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
+            Dólar oficial (ARS)
+          </label>
+          <div className="flex items-center gap-2">
+            <input
+              id="dolar"
+              name="dolar"
+              type="number"
+              min="0"
+              step="0.01"
+              value={dolar}
+              onChange={(e) => setDolar(e.target.value)}
+              placeholder={dolarLoading ? "Cargando..." : "0.00"}
+              className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            />
+            <button
+              type="button"
+              onClick={fetchDolar}
+              disabled={dolarLoading}
+              title="Actualizar desde el banco"
+              className="shrink-0 cursor-pointer rounded-md border border-black/15 p-2 text-btm-black/60 hover:border-btm-navy hover:text-btm-navy disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              <RefreshIcon spinning={dolarLoading} />
+            </button>
+          </div>
+          <p className="text-xs text-btm-black/50">
+            {dolarError
+              ? "No se pudo obtener el valor del banco. Podés cargarlo a mano."
+              : dolarFecha
+                ? `Oficial del banco · ${DOLAR_FORMATTER.format(new Date(dolarFecha))}`
+                : "Se completa con el valor oficial del día — se puede modificar."}
+          </p>
+        </div>
+      </Section>
+
+      <Section number={4} title="Fecha y validez" twoCol>
         <div className="flex flex-col gap-1">
           <label htmlFor="fecha" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
             Fecha
@@ -224,7 +291,7 @@ export function QuoteForm({
         </div>
       </Section>
 
-      <Section number={4} title="Observaciones">
+      <Section number={5} title="Observaciones">
         <textarea
           id="observaciones"
           name="observaciones"
@@ -233,7 +300,7 @@ export function QuoteForm({
         />
       </Section>
 
-      <Section number={5} title="Productos">
+      <Section number={6} title="Productos">
         <div className="flex items-center justify-between">
           <span />
           <button
@@ -336,6 +403,11 @@ export function QuoteForm({
           <p className="text-right font-display text-sm font-bold text-btm-navy">
             Total: ${total.toFixed(2)}
           </p>
+          {totalArs !== null && (
+            <p className="text-right text-sm text-btm-black/60">
+              Aprox. ${totalArs.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS
+            </p>
+          )}
           {hasExcludedItems && (
             <p className="text-right text-xs text-btm-black/50">
               * No incluye líneas sin cantidad y/o precio cargados.
@@ -358,5 +430,22 @@ export function QuoteForm({
         {generating ? "Generando..." : "Generar PDF"}
       </button>
     </form>
+  );
+}
+
+function RefreshIcon({ spinning }: { spinning?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={`h-4 w-4 ${spinning ? "animate-spin" : ""}`}
+    >
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 4v5h-5" />
+    </svg>
   );
 }

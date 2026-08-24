@@ -51,6 +51,7 @@ const styles = StyleSheet.create({
   headerCell: { fontFamily: "Helvetica-Bold", fontSize: 8, textTransform: "uppercase" },
   totalRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 10 },
   totalLabel: { fontFamily: "Helvetica-Bold", fontSize: 12, color: "#21305D" },
+  totalArs: { fontSize: 10, color: "#8a8785", marginTop: 2 },
   totalNote: { fontSize: 8, color: "#8a8785", textAlign: "right", marginTop: 3 },
   empty: { fontSize: 10, color: "#8a8785", paddingVertical: 10 },
   footer: { marginTop: 20, fontSize: 8, color: "#8a8785", borderTopWidth: 1, borderTopColor: "#eeeeee", paddingTop: 8 },
@@ -71,12 +72,14 @@ export type QuoteDocumentProps = {
   validoHasta: string | null;
   observaciones: string | null;
   items: QuoteItem[];
+  dolar: number | null;
 };
 
-export function QuoteDocument({ cliente, zona, vendedor, fecha, validoHasta, observaciones, items }: QuoteDocumentProps) {
+export function QuoteDocument({ cliente, zona, vendedor, fecha, validoHasta, observaciones, items, dolar }: QuoteDocumentProps) {
   const computable = items.filter((it) => it.cantidad !== null && it.precioUnitario !== null);
   const total = computable.reduce((sum, it) => sum + (it.cantidad ?? 0) * (it.precioUnitario ?? 0), 0);
   const hasExcluded = items.length > computable.length;
+  const totalArs = dolar ? total * dolar : null;
 
   return (
     <Document>
@@ -97,6 +100,7 @@ export function QuoteDocument({ cliente, zona, vendedor, fecha, validoHasta, obs
             <Field label="Vendedor" value={vendedor ?? "—"} />
             <Field label="Fecha" value={formatFecha(fecha)} />
             {validoHasta && <Field label="Válido hasta" value={formatFecha(validoHasta)} />}
+            {dolar && <Field label="Cotización del dólar" value={`$${dolar.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`} />}
           </View>
         </View>
 
@@ -130,10 +134,15 @@ export function QuoteDocument({ cliente, zona, vendedor, fecha, validoHasta, obs
                   </View>
                 ))}
               </View>
-              <View style={styles.totalRow}>
+              <View style={[styles.totalRow, { flexDirection: "column", alignItems: "flex-end" }]}>
                 <Text style={styles.totalLabel}>
                   Total: {computable.length > 0 ? `$${total.toFixed(2)}` : "—"}
                 </Text>
+                {totalArs !== null && computable.length > 0 && (
+                  <Text style={styles.totalArs}>
+                    Aprox. ${totalArs.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS
+                  </Text>
+                )}
               </View>
               {hasExcluded && (
                 <Text style={styles.totalNote}>
@@ -153,6 +162,7 @@ export function QuoteDocument({ cliente, zona, vendedor, fecha, validoHasta, obs
 
         <Text style={styles.footer}>
           Precios expresados en USD por tonelada. Sujetos a modificación sin previo aviso.
+          {dolar ? " El total en ARS es referencial, según la cotización del dólar indicada." : ""}
         </Text>
       </Page>
     </Document>
