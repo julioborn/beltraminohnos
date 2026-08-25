@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrandTexture } from "@/components/brand-texture";
 
-const PRIMARY_ITEMS = [
+const ROW_1 = [
   {
     href: "/pedidos",
     label: "Pedidos",
@@ -38,6 +38,9 @@ const PRIMARY_ITEMS = [
       </svg>
     ),
   },
+];
+
+const ROW_2 = [
   {
     href: "/productos",
     label: "Productos",
@@ -50,9 +53,6 @@ const PRIMARY_ITEMS = [
       </svg>
     ),
   },
-];
-
-const SECONDARY_ROW_1 = [
   {
     href: "/personal",
     label: "Personal",
@@ -79,7 +79,7 @@ const SECONDARY_ROW_1 = [
   },
 ];
 
-const SECONDARY_ROW_2 = [
+const ROW_3 = [
   {
     href: "/reportes",
     label: "Reportes",
@@ -157,18 +157,18 @@ export default function InicioPage() {
       </div>
 
       <div className="relative flex w-full max-w-3xl flex-col gap-4">
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
-          {PRIMARY_ITEMS.map((item) => (
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          {ROW_1.map((item) => (
             <HomeCard key={item.href} {...item} accent="red" />
           ))}
         </div>
-        <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          {SECONDARY_ROW_1.map((item) => (
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
+          {ROW_2.map((item) => (
             <HomeCard key={item.href} {...item} accent="navy" />
           ))}
         </div>
         <div className="grid grid-cols-2 gap-2 sm:gap-4">
-          {SECONDARY_ROW_2.map((item) => (
+          {ROW_3.map((item) => (
             <HomeCard key={item.href} {...item} accent="navy" />
           ))}
         </div>
