@@ -613,6 +613,16 @@ export type Database = {
         }
         Returns: undefined
       }
+      update_reparto: {
+        Args: {
+          p_camion_ids: string[]
+          p_chofer_id: string
+          p_descripcion: string
+          p_nombre: string
+          p_reparto_id: string
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       estado_campo: "LOGISTICA" | "PRODUCCION"

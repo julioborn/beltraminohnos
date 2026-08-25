@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useMemo, useState } from "react";
 import { createReparto } from "@/lib/actions/repartos";
 import type { NearbyOrder } from "./nearby-results";
 
@@ -27,6 +27,28 @@ export function CrearRepartoModal({
   onClose: () => void;
 }) {
   const [state, action, pending] = useActionState(createReparto, undefined);
+  const [choferId, setChoferId] = useState("");
+  const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>([]);
+
+  function handleChoferChange(newChoferId: string) {
+    setChoferId(newChoferId);
+    setSelectedCamionIds(camiones.filter((c) => c.chofer_id === newChoferId).map((c) => c.id));
+  }
+
+  function toggleCamion(camionId: string) {
+    setSelectedCamionIds((prev) =>
+      prev.includes(camionId) ? prev.filter((id) => id !== camionId) : [...prev, camionId],
+    );
+  }
+
+  const camionesDelChofer = useMemo(
+    () => camiones.filter((c) => c.chofer_id === choferId),
+    [camiones, choferId],
+  );
+  const otrosCamiones = useMemo(
+    () => camiones.filter((c) => c.chofer_id !== choferId),
+    [camiones, choferId],
+  );
 
   useEffect(() => {
     function handleKey(e: KeyboardEvent) {
@@ -65,7 +87,7 @@ export function CrearRepartoModal({
           </button>
         </div>
 
-        <div className="flex max-h-32 flex-col divide-y divide-black/5 overflow-y-auto rounded-md border border-black/10">
+        <div className="flex max-h-56 flex-col divide-y divide-black/5 overflow-y-auto rounded-md border border-black/10">
           {orders.map((o) => (
             <div key={o.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
               <span className="font-semibold text-btm-navy">{o.numero}</span>
@@ -112,7 +134,8 @@ export function CrearRepartoModal({
             <select
               id="chofer_id"
               name="chofer_id"
-              defaultValue=""
+              value={choferId}
+              onChange={(e) => handleChoferChange(e.target.value)}
               className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
             >
               <option value="">Sin asignar</option>
@@ -127,18 +150,60 @@ export function CrearRepartoModal({
           {camiones.length > 0 && (
             <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">Flota</span>
-              <div className="flex max-h-40 flex-col gap-1 overflow-y-auto rounded-md border border-black/10 p-2">
-                {camiones.map((c) => (
-                  <label
-                    key={c.id}
-                    className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-black/5"
-                  >
-                    <input type="checkbox" name="camion_id" value={c.id} className="h-4 w-4 cursor-pointer accent-btm-navy" />
-                    <span>
-                      {c.dominio} · {c.tipo}
+              <div className="flex max-h-52 flex-col gap-2 overflow-y-auto rounded-md border border-black/10 p-2">
+                {camionesDelChofer.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    <span className="px-2 text-[10px] font-semibold uppercase tracking-wide text-btm-black/40">
+                      Del chofer elegido
                     </span>
-                  </label>
-                ))}
+                    {camionesDelChofer.map((c) => (
+                      <label
+                        key={c.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-black/5"
+                      >
+                        <input
+                          type="checkbox"
+                          name="camion_id"
+                          value={c.id}
+                          checked={selectedCamionIds.includes(c.id)}
+                          onChange={() => toggleCamion(c.id)}
+                          className="h-4 w-4 cursor-pointer accent-btm-navy"
+                        />
+                        <span>
+                          {c.dominio} · {c.tipo}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
+
+                {otrosCamiones.length > 0 && (
+                  <div className="flex flex-col gap-1">
+                    {camionesDelChofer.length > 0 && (
+                      <span className="px-2 text-[10px] font-semibold uppercase tracking-wide text-btm-black/40">
+                        Resto de la flota
+                      </span>
+                    )}
+                    {otrosCamiones.map((c) => (
+                      <label
+                        key={c.id}
+                        className="flex cursor-pointer items-center gap-2 rounded px-2 py-1.5 text-sm hover:bg-black/5"
+                      >
+                        <input
+                          type="checkbox"
+                          name="camion_id"
+                          value={c.id}
+                          checked={selectedCamionIds.includes(c.id)}
+                          onChange={() => toggleCamion(c.id)}
+                          className="h-4 w-4 cursor-pointer accent-btm-navy"
+                        />
+                        <span>
+                          {c.dominio} · {c.tipo}
+                        </span>
+                      </label>
+                    ))}
+                  </div>
+                )}
               </div>
             </div>
           )}

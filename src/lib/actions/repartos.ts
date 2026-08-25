@@ -42,6 +42,39 @@ export async function createReparto(
   redirect(`/repartos/${repartoId}`);
 }
 
+export type UpdateRepartoState = { error: string } | undefined;
+
+export async function updateReparto(
+  repartoId: string,
+  _prevState: UpdateRepartoState,
+  formData: FormData,
+): Promise<UpdateRepartoState> {
+  const nombre = String(formData.get("nombre") ?? "").trim();
+  if (!nombre) {
+    return { error: "Ingresá un nombre para el reparto." };
+  }
+
+  const descripcion = String(formData.get("descripcion") ?? "").trim() || null;
+  const choferId = String(formData.get("chofer_id") ?? "") || null;
+  const camionIds = formData.getAll("camion_id").map(String).filter(Boolean);
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("update_reparto", {
+    p_reparto_id: repartoId,
+    p_nombre: nombre,
+    p_descripcion: descripcion,
+    p_chofer_id: choferId,
+    p_camion_ids: camionIds,
+  } as Database["public"]["Functions"]["update_reparto"]["Args"]);
+
+  if (error) {
+    return { error: `No se pudieron guardar los cambios: ${error.message}` };
+  }
+
+  revalidatePath(`/repartos/${repartoId}`);
+  revalidatePath("/repartos");
+}
+
 export async function deleteReparto(repartoId: string): Promise<{ error?: string } | undefined> {
   const supabase = await createClient();
   const { error } = await supabase.from("repartos").delete().eq("id", repartoId);
