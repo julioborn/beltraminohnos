@@ -1,9 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
-import { ClickableRow } from "@/components/clickable-row";
 import { RowLink } from "@/components/row-link";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import { formatFecha } from "@/lib/format";
@@ -45,6 +45,7 @@ export function NearbyResults({
   choferes: Chofer[];
   camiones: Camion[];
 }) {
+  const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -57,6 +58,16 @@ export function NearbyResults({
     });
   }
 
+  function goToNote(order: NearbyOrder) {
+    if (selectedIds.size > 0) {
+      const ok = window.confirm(
+        `¿Ver la nota ${order.numero}? Vas a perder ${selectedIds.size === 1 ? "la nota marcada" : `las ${selectedIds.size} notas marcadas`}.`,
+      );
+      if (!ok) return;
+    }
+    router.push(`/pedidos/${order.id}`);
+  }
+
   const selectedOrders = results.filter((r) => selectedIds.has(r.id));
 
   return (
@@ -67,6 +78,12 @@ export function NearbyResults({
           <Link
             key={order.id}
             href={`/pedidos/${order.id}`}
+            onClick={(e) => {
+              if (selectedIds.size > 0) {
+                e.preventDefault();
+                goToNote(order);
+              }
+            }}
             className="flex flex-col gap-2 rounded-lg border border-black/10 p-4 active:bg-black/[.02]"
           >
             <div className="flex items-start justify-between gap-2">
@@ -130,7 +147,11 @@ export function NearbyResults({
           </thead>
           <tbody className="divide-y divide-black/5">
             {results.map((order) => (
-              <ClickableRow key={order.id} href={`/pedidos/${order.id}`}>
+              <tr
+                key={order.id}
+                onClick={() => goToNote(order)}
+                className="cursor-pointer hover:bg-black/[.02]"
+              >
                 <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                   <input
                     type="checkbox"
@@ -170,7 +191,7 @@ export function NearbyResults({
                 <td className="px-4 py-3">
                   <ProduccionBadge estado={order.estado_produccion} />
                 </td>
-              </ClickableRow>
+              </tr>
             ))}
             {results.length === 0 && (
               <tr>
