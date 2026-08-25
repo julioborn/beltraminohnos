@@ -2,7 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { BrandTexture } from "@/components/brand-texture";
 
-const ITEMS = [
+const PRIMARY_ITEMS = [
   {
     href: "/pedidos",
     label: "Pedidos",
@@ -12,6 +12,29 @@ const ITEMS = [
         <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
         <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
         <path d="M8 12h8M8 16h5" />
+      </svg>
+    ),
+  },
+  {
+    href: "/cercanos",
+    label: "Pedidos cercanos",
+    description: "Encontrá notas cercanas entre sí",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z" />
+        <circle cx="12" cy="10" r="3" />
+      </svg>
+    ),
+  },
+  {
+    href: "/repartos",
+    label: "Repartos",
+    description: "Armá y consultá repartos de entrega",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M21 8l-9-5-9 5 9 5 9-5Z" />
+        <path d="M3 8v8l9 5 9-5V8" />
+        <path d="M12 13v8" />
       </svg>
     ),
   },
@@ -27,6 +50,9 @@ const ITEMS = [
       </svg>
     ),
   },
+];
+
+const SECONDARY_ROW_1 = [
   {
     href: "/personal",
     label: "Personal",
@@ -40,9 +66,20 @@ const ITEMS = [
       </svg>
     ),
   },
+  {
+    href: "/cotizaciones",
+    label: "Cotizaciones",
+    description: "Armar y descargar una cotización en PDF",
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M12.586 2.586a2 2 0 0 0-1.414-.586H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l7.172-7.172a2 2 0 0 0 0-2.828l-9-9Z" />
+        <circle cx="7.5" cy="7.5" r="1.25" />
+      </svg>
+    ),
+  },
 ];
 
-const SECONDARY_ITEMS = [
+const SECONDARY_ROW_2 = [
   {
     href: "/reportes",
     label: "Reportes",
@@ -65,29 +102,41 @@ const SECONDARY_ITEMS = [
       </svg>
     ),
   },
-  {
-    href: "/cotizaciones",
-    label: "Cotizaciones",
-    description: "Armar y descargar una cotización en PDF",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <path d="M12.586 2.586a2 2 0 0 0-1.414-.586H4a2 2 0 0 0-2 2v7.172a2 2 0 0 0 .586 1.414l9 9a2 2 0 0 0 2.828 0l7.172-7.172a2 2 0 0 0 0-2.828l-9-9Z" />
-        <circle cx="7.5" cy="7.5" r="1.25" />
-      </svg>
-    ),
-  },
-  {
-    href: "/cercanos",
-    label: "Pedidos cercanos",
-    description: "Agrupá notas cercanas y armá repartos",
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <path d="M21 10c0 6-9 12-9 12s-9-6-9-12a9 9 0 0 1 18 0Z" />
-        <circle cx="12" cy="10" r="3" />
-      </svg>
-    ),
-  },
 ];
+
+function HomeCard({
+  href,
+  label,
+  description,
+  icon,
+  accent = "red",
+}: {
+  href: string;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  accent?: "red" | "navy";
+}) {
+  const accentClasses =
+    accent === "red"
+      ? "bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] group-hover:bg-btm-red group-hover:text-white"
+      : "bg-btm-navy/10 text-btm-navy shadow-[0_4px_14px_-4px_rgba(20,29,58,0.25)] group-hover:bg-btm-navy group-hover:text-white";
+
+  return (
+    <Link
+      href={href}
+      className="btm-card btm-card-hover group flex flex-col items-center gap-1.5 px-2 py-4 text-center sm:gap-3 sm:px-5 sm:py-7"
+    >
+      <span className={`flex h-9 w-9 items-center justify-center rounded-full transition-colors sm:h-12 sm:w-12 [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-5 sm:[&_svg]:w-5 ${accentClasses}`}>
+        {icon}
+      </span>
+      <span className="font-display text-[11px] font-extrabold uppercase tracking-wide text-btm-navy sm:text-sm">
+        {label}
+      </span>
+      <span className="hidden text-xs text-btm-black/50 sm:block">{description}</span>
+    </Link>
+  );
+}
 
 export default function InicioPage() {
   return (
@@ -107,42 +156,23 @@ export default function InicioPage() {
         </p>
       </div>
 
-      <div className="relative grid w-full max-w-3xl grid-cols-3 gap-2 sm:gap-4">
-        {ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="btm-card btm-card-hover group flex flex-col items-center gap-1.5 px-2 py-4 text-center sm:gap-3 sm:px-5 sm:py-8"
-          >
-            <span className="flex h-9 w-9 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white sm:h-14 sm:w-14 [&_svg]:h-4 [&_svg]:w-4 sm:[&_svg]:h-6 sm:[&_svg]:w-6">
-              {item.icon}
-            </span>
-            <span className="font-display text-[11px] font-extrabold uppercase tracking-wide text-btm-navy sm:text-base">
-              {item.label}
-            </span>
-            <span className="hidden text-xs text-btm-black/50 sm:block">{item.description}</span>
-          </Link>
+      <div className="relative grid w-full max-w-4xl grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+        {PRIMARY_ITEMS.map((item) => (
+          <HomeCard key={item.href} {...item} accent="red" />
         ))}
       </div>
 
-      <div className="relative grid w-full max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
-        {SECONDARY_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="btm-card btm-card-hover group flex items-center gap-4 px-5 py-5 text-left"
-          >
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-btm-red/10 text-btm-red shadow-[0_4px_14px_-4px_rgba(223,9,20,0.35)] transition-colors group-hover:bg-btm-red group-hover:text-white">
-              {item.icon}
-            </span>
-            <span className="flex flex-col gap-0.5">
-              <span className="font-display text-sm font-extrabold uppercase tracking-wide text-btm-navy">
-                {item.label}
-              </span>
-              <span className="text-xs text-btm-black/50">{item.description}</span>
-            </span>
-          </Link>
-        ))}
+      <div className="relative flex w-full max-w-2xl flex-col gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          {SECONDARY_ROW_1.map((item) => (
+            <HomeCard key={item.href} {...item} accent="navy" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-2 sm:gap-4">
+          {SECONDARY_ROW_2.map((item) => (
+            <HomeCard key={item.href} {...item} accent="navy" />
+          ))}
+        </div>
       </div>
     </div>
   );

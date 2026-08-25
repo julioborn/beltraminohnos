@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "@/components/mobile-menu";
+import { DolarBadge } from "@/components/dolar-badge";
 
 const NAV_LINKS = [
   { href: "/inicio", label: "Inicio" },
@@ -46,6 +47,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             priority
           />
         </Link>
+        <DolarBadge />
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>
