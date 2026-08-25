@@ -156,13 +156,12 @@ export default function InicioPage() {
         </p>
       </div>
 
-      <div className="relative grid w-full max-w-4xl grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
-        {PRIMARY_ITEMS.map((item) => (
-          <HomeCard key={item.href} {...item} accent="red" />
-        ))}
-      </div>
-
-      <div className="relative flex w-full max-w-2xl flex-col gap-4">
+      <div className="relative flex w-full max-w-3xl flex-col gap-4">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-4">
+          {PRIMARY_ITEMS.map((item) => (
+            <HomeCard key={item.href} {...item} accent="red" />
+          ))}
+        </div>
         <div className="grid grid-cols-2 gap-2 sm:gap-4">
           {SECONDARY_ROW_1.map((item) => (
             <HomeCard key={item.href} {...item} accent="navy" />
