@@ -59,7 +59,7 @@ export default async function NotaDetallePage({
 
         <div className="flex flex-wrap items-start justify-between gap-4">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-btm-black/50">
+            <p className="btm-fig text-xs font-semibold uppercase tracking-wide text-btm-black/50">
               Nota {order.numero} · {formatFecha(order.fecha)}
             </p>
             <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy sm:text-3xl">
@@ -170,11 +170,11 @@ export default async function NotaDetallePage({
                   <div key={item.id} className="flex flex-col gap-1 rounded-lg border border-black/10 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium">{item.product?.name}</p>
-                      <p className="shrink-0 font-semibold text-btm-navy">
+                      <p className="btm-fig shrink-0 font-semibold text-btm-navy">
                         ${(item.cantidad * item.precio_unitario).toFixed(2)}
                       </p>
                     </div>
-                    <p className="text-xs text-btm-black/60">
+                    <p className="btm-fig text-xs text-btm-black/60">
                       {PACKAGING_LABELS[item.tipo_envase as PackagingType]} · {item.cantidad} x ${item.precio_unitario.toFixed(3)}
                     </p>
                   </div>
@@ -200,9 +200,9 @@ export default async function NotaDetallePage({
                         <td className="px-4 py-2.5 text-btm-black/70">
                           {PACKAGING_LABELS[item.tipo_envase as PackagingType]}
                         </td>
-                        <td className="px-4 py-2.5 text-btm-black/70">{item.cantidad}</td>
-                        <td className="px-4 py-2.5 text-btm-black/70">${item.precio_unitario.toFixed(3)}</td>
-                        <td className="px-4 py-2.5 font-semibold text-btm-navy">
+                        <td className="btm-fig px-4 py-2.5 text-btm-black/70">{item.cantidad}</td>
+                        <td className="btm-fig px-4 py-2.5 text-btm-black/70">${item.precio_unitario.toFixed(3)}</td>
+                        <td className="btm-fig px-4 py-2.5 font-semibold text-btm-navy">
                           ${(item.cantidad * item.precio_unitario).toFixed(2)}
                         </td>
                       </tr>
@@ -211,7 +211,7 @@ export default async function NotaDetallePage({
                 </table>
               </div>
 
-              <p className="text-right font-display text-sm font-bold text-btm-navy">Total: ${total.toFixed(2)}</p>
+              <p className="btm-fig text-right font-display text-sm font-bold text-btm-navy">Total: ${total.toFixed(2)}</p>
             </Card>
           </OrderCoreEditor>
 

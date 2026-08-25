@@ -79,7 +79,7 @@ export function LoginForm({ next, compact = false }: { next: string; compact?: b
         className={
           compact
             ? "mt-1 w-full rounded bg-btm-navy px-3 py-[clamp(0.3rem,0.9vw,0.55rem)] font-display text-[clamp(0.55rem,1vw,0.8rem)] font-bold tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
-            : "mt-2 w-full rounded-lg bg-btm-navy px-6 py-3 font-display text-sm font-bold tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
+            : "btm-btn btm-btn-primary mt-2 w-full text-sm"
         }
       >
         {pending ? "Ingresando..." : "Ingresar"}

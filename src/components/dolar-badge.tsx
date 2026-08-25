@@ -23,7 +23,7 @@ export function DolarBadge() {
         <path d="M9 8.5a2 2 0 0 1 2-1.5h1.5a1.75 1.75 0 0 1 0 3.5H11.5a1.75 1.75 0 0 0 0 3.5H13a2 2 0 0 0 2-1.5" />
         <path d="M12 6v1.2M12 16.8V18" />
       </svg>
-      <span className="whitespace-nowrap">
+      <span className="btm-fig whitespace-nowrap">
         ${venta.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
       </span>
     </span>

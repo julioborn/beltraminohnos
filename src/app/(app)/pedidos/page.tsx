@@ -218,8 +218,8 @@ export default async function PedidosPage({
           >
             <div className="flex items-start justify-between gap-2">
               <div>
-                <p className="font-display text-sm font-bold text-btm-navy">{order.numero}</p>
-                <p className="text-xs text-btm-black/50">{formatFecha(order.fecha)}</p>
+                <p className="btm-fig text-sm font-semibold text-btm-navy">{order.numero}</p>
+                <p className="btm-fig text-xs text-btm-black/50">{formatFecha(order.fecha)}</p>
               </div>
               <div className="flex flex-col items-end gap-1">
                 <LogisticaBadge estado={order.estado_logistica} />
@@ -266,11 +266,11 @@ export default async function PedidosPage({
             {orders.map((order) => (
               <ClickableRow key={order.id} href={`/pedidos/${order.id}`}>
                 <td className="px-4 py-3">
-                  <RowLink href={`/pedidos/${order.id}`} className="font-semibold text-btm-navy hover:text-btm-red">
+                  <RowLink href={`/pedidos/${order.id}`} className="btm-fig font-semibold text-btm-navy hover:text-btm-red">
                     {order.numero}
                   </RowLink>
                 </td>
-                <td className="px-4 py-3 text-btm-black/70">{formatFecha(order.fecha)}</td>
+                <td className="btm-fig px-4 py-3 text-btm-black/70">{formatFecha(order.fecha)}</td>
                 <td className="px-4 py-3">{order.cliente}</td>
                 <td className="px-4 py-3 text-btm-black/70">{order.zona?.name ?? "—"}</td>
                 <td className="px-4 py-3 text-btm-black/70">

@@ -6,7 +6,7 @@ type ProduccionEstado = Database["public"]["Enums"]["produccion_status"];
 function Badge({ label, bg, dot }: { label: string; bg: string; dot: string }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide ${bg}`}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide ${bg}`}
     >
       <span className={`h-2 w-2 rounded-full ${dot}`} aria-hidden />
       {label}
