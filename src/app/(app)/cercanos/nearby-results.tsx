@@ -48,6 +48,7 @@ export function NearbyResults({
   const router = useRouter();
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [modalOpen, setModalOpen] = useState(false);
+  const [pendingOrder, setPendingOrder] = useState<NearbyOrder | null>(null);
 
   function toggle(id: string) {
     setSelectedIds((prev) => {
@@ -60,10 +61,8 @@ export function NearbyResults({
 
   function goToNote(order: NearbyOrder) {
     if (selectedIds.size > 0) {
-      const ok = window.confirm(
-        `¿Ver la nota ${order.numero}? Vas a perder ${selectedIds.size === 1 ? "la nota marcada" : `las ${selectedIds.size} notas marcadas`}.`,
-      );
-      if (!ok) return;
+      setPendingOrder(order);
+      return;
     }
     router.push(`/pedidos/${order.id}`);
   }
@@ -237,6 +236,41 @@ export function NearbyResults({
           camiones={camiones}
           onClose={() => setModalOpen(false)}
         />
+      )}
+
+      {pendingOrder && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-black/40 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setPendingOrder(null);
+          }}
+        >
+          <div className="btm-card flex w-full max-w-sm flex-col gap-4 p-5">
+            <div>
+              <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">¿Ver esta nota?</h2>
+              <p className="mt-1 text-sm text-btm-black/70">
+                Vas a salir de Pedidos cercanos y perder{" "}
+                {selectedIds.size === 1 ? "la nota marcada" : `las ${selectedIds.size} notas marcadas`}.
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={() => router.push(`/pedidos/${pendingOrder.id}`)}
+                className="flex-1 cursor-pointer rounded-full bg-btm-navy px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-white hover:bg-btm-red"
+              >
+                Ver {pendingOrder.numero}
+              </button>
+              <button
+                type="button"
+                onClick={() => setPendingOrder(null)}
+                className="flex-1 cursor-pointer rounded-full border border-black/15 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-btm-black/70 hover:bg-black/5"
+              >
+                Seguir acá
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );
