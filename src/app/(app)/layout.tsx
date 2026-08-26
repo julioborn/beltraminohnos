@@ -3,7 +3,6 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "@/components/mobile-menu";
 import { DolarBadge } from "@/components/dolar-badge";
-import { BrandTexture } from "@/components/brand-texture";
 
 const NAV_LINKS = [
   { href: "/inicio", label: "Inicio" },
@@ -36,10 +35,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <div className="bg-btm-navy" style={{ height: "env(safe-area-inset-top)" }} aria-hidden />
-      <header className="relative flex items-center gap-2 overflow-hidden border-b-[3px] border-btm-red bg-btm-navy px-4 py-3 shadow-[0_2px_12px_rgba(20,29,58,0.25)] sm:px-6">
-        <BrandTexture opacity={0.06} invert />
+      <header className="relative flex items-center gap-2 border-b-[3px] border-btm-red bg-btm-navy px-4 py-3 shadow-[0_2px_12px_rgba(20,29,58,0.25)] sm:px-6">
         <MobileMenu navLinks={NAV_LINKS} fullName={fullName} />
-        <Link href="/inicio" className="relative flex items-center">
+        <Link href="/inicio" className="flex items-center">
           <Image
             src="/brand/btm-horizontal-tagline.png"
             alt="BTM Nutrición Animal"
