@@ -6,7 +6,7 @@ export async function getRepartos() {
   const { data } = await supabase
     .from("repartos")
     .select(
-      `id, nombre, descripcion, created_at, chofer:choferes(name),
+      `id, nombre, descripcion, created_at, chofer:choferes(id, name),
        camiones:reparto_camiones(camion_id), notes:reparto_notes(order_note_id)`,
     )
     .order("created_at", { ascending: false });
