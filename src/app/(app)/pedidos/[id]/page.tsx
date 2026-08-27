@@ -5,10 +5,6 @@ import { getOrderNoteDetail } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge, LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import {
-  marcarItemFabricado,
-  marcarItemEntregado,
-  revertirItemFabricado,
-  revertirItemEntregado,
   marcarTodosFabricado,
   marcarTodosEntregado,
   updateShippingDetails,
@@ -19,6 +15,7 @@ import { formatFecha } from "@/lib/format";
 import { ShippingForm } from "./shipping-form";
 import { OrderCoreEditor } from "./order-core-editor";
 import { DeleteNoteButton } from "./delete-note-button";
+import { ItemStatusCell } from "./item-status-cell";
 
 export default async function NotaDetallePage({
   params,
@@ -324,80 +321,6 @@ export default async function NotaDetallePage({
           </Card>
         </div>
       </div>
-    </div>
-  );
-}
-
-function ItemStatusCell({
-  orderId,
-  item,
-}: {
-  orderId: string;
-  item: {
-    id: string;
-    estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
-    estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
-  };
-}) {
-  const fabricadoAction =
-    item.estado_produccion === "PENDIENTE" ? marcarItemFabricado.bind(null, orderId, item.id) : null;
-  const entregadoAction =
-    item.estado_logistica === "PENDIENTE" && item.estado_produccion === "FABRICADO"
-      ? marcarItemEntregado.bind(null, orderId, item.id)
-      : null;
-  const revertirFabricadoAction =
-    item.estado_produccion === "FABRICADO" && item.estado_logistica !== "ENTREGADO"
-      ? revertirItemFabricado.bind(null, orderId, item.id)
-      : null;
-  const revertirEntregadoAction =
-    item.estado_logistica === "ENTREGADO" ? revertirItemEntregado.bind(null, orderId, item.id) : null;
-
-  return (
-    <div className="flex flex-wrap items-center gap-1.5">
-      <ProduccionBadge estado={item.estado_produccion} />
-      <LogisticaBadge estado={item.estado_logistica} />
-      {fabricadoAction && (
-        <form action={fabricadoAction}>
-          <button
-            type="submit"
-            className="cursor-pointer rounded-full border border-btm-navy px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            Fabricar
-          </button>
-        </form>
-      )}
-      {entregadoAction && (
-        <form action={entregadoAction}>
-          <button
-            type="submit"
-            className="cursor-pointer rounded-full border border-btm-navy px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            Entregar
-          </button>
-        </form>
-      )}
-      {revertirEntregadoAction && (
-        <form action={revertirEntregadoAction}>
-          <button
-            type="submit"
-            title="Revertir entrega a pendiente"
-            className="cursor-pointer rounded-full border border-black/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-black/60 hover:border-btm-red hover:text-btm-red"
-          >
-            ↺ Entrega
-          </button>
-        </form>
-      )}
-      {revertirFabricadoAction && (
-        <form action={revertirFabricadoAction}>
-          <button
-            type="submit"
-            title="Revertir producción a pendiente"
-            className="cursor-pointer rounded-full border border-black/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-black/60 hover:border-btm-red hover:text-btm-red"
-          >
-            ↺ Producción
-          </button>
-        </form>
-      )}
     </div>
   );
 }
