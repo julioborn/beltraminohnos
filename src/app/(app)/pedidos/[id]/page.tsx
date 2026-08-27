@@ -7,6 +7,8 @@ import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import {
   marcarItemFabricado,
   marcarItemEntregado,
+  revertirItemFabricado,
+  revertirItemEntregado,
   marcarTodosFabricado,
   marcarTodosEntregado,
   updateShippingDetails,
@@ -343,6 +345,12 @@ function ItemStatusCell({
     item.estado_logistica === "PENDIENTE" && item.estado_produccion === "FABRICADO"
       ? marcarItemEntregado.bind(null, orderId, item.id)
       : null;
+  const revertirFabricadoAction =
+    item.estado_produccion === "FABRICADO" && item.estado_logistica !== "ENTREGADO"
+      ? revertirItemFabricado.bind(null, orderId, item.id)
+      : null;
+  const revertirEntregadoAction =
+    item.estado_logistica === "ENTREGADO" ? revertirItemEntregado.bind(null, orderId, item.id) : null;
 
   return (
     <div className="flex flex-wrap items-center gap-1.5">
@@ -365,6 +373,28 @@ function ItemStatusCell({
             className="cursor-pointer rounded-full border border-btm-navy px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
           >
             Entregar
+          </button>
+        </form>
+      )}
+      {revertirEntregadoAction && (
+        <form action={revertirEntregadoAction}>
+          <button
+            type="submit"
+            title="Revertir entrega a pendiente"
+            className="cursor-pointer rounded-full border border-black/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-black/60 hover:border-btm-red hover:text-btm-red"
+          >
+            ↺ Entrega
+          </button>
+        </form>
+      )}
+      {revertirFabricadoAction && (
+        <form action={revertirFabricadoAction}>
+          <button
+            type="submit"
+            title="Revertir producción a pendiente"
+            className="cursor-pointer rounded-full border border-black/20 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-black/60 hover:border-btm-red hover:text-btm-red"
+          >
+            ↺ Producción
           </button>
         </form>
       )}

@@ -157,6 +157,35 @@ export async function marcarItemEntregado(orderId: string, itemId: string) {
   revalidatePath("/pedidos");
 }
 
+export async function revertirItemFabricado(orderId: string, itemId: string) {
+  const supabase = await createClient();
+
+  const { data: item } = await supabase
+    .from("order_items")
+    .select("estado_logistica")
+    .eq("id", itemId)
+    .single();
+
+  if (item?.estado_logistica === "ENTREGADO") {
+    throw new Error("No se puede revertir: primero revertí la entrega de este producto.");
+  }
+
+  const { error } = await supabase.from("order_items").update({ estado_produccion: "PENDIENTE" }).eq("id", itemId);
+  if (error) throw new Error(`No se pudo revertir el producto a pendiente: ${error.message}`);
+
+  revalidatePath(`/pedidos/${orderId}`);
+  revalidatePath("/pedidos");
+}
+
+export async function revertirItemEntregado(orderId: string, itemId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("order_items").update({ estado_logistica: "PENDIENTE" }).eq("id", itemId);
+  if (error) throw new Error(`No se pudo revertir la entrega del producto: ${error.message}`);
+
+  revalidatePath(`/pedidos/${orderId}`);
+  revalidatePath("/pedidos");
+}
+
 export async function marcarTodosFabricado(orderId: string) {
   const supabase = await createClient();
   const { error } = await supabase
