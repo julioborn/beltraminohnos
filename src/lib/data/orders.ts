@@ -95,12 +95,34 @@ export async function getOrdersPendingSummary() {
     .from("order_notes")
     .select(
       `id, numero, cliente, fecha, fecha_entrega, estado_logistica, estado_produccion,
-       items:order_items(cantidad, product_id, product:products(name))`,
+       items:order_items(cantidad, product_id, estado_produccion, estado_logistica, product:products(name))`,
     )
-    .or("estado_produccion.eq.PENDIENTE,estado_logistica.eq.PENDIENTE")
+    .or("estado_produccion.neq.FABRICADO,estado_logistica.neq.ENTREGADO")
     .order("fecha", { ascending: true })
     .limit(2000);
 
+  return data ?? [];
+}
+
+export async function getOrderNotesPendingProduccion() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("order_notes")
+    .select("id, numero, cliente, fecha")
+    .in("estado_produccion", ["PENDIENTE", "PARCIAL"])
+    .order("fecha", { ascending: true })
+    .limit(200);
+  return data ?? [];
+}
+
+export async function getOrderNotesPendingEntrega() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("order_notes")
+    .select("id, numero, cliente, fecha")
+    .in("estado_logistica", ["PENDIENTE", "PARCIAL"])
+    .order("fecha", { ascending: true })
+    .limit(200);
   return data ?? [];
 }
 
@@ -134,7 +156,7 @@ export async function getOrderNoteDetail(id: string) {
       `id, numero, cliente, fecha, fecha_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
        zona:zones(id, name), vendedor:vendedores(id, name), chofer:choferes(id, name),
        camiones:order_note_camiones(camion:camiones(id, dominio, tipo, marca_modelo, anio, empresa, chofer_id)),
-       items:order_items(id, product_id, cantidad, tipo_envase, precio_unitario, product:products(name))`,
+       items:order_items(id, product_id, cantidad, tipo_envase, precio_unitario, estado_produccion, estado_logistica, product:products(name))`,
     )
     .eq("id", id)
     .single();
@@ -143,7 +165,7 @@ export async function getOrderNoteDetail(id: string) {
 
   const { data: history } = await supabase
     .from("order_status_history")
-    .select("id, estado, campo, changed_at")
+    .select("id, estado, campo, changed_at, order_item_id")
     .eq("order_note_id", id)
     .order("changed_at", { ascending: true });
 

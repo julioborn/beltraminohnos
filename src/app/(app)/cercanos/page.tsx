@@ -82,6 +82,7 @@ export default async function CercanosPage({
             >
               <option value="">Todos</option>
               <option value="PENDIENTE">Pendiente</option>
+              <option value="PARCIAL">Parcial</option>
               <option value="ENTREGADO">Entregado</option>
             </select>
           </div>

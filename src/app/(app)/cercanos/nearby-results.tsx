@@ -27,8 +27,8 @@ export type NearbyOrder = {
   fecha: string;
   provincia: string | null;
   localidad: string | null;
-  estado_logistica: "PENDIENTE" | "ENTREGADO";
-  estado_produccion: "PENDIENTE" | "FABRICADO";
+  estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
+  estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
   zona: { name: string } | null;
   vendedor: { name: string } | null;
   chofer: { name: string } | null;

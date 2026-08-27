@@ -5,8 +5,10 @@ import { getOrderNoteDetail } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge, LOGISTICA_LABELS, PRODUCCION_LABELS } from "@/components/estado-badge";
 import { PACKAGING_LABELS, type PackagingType } from "@/lib/packaging";
 import {
-  marcarEntregado,
-  marcarFabricado,
+  marcarItemFabricado,
+  marcarItemEntregado,
+  marcarTodosFabricado,
+  marcarTodosEntregado,
   updateShippingDetails,
   updateOrderNoteCore,
   deleteOrderNote,
@@ -34,15 +36,16 @@ export default async function NotaDetallePage({
   const { order, history } = detail;
 
   const total = order.items.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
-  const pendienteDeEntrega = order.estado_logistica === "PENDIENTE";
-  const puedeMarcarFabricado = order.estado_produccion === "PENDIENTE";
-  const bloqueadoPorProduccion = pendienteDeEntrega && puedeMarcarFabricado;
-  const puedeMarcarEntregado = pendienteDeEntrega && !bloqueadoPorProduccion;
-  const marcarEntregadoAction = puedeMarcarEntregado ? marcarEntregado.bind(null, order.id) : null;
-  const marcarFabricadoAction = puedeMarcarFabricado ? marcarFabricado.bind(null, order.id) : null;
+  const itemsPendientesEntrega = order.items.filter((it) => it.estado_logistica === "PENDIENTE");
+  const puedeMarcarFabricado = order.items.some((it) => it.estado_produccion === "PENDIENTE");
+  const puedeMarcarEntregado = itemsPendientesEntrega.some((it) => it.estado_produccion === "FABRICADO");
+  const bloqueadoPorProduccion = itemsPendientesEntrega.length > 0 && !puedeMarcarEntregado;
+  const marcarEntregadoAction = puedeMarcarEntregado ? marcarTodosEntregado.bind(null, order.id) : null;
+  const marcarFabricadoAction = puedeMarcarFabricado ? marcarTodosFabricado.bind(null, order.id) : null;
   const updateShippingAction = updateShippingDetails.bind(null, order.id);
   const updateCoreAction = updateOrderNoteCore.bind(null, order.id);
   const deleteAction = deleteOrderNote.bind(null, order.id);
+  const itemNameById = new Map(order.items.map((it) => [it.id, it.product?.name ?? "Producto"]));
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-8 sm:px-6">
@@ -82,7 +85,7 @@ export default async function NotaDetallePage({
                       type="submit"
                       className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
-                      Marcar como {PRODUCCION_LABELS.FABRICADO}
+                      Marcar todo como {PRODUCCION_LABELS.FABRICADO}
                     </button>
                   </form>
                 )}
@@ -92,7 +95,7 @@ export default async function NotaDetallePage({
                       type="submit"
                       className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
-                      Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                      Marcar todo como {LOGISTICA_LABELS.ENTREGADO}
                     </button>
                   </form>
                 ) : (
@@ -103,7 +106,7 @@ export default async function NotaDetallePage({
                       title="Marcá primero como Fabricado"
                       className="flex-1 cursor-not-allowed rounded-full bg-btm-black/10 px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-black/40"
                     >
-                      Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                      Marcar todo como {LOGISTICA_LABELS.ENTREGADO}
                     </button>
                   )
                 )}
@@ -167,7 +170,7 @@ export default async function NotaDetallePage({
               {/* Mobile: stacked cards, no horizontal scroll needed */}
               <div className="flex flex-col gap-2 sm:hidden">
                 {order.items.map((item) => (
-                  <div key={item.id} className="flex flex-col gap-1 rounded-lg border border-black/10 p-3">
+                  <div key={item.id} className="flex flex-col gap-2 rounded-lg border border-black/10 p-3">
                     <div className="flex items-start justify-between gap-2">
                       <p className="text-sm font-medium">{item.product?.name}</p>
                       <p className="btm-fig shrink-0 font-semibold text-btm-navy">
@@ -177,6 +180,7 @@ export default async function NotaDetallePage({
                     <p className="btm-fig text-xs text-btm-black/60">
                       {PACKAGING_LABELS[item.tipo_envase as PackagingType]} · {item.cantidad} x ${item.precio_unitario.toFixed(3)}
                     </p>
+                    <ItemStatusCell orderId={order.id} item={item} />
                   </div>
                 ))}
               </div>
@@ -191,6 +195,7 @@ export default async function NotaDetallePage({
                       <th className="px-4 py-2.5">Cantidad</th>
                       <th className="px-4 py-2.5">Precio</th>
                       <th className="px-4 py-2.5">Subtotal</th>
+                      <th className="px-4 py-2.5">Estado</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-black/5">
@@ -204,6 +209,9 @@ export default async function NotaDetallePage({
                         <td className="btm-fig px-4 py-2.5 text-btm-black/70">${item.precio_unitario.toFixed(3)}</td>
                         <td className="btm-fig px-4 py-2.5 font-semibold text-btm-navy">
                           ${(item.cantidad * item.precio_unitario).toFixed(2)}
+                        </td>
+                        <td className="px-4 py-2.5">
+                          <ItemStatusCell orderId={order.id} item={item} />
                         </td>
                       </tr>
                     ))}
@@ -239,7 +247,7 @@ export default async function NotaDetallePage({
                       type="submit"
                       className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
-                      Marcar como {PRODUCCION_LABELS.FABRICADO}
+                      Marcar todo como {PRODUCCION_LABELS.FABRICADO}
                     </button>
                   </form>
                 )}
@@ -249,7 +257,7 @@ export default async function NotaDetallePage({
                       type="submit"
                       className="w-full cursor-pointer rounded-full bg-btm-navy px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
                     >
-                      Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                      Marcar todo como {LOGISTICA_LABELS.ENTREGADO}
                     </button>
                   </form>
                 ) : (
@@ -261,7 +269,7 @@ export default async function NotaDetallePage({
                         title="Marcá primero como Fabricado"
                         className="w-full cursor-not-allowed rounded-full bg-btm-black/10 px-5 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-black/40"
                       >
-                        Marcar como {LOGISTICA_LABELS.ENTREGADO}
+                        Marcar todo como {LOGISTICA_LABELS.ENTREGADO}
                       </button>
                       <p className="text-xs text-btm-black/50">Marcá primero como Fabricado para poder entregar la nota.</p>
                     </div>
@@ -291,12 +299,16 @@ export default async function NotaDetallePage({
               {(history ?? []).map((h) => (
                 <li key={h.id} className="flex flex-col gap-1 text-sm">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/40">
-                    {h.campo === "PRODUCCION" ? "Producción" : "Pedido"}
+                    {h.order_item_id
+                      ? `${itemNameById.get(h.order_item_id) ?? "Producto"} · ${h.campo === "PRODUCCION" ? "Producción" : "Entrega"}`
+                      : h.campo === "PRODUCCION"
+                        ? "Producción (nota completa)"
+                        : "Entrega (nota completa)"}
                   </span>
                   {h.campo === "PRODUCCION" ? (
-                    <ProduccionBadge estado={h.estado as "PENDIENTE" | "FABRICADO"} />
+                    <ProduccionBadge estado={h.estado as "PENDIENTE" | "PARCIAL" | "FABRICADO"} />
                   ) : (
-                    <LogisticaBadge estado={h.estado as "PENDIENTE" | "ENTREGADO"} />
+                    <LogisticaBadge estado={h.estado as "PENDIENTE" | "PARCIAL" | "ENTREGADO"} />
                   )}
                   <span className="text-xs text-btm-black/50">
                     {new Date(h.changed_at).toLocaleString("es-AR")}
@@ -310,6 +322,52 @@ export default async function NotaDetallePage({
           </Card>
         </div>
       </div>
+    </div>
+  );
+}
+
+function ItemStatusCell({
+  orderId,
+  item,
+}: {
+  orderId: string;
+  item: {
+    id: string;
+    estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
+    estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
+  };
+}) {
+  const fabricadoAction =
+    item.estado_produccion === "PENDIENTE" ? marcarItemFabricado.bind(null, orderId, item.id) : null;
+  const entregadoAction =
+    item.estado_logistica === "PENDIENTE" && item.estado_produccion === "FABRICADO"
+      ? marcarItemEntregado.bind(null, orderId, item.id)
+      : null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-1.5">
+      <ProduccionBadge estado={item.estado_produccion} />
+      <LogisticaBadge estado={item.estado_logistica} />
+      {fabricadoAction && (
+        <form action={fabricadoAction}>
+          <button
+            type="submit"
+            className="cursor-pointer rounded-full border border-btm-navy px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          >
+            Fabricar
+          </button>
+        </form>
+      )}
+      {entregadoAction && (
+        <form action={entregadoAction}>
+          <button
+            type="submit"
+            className="cursor-pointer rounded-full border border-btm-navy px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          >
+            Entregar
+          </button>
+        </form>
+      )}
     </div>
   );
 }

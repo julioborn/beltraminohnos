@@ -9,6 +9,13 @@ import type { OrderNoteDetail } from "./types";
 const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
 const ICON_SRC = { data: iconBuffer, format: "png" as const };
 
+const ITEM_STATUS_COLORS: Record<string, string> = {
+  PENDIENTE: "#92400e",
+  PARCIAL: "#9a3412",
+  FABRICADO: "#166534",
+  ENTREGADO: "#166534",
+};
+
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 10, fontFamily: "Helvetica", color: "#373534" },
   headerBar: {
@@ -45,11 +52,13 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "#eeeeee",
   },
-  cellProduct: { width: "40%", paddingHorizontal: 4 },
-  cellEnvase: { width: "15%", paddingHorizontal: 4 },
-  cellQty: { width: "15%", paddingHorizontal: 4, textAlign: "right" },
-  cellPrice: { width: "15%", paddingHorizontal: 4, textAlign: "right" },
-  cellSubtotal: { width: "15%", paddingHorizontal: 4, textAlign: "right" },
+  cellProduct: { width: "30%", paddingHorizontal: 4 },
+  cellEnvase: { width: "13%", paddingHorizontal: 4 },
+  cellQty: { width: "12%", paddingHorizontal: 4, textAlign: "right" },
+  cellPrice: { width: "13%", paddingHorizontal: 4, textAlign: "right" },
+  cellSubtotal: { width: "13%", paddingHorizontal: 4, textAlign: "right" },
+  cellEstado: { width: "19%", paddingHorizontal: 4 },
+  itemStatusLine: { fontSize: 7, marginBottom: 1 },
   headerCell: { fontFamily: "Helvetica-Bold", fontSize: 8, textTransform: "uppercase" },
   totalRow: { flexDirection: "row", justifyContent: "flex-end", marginTop: 10 },
   totalLabel: { fontFamily: "Helvetica-Bold", fontSize: 12, color: "#21305D" },
@@ -69,6 +78,7 @@ const styles = StyleSheet.create({
 
 export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
   const total = order.items.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
+  const itemNameById = new Map(order.items.map((it) => [it.id, it.product?.name ?? "Producto"]));
 
   return (
     <Document>
@@ -108,6 +118,7 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
               <Text style={[styles.cellQty, styles.headerCell]}>Cantidad</Text>
               <Text style={[styles.cellPrice, styles.headerCell]}>Precio</Text>
               <Text style={[styles.cellSubtotal, styles.headerCell]}>Subtotal</Text>
+              <Text style={[styles.cellEstado, styles.headerCell]}>Estado</Text>
             </View>
             {order.items.map((item) => (
               <View key={item.id} style={styles.tableRow}>
@@ -116,6 +127,14 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
                 <Text style={styles.cellQty}>{item.cantidad}</Text>
                 <Text style={styles.cellPrice}>${item.precio_unitario.toFixed(3)}</Text>
                 <Text style={styles.cellSubtotal}>${(item.cantidad * item.precio_unitario).toFixed(2)}</Text>
+                <View style={styles.cellEstado}>
+                  <Text style={[styles.itemStatusLine, { color: ITEM_STATUS_COLORS[item.estado_produccion] }]}>
+                    Prod: {PRODUCCION_LABELS[item.estado_produccion]}
+                  </Text>
+                  <Text style={[styles.itemStatusLine, { color: ITEM_STATUS_COLORS[item.estado_logistica] }]}>
+                    Entrega: {LOGISTICA_LABELS[item.estado_logistica]}
+                  </Text>
+                </View>
               </View>
             ))}
           </View>
@@ -135,8 +154,10 @@ export function OrderNoteDocument({ order, history }: OrderNoteDetail) {
           <Text style={styles.sectionTitle}>Historial de estados</Text>
           {history.map((h) => (
             <Text key={h.id} style={{ marginBottom: 2 }}>
-              {h.campo === "PRODUCCION" ? "Producción" : "Pedido"}: {" "}
-              {h.campo === "PRODUCCION" ? PRODUCCION_LABELS[h.estado as "PENDIENTE" | "FABRICADO"] : LOGISTICA_LABELS[h.estado as "PENDIENTE" | "ENTREGADO"]}
+              {h.order_item_id ? itemNameById.get(h.order_item_id) ?? "Producto" : "Nota completa"} · {h.campo === "PRODUCCION" ? "Producción" : "Entrega"}: {" "}
+              {h.campo === "PRODUCCION"
+                ? PRODUCCION_LABELS[h.estado as "PENDIENTE" | "PARCIAL" | "FABRICADO"]
+                : LOGISTICA_LABELS[h.estado as "PENDIENTE" | "PARCIAL" | "ENTREGADO"]}
               {" "}— {new Date(h.changed_at).toLocaleString("es-AR")}
             </Text>
           ))}

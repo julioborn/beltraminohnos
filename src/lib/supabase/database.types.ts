@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.15"
+    PostgrestVersion: "14.17"
   }
   public: {
     Tables: {
@@ -127,6 +127,8 @@ export type Database = {
       order_items: {
         Row: {
           cantidad: number
+          estado_logistica: Database["public"]["Enums"]["logistica_status"]
+          estado_produccion: Database["public"]["Enums"]["produccion_status"]
           id: string
           order_note_id: string
           precio_unitario: number
@@ -135,6 +137,8 @@ export type Database = {
         }
         Insert: {
           cantidad: number
+          estado_logistica?: Database["public"]["Enums"]["logistica_status"]
+          estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           id?: string
           order_note_id: string
           precio_unitario: number
@@ -143,6 +147,8 @@ export type Database = {
         }
         Update: {
           cantidad?: number
+          estado_logistica?: Database["public"]["Enums"]["logistica_status"]
+          estado_produccion?: Database["public"]["Enums"]["produccion_status"]
           id?: string
           order_note_id?: string
           precio_unitario?: number
@@ -292,6 +298,7 @@ export type Database = {
           changed_by: string | null
           estado: Database["public"]["Enums"]["order_status"]
           id: string
+          order_item_id: string | null
           order_note_id: string
         }
         Insert: {
@@ -300,6 +307,7 @@ export type Database = {
           changed_by?: string | null
           estado: Database["public"]["Enums"]["order_status"]
           id?: string
+          order_item_id?: string | null
           order_note_id: string
         }
         Update: {
@@ -308,6 +316,7 @@ export type Database = {
           changed_by?: string | null
           estado?: Database["public"]["Enums"]["order_status"]
           id?: string
+          order_item_id?: string | null
           order_note_id?: string
         }
         Relationships: [
@@ -316,6 +325,13 @@ export type Database = {
             columns: ["changed_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "order_status_history_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
             referencedColumns: ["id"]
           },
           {
@@ -626,10 +642,10 @@ export type Database = {
     }
     Enums: {
       estado_campo: "LOGISTICA" | "PRODUCCION"
-      logistica_status: "PENDIENTE" | "ENTREGADO"
-      order_status: "PENDIENTE" | "FABRICADO" | "ENTREGADO"
+      logistica_status: "PENDIENTE" | "ENTREGADO" | "PARCIAL"
+      order_status: "PENDIENTE" | "FABRICADO" | "ENTREGADO" | "PARCIAL"
       packaging_type: "GRANEL" | "BOLSA" | "BIG_BAG"
-      produccion_status: "PENDIENTE" | "FABRICADO"
+      produccion_status: "PENDIENTE" | "FABRICADO" | "PARCIAL"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -758,10 +774,10 @@ export const Constants = {
   public: {
     Enums: {
       estado_campo: ["LOGISTICA", "PRODUCCION"],
-      logistica_status: ["PENDIENTE", "ENTREGADO"],
-      order_status: ["PENDIENTE", "FABRICADO", "ENTREGADO"],
+      logistica_status: ["PENDIENTE", "ENTREGADO", "PARCIAL"],
+      order_status: ["PENDIENTE", "FABRICADO", "ENTREGADO", "PARCIAL"],
       packaging_type: ["GRANEL", "BOLSA", "BIG_BAG"],
-      produccion_status: ["PENDIENTE", "FABRICADO"],
+      produccion_status: ["PENDIENTE", "FABRICADO", "PARCIAL"],
     },
   },
 } as const

@@ -5,9 +5,12 @@ export type PendingDayOrder = {
   numero: string;
   cliente: string;
   fecha_entrega: string | null;
-  estado_logistica: "PENDIENTE" | "ENTREGADO";
-  estado_produccion: "PENDIENTE" | "FABRICADO";
-  items: { cantidad: number; product_id: string }[];
+  items: {
+    cantidad: number;
+    product_id: string;
+    estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
+    estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
+  }[];
 };
 
 export type PendingDayMode = "fabricacion" | "entrega";
@@ -49,11 +52,12 @@ export function buildPendingDayMatrix(
 
   for (const o of orders) {
     if (!o.fecha_entrega || !dayIndex.has(o.fecha_entrega)) continue;
-    const relevant = mode === "fabricacion" ? o.estado_produccion === "PENDIENTE" : o.estado_logistica === "PENDIENTE";
-    if (!relevant) continue;
 
     for (const it of o.items) {
       if (!it.product_id) continue;
+      const relevant = mode === "fabricacion" ? it.estado_produccion === "PENDIENTE" : it.estado_logistica === "PENDIENTE";
+      if (!relevant) continue;
+
       let row = rowsByProduct.get(it.product_id);
       if (!row) {
         row = { productName: "—", byDay: Object.fromEntries(days.map((d) => [d, 0])) };
@@ -82,14 +86,14 @@ export function notesForProduct(
   const refs: PendingProductNoteRef[] = [];
 
   for (const o of orders) {
-    const relevant = mode === "fabricacion" ? o.estado_produccion === "PENDIENTE" : o.estado_logistica === "PENDIENTE";
-    if (!relevant) continue;
     if (range) {
       if (!o.fecha_entrega || o.fecha_entrega < range.start || o.fecha_entrega > range.end) continue;
     }
 
     for (const it of o.items) {
       if (it.product_id !== productId) continue;
+      const relevant = mode === "fabricacion" ? it.estado_produccion === "PENDIENTE" : it.estado_logistica === "PENDIENTE";
+      if (!relevant) continue;
       refs.push({ id: o.id, numero: o.numero, cliente: o.cliente, fecha_entrega: o.fecha_entrega, cantidad: it.cantidad });
     }
   }

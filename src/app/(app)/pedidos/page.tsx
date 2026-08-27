@@ -128,6 +128,7 @@ export default async function PedidosPage({
               <select id="estado_logistica" name="estado_logistica" defaultValue={params.estado_logistica ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
                 <option value="">Todos</option>
                 <option value="PENDIENTE">Pendiente</option>
+                <option value="PARCIAL">Parcial</option>
                 <option value="ENTREGADO">Entregado</option>
               </select>
             </div>
@@ -139,6 +140,7 @@ export default async function PedidosPage({
               <select id="estado_produccion" name="estado_produccion" defaultValue={params.estado_produccion ?? ""} className="rounded-md border border-black/15 bg-white px-2 py-2 text-sm">
                 <option value="">Todos</option>
                 <option value="PENDIENTE">Pendiente</option>
+                <option value="PARCIAL">Parcial</option>
                 <option value="FABRICADO">Fabricado</option>
               </select>
             </div>

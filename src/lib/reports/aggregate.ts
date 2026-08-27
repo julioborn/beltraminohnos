@@ -2,8 +2,8 @@ export type ReportOrder = {
   id: string;
   cliente: string;
   fecha: string;
-  estado_logistica: "PENDIENTE" | "ENTREGADO";
-  estado_produccion: "PENDIENTE" | "FABRICADO";
+  estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
+  estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
   zona: { name: string } | null;
   vendedor: { name: string } | null;
   items: { cantidad: number; precio_unitario: number; product: { name: string } | null }[];
@@ -75,8 +75,8 @@ export function aggregateByMonth(orders: ReportOrder[]): MonthRow[] {
 }
 
 export function estadoCounts(orders: ReportOrder[]) {
-  const logistica = { PENDIENTE: 0, ENTREGADO: 0 };
-  const produccion = { PENDIENTE: 0, FABRICADO: 0 };
+  const logistica = { PENDIENTE: 0, PARCIAL: 0, ENTREGADO: 0 };
+  const produccion = { PENDIENTE: 0, PARCIAL: 0, FABRICADO: 0 };
   for (const o of orders) {
     logistica[o.estado_logistica] += 1;
     produccion[o.estado_produccion] += 1;

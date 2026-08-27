@@ -28,13 +28,22 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   sheet.addRow(["Observaciones", order.observaciones ?? ""]);
   sheet.addRow([]);
 
-  const headerRow = sheet.addRow(["Producto", "Envase", "Cantidad", "Precio USD/tn", "Subtotal USD"]);
+  const headerRow = sheet.addRow([
+    "Producto",
+    "Envase",
+    "Cantidad",
+    "Precio USD/tn",
+    "Subtotal USD",
+    "Estado producción",
+    "Estado entrega",
+  ]);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
   });
 
   let total = 0;
+  const itemNameById = new Map(order.items.map((it) => [it.id, it.product?.name ?? "Producto"]));
   for (const item of order.items) {
     const subtotal = item.cantidad * item.precio_unitario;
     total += subtotal;
@@ -44,6 +53,8 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
       item.cantidad,
       item.precio_unitario,
       subtotal,
+      PRODUCCION_LABELS[item.estado_produccion],
+      LOGISTICA_LABELS[item.estado_logistica],
     ]);
   }
 
@@ -53,15 +64,24 @@ export async function buildOrderNoteWorkbook({ order, history }: OrderNoteDetail
   sheet.addRow([]);
   sheet.addRow(["Historial de estados"]).font = { bold: true };
   for (const h of history) {
-    const campoLabel = h.campo === "PRODUCCION" ? "Producción" : "Pedido";
+    const target = h.order_item_id ? itemNameById.get(h.order_item_id) ?? "Producto" : "Nota completa";
+    const campoLabel = h.campo === "PRODUCCION" ? "Producción" : "Entrega";
     const estadoLabel =
       h.campo === "PRODUCCION"
-        ? PRODUCCION_LABELS[h.estado as "PENDIENTE" | "FABRICADO"]
-        : LOGISTICA_LABELS[h.estado as "PENDIENTE" | "ENTREGADO"];
-    sheet.addRow([`${campoLabel}: ${estadoLabel}`, new Date(h.changed_at).toLocaleString("es-AR")]);
+        ? PRODUCCION_LABELS[h.estado as "PENDIENTE" | "PARCIAL" | "FABRICADO"]
+        : LOGISTICA_LABELS[h.estado as "PENDIENTE" | "PARCIAL" | "ENTREGADO"];
+    sheet.addRow([`${target} · ${campoLabel}: ${estadoLabel}`, new Date(h.changed_at).toLocaleString("es-AR")]);
   }
 
-  sheet.columns = [{ width: 28 }, { width: 16 }, { width: 12 }, { width: 16 }, { width: 14 }];
+  sheet.columns = [
+    { width: 28 },
+    { width: 16 },
+    { width: 12 },
+    { width: 16 },
+    { width: 14 },
+    { width: 18 },
+    { width: 16 },
+  ];
 
   return workbook;
 }

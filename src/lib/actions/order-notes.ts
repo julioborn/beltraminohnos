@@ -128,30 +128,57 @@ export async function deleteOrderNote(orderId: string): Promise<{ error?: string
   redirect("/pedidos");
 }
 
-export async function marcarEntregado(orderId: string) {
+export async function marcarItemFabricado(orderId: string, itemId: string) {
   const supabase = await createClient();
-
-  const { data: order } = await supabase
-    .from("order_notes")
-    .select("estado_produccion")
-    .eq("id", orderId)
-    .single();
-
-  if (order?.estado_produccion !== "FABRICADO") {
-    throw new Error("No se puede marcar como entregado: la producción todavía está pendiente.");
-  }
-
-  const { error } = await supabase.from("order_notes").update({ estado_logistica: "ENTREGADO" }).eq("id", orderId);
-  if (error) throw new Error(`No se pudo marcar como entregado: ${error.message}`);
+  const { error } = await supabase.from("order_items").update({ estado_produccion: "FABRICADO" }).eq("id", itemId);
+  if (error) throw new Error(`No se pudo marcar el producto como fabricado: ${error.message}`);
 
   revalidatePath(`/pedidos/${orderId}`);
   revalidatePath("/pedidos");
 }
 
-export async function marcarFabricado(orderId: string) {
+export async function marcarItemEntregado(orderId: string, itemId: string) {
   const supabase = await createClient();
-  const { error } = await supabase.from("order_notes").update({ estado_produccion: "FABRICADO" }).eq("id", orderId);
-  if (error) throw new Error(`No se pudo marcar como fabricado: ${error.message}`);
+
+  const { data: item } = await supabase
+    .from("order_items")
+    .select("estado_produccion")
+    .eq("id", itemId)
+    .single();
+
+  if (item?.estado_produccion !== "FABRICADO") {
+    throw new Error("No se puede marcar como entregado: la producción de este producto todavía está pendiente.");
+  }
+
+  const { error } = await supabase.from("order_items").update({ estado_logistica: "ENTREGADO" }).eq("id", itemId);
+  if (error) throw new Error(`No se pudo marcar el producto como entregado: ${error.message}`);
+
+  revalidatePath(`/pedidos/${orderId}`);
+  revalidatePath("/pedidos");
+}
+
+export async function marcarTodosFabricado(orderId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("order_items")
+    .update({ estado_produccion: "FABRICADO" })
+    .eq("order_note_id", orderId)
+    .eq("estado_produccion", "PENDIENTE");
+  if (error) throw new Error(`No se pudo marcar la nota como fabricada: ${error.message}`);
+
+  revalidatePath(`/pedidos/${orderId}`);
+  revalidatePath("/pedidos");
+}
+
+export async function marcarTodosEntregado(orderId: string) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("order_items")
+    .update({ estado_logistica: "ENTREGADO" })
+    .eq("order_note_id", orderId)
+    .eq("estado_produccion", "FABRICADO")
+    .eq("estado_logistica", "PENDIENTE");
+  if (error) throw new Error(`No se pudo marcar la nota como entregada: ${error.message}`);
 
   revalidatePath(`/pedidos/${orderId}`);
   revalidatePath("/pedidos");

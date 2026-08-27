@@ -10,9 +10,11 @@
   --btm-red: #df0914;
   --btm-black: #373534;
 
-  /* Semaforo (solo amarillo/verde por decision de negocio) */
+  /* Semaforo (amarillo/verde por decision de negocio, + naranja "parcial" agregado para estado mixto por producto) */
   --btm-pendiente: #f5b400;
   --btm-pendiente-bg: #fef3c7;
+  --btm-parcial: #f97316;
+  --btm-parcial-bg: #ffedd5;
   --btm-fabricado: #4ade80;
   --btm-fabricado-bg: #dcfce7;
   --btm-entregado: #16a34a;
@@ -33,6 +35,8 @@
 
   --color-btm-pendiente: var(--btm-pendiente);
   --color-btm-pendiente-bg: var(--btm-pendiente-bg);
+  --color-btm-parcial: var(--btm-parcial);
+  --color-btm-parcial-bg: var(--btm-parcial-bg);
   --color-btm-fabricado: var(--btm-fabricado);
   --color-btm-fabricado-bg: var(--btm-fabricado-bg);
   --color-btm-entregado: var(--btm-entregado);

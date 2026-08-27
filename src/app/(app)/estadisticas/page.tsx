@@ -1,5 +1,10 @@
 import Link from "next/link";
-import { getOrdersForReports, getOrderNotesList, type ReportFilters } from "@/lib/data/orders";
+import {
+  getOrdersForReports,
+  getOrderNotesPendingProduccion,
+  getOrderNotesPendingEntrega,
+  type ReportFilters,
+} from "@/lib/data/orders";
 import {
   aggregateByMonth,
   aggregateByProducto,
@@ -19,8 +24,8 @@ export default async function EstadisticasPage({
   const params = await searchParams;
   const [orders, pendientesFabricacion, pendientesEntrega] = await Promise.all([
     getOrdersForReports(params),
-    getOrderNotesList({ estado_produccion: "PENDIENTE" }),
-    getOrderNotesList({ estado_logistica: "PENDIENTE" }),
+    getOrderNotesPendingProduccion(),
+    getOrderNotesPendingEntrega(),
   ]);
   const hasFilter = Boolean(params.desde || params.hasta);
 
@@ -90,6 +95,7 @@ export default async function EstadisticasPage({
           title="Estado del pedido"
           items={[
             { label: "Pendiente", value: logistica.PENDIENTE, className: "bg-btm-pendiente" },
+            { label: "Parcial", value: logistica.PARCIAL, className: "bg-btm-parcial" },
             { label: "Entregado", value: logistica.ENTREGADO, className: "bg-btm-entregado" },
           ]}
         />
@@ -97,6 +103,7 @@ export default async function EstadisticasPage({
           title="Estado de producción"
           items={[
             { label: "Pendiente", value: produccion.PENDIENTE, className: "bg-btm-pendiente" },
+            { label: "Parcial", value: produccion.PARCIAL, className: "bg-btm-parcial" },
             { label: "Fabricado", value: produccion.FABRICADO, className: "bg-btm-fabricado" },
           ]}
         />
