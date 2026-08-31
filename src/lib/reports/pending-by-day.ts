@@ -33,6 +33,8 @@ export type PendingDayRow = {
 export type PendingDayMatrix = {
   days: string[];
   rows: PendingDayRow[];
+  totalByDay: Record<string, number>;
+  grandTotal: number;
 };
 
 export function buildPendingDayMatrix(
@@ -74,7 +76,15 @@ export function buildPendingDayMatrix(
     total: days.reduce((sum, d) => sum + (row.byDay[d] ?? 0), 0),
   }));
 
-  return { days, rows };
+  const totalByDay: Record<string, number> = Object.fromEntries(days.map((d) => [d, 0]));
+  for (const row of rows) {
+    for (const d of days) {
+      totalByDay[d] += row.byDay[d] ?? 0;
+    }
+  }
+  const grandTotal = days.reduce((sum, d) => sum + totalByDay[d], 0);
+
+  return { days, rows, totalByDay, grandTotal };
 }
 
 export function notesForProduct(

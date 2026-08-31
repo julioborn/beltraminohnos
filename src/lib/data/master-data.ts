@@ -24,6 +24,12 @@ export async function getMasterData() {
   };
 }
 
+export async function getActiveProducts() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("products").select("id, name").eq("active", true).order("name");
+  return data ?? [];
+}
+
 export async function getPriceMap() {
   const supabase = await createClient();
   const { data } = await supabase

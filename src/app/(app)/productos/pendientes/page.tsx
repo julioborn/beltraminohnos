@@ -1,14 +1,10 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
 import { getOrdersPendingSummary } from "@/lib/data/orders";
+import { getActiveProducts } from "@/lib/data/master-data";
 import { PendingByDayReport } from "./pending-by-day-report";
 
 export default async function ProductosPendientesPage() {
-  const supabase = await createClient();
-  const [{ data: products }, orders] = await Promise.all([
-    supabase.from("products").select("id, name").eq("active", true).order("name"),
-    getOrdersPendingSummary(),
-  ]);
+  const [products, orders] = await Promise.all([getActiveProducts(), getOrdersPendingSummary()]);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -32,7 +28,7 @@ export default async function ProductosPendientesPage() {
         </div>
       </div>
 
-      <PendingByDayReport products={products ?? []} orders={orders} />
+      <PendingByDayReport products={products} orders={orders} />
     </div>
   );
 }

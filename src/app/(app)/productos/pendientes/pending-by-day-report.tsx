@@ -97,6 +97,22 @@ export function PendingByDayReport({
             <ModeButton label="Pendiente de entrega" active={mode === "entrega"} onClick={() => changeMode("entrega")} />
           </div>
         )}
+        {matrix && range.start && range.end && (
+          <div className="flex flex-wrap gap-2 sm:ml-auto">
+            <a
+              href={`/productos/pendientes/export/pdf?start=${range.start}&end=${range.end}&mode=${mode}`}
+              className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            >
+              Exportar PDF
+            </a>
+            <a
+              href={`/productos/pendientes/export/excel?start=${range.start}&end=${range.end}&mode=${mode}`}
+              className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            >
+              Exportar Excel
+            </a>
+          </div>
+        )}
       </div>
 
       {!matrix ? (
@@ -198,6 +214,26 @@ export function PendingByDayReport({
                   </tr>
                 )}
               </tbody>
+              {matrix.rows.length > 0 && (
+                <tfoot>
+                  <tr className="border-t-2 border-btm-navy bg-btm-navy/5">
+                    <td className="sticky left-0 z-10 bg-btm-navy/5 px-2 py-2 text-left text-xs font-bold uppercase tracking-wide text-btm-navy sm:px-4 sm:py-2.5 sm:text-sm">
+                      Total
+                    </td>
+                    {matrix.days.map((d) => (
+                      <td
+                        key={d}
+                        className="whitespace-nowrap px-2 py-2 text-center text-xs font-bold text-btm-navy sm:px-3 sm:py-2.5 sm:text-sm"
+                      >
+                        {formatCantidad(matrix.totalByDay[d] ?? 0)}
+                      </td>
+                    ))}
+                    <td className="whitespace-nowrap px-2 py-2 text-center text-xs font-bold text-btm-navy sm:px-4 sm:py-2.5 sm:text-sm">
+                      {formatCantidad(matrix.grandTotal)}
+                    </td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
         </>
