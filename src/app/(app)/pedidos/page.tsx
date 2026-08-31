@@ -222,6 +222,9 @@ export default async function PedidosPage({
               <div>
                 <p className="btm-fig text-sm font-semibold text-btm-navy">{order.numero}</p>
                 <p className="btm-fig text-xs text-btm-black/50">{formatFecha(order.fecha)}</p>
+                {order.fecha_entrega && (
+                  <p className="btm-fig text-xs text-btm-black/50">Entrega: {formatFecha(order.fecha_entrega)}</p>
+                )}
               </div>
               <div className="flex flex-col items-end gap-1">
                 <LogisticaBadge estado={order.estado_logistica} />
@@ -259,7 +262,7 @@ export default async function PedidosPage({
               <th className="px-4 py-3">Zona comercial</th>
               <th className="px-4 py-3">Productos</th>
               <th className="px-4 py-3">Vendedor</th>
-              <th className="px-4 py-3">Chofer</th>
+              <th className="px-4 py-3">Fecha entrega</th>
               <th className="px-4 py-3">Pedido</th>
               <th className="px-4 py-3">Producción</th>
             </tr>
@@ -281,7 +284,9 @@ export default async function PedidosPage({
                     .join(", ")}
                 </td>
                 <td className="px-4 py-3 text-btm-black/70">{order.vendedor?.name ?? "—"}</td>
-                <td className="px-4 py-3 text-btm-black/70">{order.chofer?.name ?? "—"}</td>
+                <td className="btm-fig px-4 py-3 text-btm-black/70">
+                  {order.fecha_entrega ? formatFecha(order.fecha_entrega) : "—"}
+                </td>
                 <td className="px-4 py-3">
                   <LogisticaBadge estado={order.estado_logistica} />
                 </td>
