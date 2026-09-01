@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState, useTransition } from "react";
+import { useActionState, useRef, useState, useTransition } from "react";
 import { previewPriceImport, applyPriceImport, type PriceImportState } from "@/lib/actions/price-import";
 import { PACKAGING_LABELS } from "@/lib/packaging";
 
@@ -16,6 +16,8 @@ export function PriceImportForm() {
   const [applying, startApply] = useTransition();
   const [applyResult, setApplyResult] = useState<{ error?: string; updated?: number } | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const preview = state.status === "preview" ? state.preview : null;
   const changedRows = preview
@@ -34,6 +36,20 @@ export function PriceImportForm() {
     });
   }
 
+  function assignFile(file: File | undefined) {
+    if (!file || !fileInputRef.current) return;
+    const dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInputRef.current.files = dataTransfer.files;
+    setFileName(file.name);
+  }
+
+  function handleDrop(e: React.DragEvent<HTMLDivElement>) {
+    e.preventDefault();
+    setIsDragging(false);
+    assignFile(e.dataTransfer.files?.[0]);
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div className="btm-card flex flex-col gap-4 p-5 sm:p-6">
@@ -47,33 +63,56 @@ export function PriceImportForm() {
           </p>
         </div>
 
-        <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex flex-1 flex-col gap-1">
-            <label htmlFor="file" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-              Archivo Excel (.xlsx)
-            </label>
+        <form action={formAction} className="flex flex-col gap-3">
+          <div
+            onClick={() => fileInputRef.current?.click()}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDragging(true);
+            }}
+            onDragLeave={() => setIsDragging(false)}
+            onDrop={handleDrop}
+            className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border-2 border-dashed px-4 py-8 text-center transition-colors ${
+              isDragging ? "border-btm-navy bg-btm-navy/5" : "border-black/15 hover:border-btm-navy/40"
+            }`}
+          >
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={1.75}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-7 w-7 text-btm-navy/60"
+              aria-hidden
+            >
+              <path d="M7 18a4.5 4.5 0 0 1-.5-8.98A5.5 5.5 0 0 1 17.4 7.5 4 4 0 0 1 17 15.5" />
+              <path d="M12 20v-8M9 15l3-3 3 3" />
+            </svg>
+            <p className="text-sm font-medium text-btm-navy">
+              {fileName ?? "Arrastrá el Excel acá o hacé clic para elegirlo"}
+            </p>
+            <p className="text-xs text-btm-black/50">Archivo .xlsx</p>
             <input
+              ref={fileInputRef}
               id="file"
               name="file"
               type="file"
               accept=".xlsx"
               required
               onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
-              className="rounded-md border border-black/15 px-3 py-2 text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-btm-navy file:px-3 file:py-1.5 file:text-xs file:font-semibold file:uppercase file:text-white"
+              className="hidden"
             />
           </div>
           <button
             type="submit"
             disabled={pending}
-            className="cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
+            className="cursor-pointer self-end rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
           >
             {pending ? "Analizando..." : "Analizar archivo"}
           </button>
         </form>
 
-        {fileName && state.status !== "error" && (
-          <p className="text-xs text-btm-black/50">Archivo: {fileName}</p>
-        )}
         {state.status === "error" && <p className="text-sm font-medium text-btm-red">{state.message}</p>}
       </div>
 
