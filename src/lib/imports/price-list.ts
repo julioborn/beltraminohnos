@@ -6,6 +6,15 @@ import type { PackagingType } from "@/lib/packaging";
 // ya cargados (0,313 en el Excel === 313 en la base).
 const EXCEL_PRICE_SCALE = 1000;
 
+// La Hoja 1 del Excel usa un nombre distinto al del sistema para algún
+// producto puntual (ej. "SUPLEMENTO MINERAL" ahí vs "SAL MINERAL" en el
+// sistema y en la Hoja 2 de Chaco) — confirmado porque el precio ya cargado
+// coincide exacto con el de esa fila. Mapear acá evita que quede sin
+// actualizar mes a mes por esta inconsistencia del archivo de origen.
+const PRODUCT_NAME_ALIASES: Record<string, string> = {
+  "SUPLEMENTO MINERAL": "SAL MINERAL",
+};
+
 export type PriceImportChange = {
   productId: string;
   productName: string;
@@ -86,7 +95,8 @@ export function parsePriceListWorkbook(
       const productNameRaw = cellText(row.getCell(1).value);
       if (!productNameRaw) continue;
 
-      const product = productByName.get(productNameRaw.toUpperCase());
+      const normalizedName = productNameRaw.toUpperCase();
+      const product = productByName.get(PRODUCT_NAME_ALIASES[normalizedName] ?? normalizedName);
       if (!product) {
         unmatchedProductsSet.add(productNameRaw);
         continue;
