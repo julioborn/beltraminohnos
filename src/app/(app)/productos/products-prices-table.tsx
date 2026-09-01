@@ -151,6 +151,12 @@ export function ProductsPricesTable({
           </div>
           <div className="flex flex-wrap gap-2">
             <Link
+              href="/productos/importar-precios"
+              className="rounded-full bg-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+            >
+              Actualizar lista de precios
+            </Link>
+            <Link
               href="/productos/pendientes"
               className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >

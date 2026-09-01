@@ -30,6 +30,18 @@ export async function getActiveProducts() {
   return data ?? [];
 }
 
+export async function getAllProducts() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("products").select("id, name").order("name");
+  return data ?? [];
+}
+
+export async function getZones() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("zones").select("id, code, name").order("sort_order");
+  return data ?? [];
+}
+
 export async function getPriceMap() {
   const supabase = await createClient();
   const { data } = await supabase
