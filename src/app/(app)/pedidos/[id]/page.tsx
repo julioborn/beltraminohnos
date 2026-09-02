@@ -118,16 +118,12 @@ export default async function NotaDetallePage({
           <div className="flex gap-2">
             <a
               href={`/pedidos/${order.id}/pdf`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex-1 rounded-full border border-btm-navy px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               PDF
             </a>
             <a
               href={`/pedidos/${order.id}/excel`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="flex-1 rounded-full border border-btm-navy px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               Excel
@@ -281,16 +277,12 @@ export default async function NotaDetallePage({
                 <div className="flex gap-2">
                   <a
                     href={`/pedidos/${order.id}/pdf`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="flex-1 rounded-full border border-btm-navy px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
                   >
                     PDF
                   </a>
                   <a
                     href={`/pedidos/${order.id}/excel`}
-                    target="_blank"
-                    rel="noopener noreferrer"
                     className="flex-1 rounded-full border border-btm-navy px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
                   >
                     Excel

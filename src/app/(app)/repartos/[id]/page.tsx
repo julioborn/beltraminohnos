@@ -49,16 +49,12 @@ export default async function RepartoDetallePage({
         <div className="flex gap-2">
           <a
             href={`/repartos/${reparto.id}/export/pdf`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="flex-1 rounded-full border border-btm-navy px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white sm:flex-none"
           >
             Exportar PDF
           </a>
           <a
             href={`/repartos/${reparto.id}/export/excel`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="flex-1 rounded-full border border-btm-navy px-4 py-2 text-center text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white sm:flex-none"
           >
             Exportar Excel

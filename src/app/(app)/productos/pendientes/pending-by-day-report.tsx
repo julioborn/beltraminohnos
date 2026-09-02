@@ -101,16 +101,12 @@ export function PendingByDayReport({
           <div className="flex flex-wrap gap-2 sm:ml-auto">
             <a
               href={`/productos/pendientes/export/pdf?start=${range.start}&end=${range.end}&mode=${mode}`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               Exportar PDF
             </a>
             <a
               href={`/productos/pendientes/export/excel?start=${range.start}&end=${range.end}&mode=${mode}`}
-              target="_blank"
-              rel="noopener noreferrer"
               className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               Exportar Excel

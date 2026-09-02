@@ -50,16 +50,12 @@ export default async function PedidosPage({
         <div className="flex flex-wrap gap-2">
           <a
             href={`/pedidos/export/pdf${qs ? `?${qs}` : ""}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
           >
             Exportar PDF
           </a>
           <a
             href={`/pedidos/export/excel${qs ? `?${qs}` : ""}`}
-            target="_blank"
-            rel="noopener noreferrer"
             className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
           >
             Exportar Excel
