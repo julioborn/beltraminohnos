@@ -54,8 +54,10 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
   // Un renglón por producto de la nota (no uno por nota): así cada producto
   // muestra su propia cantidad de toneladas por separado, en vez de un texto
   // combinado o un total global de la nota. Si la nota tiene más de un
-  // producto, se deja un renglón en blanco antes de pasar a la siguiente nota.
-  for (const order of sortedOrders) {
+  // producto, se deja un renglón en blanco arriba Y abajo de su bloque, para
+  // que se note que está separado de las notas de un solo producto (sin
+  // duplicar el blanco cuando dos notas de varios productos quedan seguidas).
+  const blocks = sortedOrders.map((order) => {
     const sharedFields = [
       order.numero,
       formatFecha(order.fecha),
@@ -73,14 +75,18 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
       order.fecha_envio ? formatFecha(order.fecha_envio) : "",
     ];
 
-    for (const item of order.items) {
-      sheet.addRow([...sharedFields, item.product?.name ?? "—", item.cantidad, ...trailingFields]);
-    }
+    return {
+      isMulti: order.items.length > 1,
+      rows: order.items.map((item) => [...sharedFields, item.product?.name ?? "—", item.cantidad, ...trailingFields]),
+    };
+  });
 
-    if (order.items.length > 1) {
+  blocks.forEach((block, i) => {
+    if (i > 0 && (blocks[i - 1].isMulti || block.isMulti)) {
       sheet.addRow([]);
     }
-  }
+    for (const row of block.rows) sheet.addRow(row);
+  });
 
   const lastDataRow = sheet.lastRow!.number;
 
