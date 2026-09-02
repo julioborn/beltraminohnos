@@ -6,10 +6,10 @@ import { updateCamion } from "@/lib/actions/camiones";
 import { PACKAGING_TYPES, PACKAGING_LABELS, pricingPackagingType, type PackagingType } from "@/lib/packaging";
 import { formatDiaEntrega } from "@/lib/format";
 import { addBusinessDays } from "@/lib/date-range";
-
-const MAX_DIAS_HABILES_ENTREGA = 4;
 import { DestinoSelect } from "./destino-select";
 import { ClienteAutocomplete } from "./cliente-autocomplete";
+
+const MIN_DIAS_HABILES_ENTREGA = 4;
 
 type Option = { id: string; name: string };
 type Zone = { id: string; code: string; name: string };
@@ -82,7 +82,7 @@ export function OrderForm({
   const [zonaId, setZonaId] = useState("");
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [fechaEntrega, setFechaEntrega] = useState("");
-  const maxFechaEntrega = useMemo(() => addBusinessDays(fecha, MAX_DIAS_HABILES_ENTREGA), [fecha]);
+  const minFechaEntrega = useMemo(() => addBusinessDays(fecha, MIN_DIAS_HABILES_ENTREGA), [fecha]);
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [choferId, setChoferId] = useState("");
   const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>([]);
@@ -253,12 +253,14 @@ export function OrderForm({
             name="fecha_entrega"
             type="date"
             required
-            max={maxFechaEntrega}
+            min={minFechaEntrega}
             value={fechaEntrega}
             onChange={(e) => setFechaEntrega(e.target.value)}
             className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           />
-          <p className="text-xs text-btm-black/50">Máximo 4 días hábiles: {formatDiaEntrega(maxFechaEntrega)}</p>
+          <p className="text-xs text-btm-black/50">
+            Mínimo 4 días hábiles (tiempo de fabricación): {formatDiaEntrega(minFechaEntrega)}
+          </p>
         </div>
       </Section>
 

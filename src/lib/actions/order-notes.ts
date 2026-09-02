@@ -7,7 +7,7 @@ import { addBusinessDays } from "@/lib/date-range";
 import { formatFecha } from "@/lib/format";
 import type { Database } from "@/lib/supabase/database.types";
 
-const MAX_DIAS_HABILES_ENTREGA = 4;
+const MIN_DIAS_HABILES_ENTREGA = 4;
 
 export type CreateOrderState = { error: string } | undefined;
 
@@ -36,10 +36,10 @@ export async function createOrderNote(
   }
 
   const emisionBase = fecha ?? new Date().toISOString().slice(0, 10);
-  const maxFechaEntrega = addBusinessDays(emisionBase, MAX_DIAS_HABILES_ENTREGA);
-  if (fechaEntrega > maxFechaEntrega) {
+  const minFechaEntrega = addBusinessDays(emisionBase, MIN_DIAS_HABILES_ENTREGA);
+  if (fechaEntrega < minFechaEntrega) {
     return {
-      error: `La fecha de entrega no puede superar los ${MAX_DIAS_HABILES_ENTREGA} días hábiles desde la emisión (máximo ${formatFecha(maxFechaEntrega)}).`,
+      error: `La fecha de entrega debe ser al menos ${MIN_DIAS_HABILES_ENTREGA} días hábiles después de la emisión (mínimo ${formatFecha(minFechaEntrega)}), por el tiempo de fabricación.`,
     };
   }
 
