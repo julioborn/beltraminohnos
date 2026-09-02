@@ -113,70 +113,91 @@ function addNotesSheet(workbook: ExcelJS.Workbook, orders: OrderListItem[]) {
   ];
 }
 
-function addProductByZoneSheet(workbook: ExcelJS.Workbook, orders: OrderListItem[]) {
-  const zoneNames = Array.from(new Set(orders.map((o) => o.zona?.name).filter((n): n is string => Boolean(n)))).sort(
-    (a, b) => a.localeCompare(b, "es"),
-  );
+function productTonnageByOrder(order: OrderListItem) {
+  const map = new Map<string, number>();
+  for (const it of order.items) {
+    const name = it.product?.name;
+    if (!name) continue;
+    map.set(name, (map.get(name) ?? 0) + it.cantidad);
+  }
+  return map;
+}
+
+// Una fila por nota, una columna por producto: acá se lee directo cuántas
+// toneladas de CADA producto tiene esa nota puntual (la hoja "Notas de
+// pedido" solo trae el total global de la nota).
+function addNoteProductDetailSheet(workbook: ExcelJS.Workbook, orders: OrderListItem[]) {
   const productNames = Array.from(
     new Set(orders.flatMap((o) => o.items.map((it) => it.product?.name).filter((n): n is string => Boolean(n)))),
   ).sort((a, b) => a.localeCompare(b, "es"));
 
   if (productNames.length === 0) return;
 
-  const sheet = workbook.addWorksheet("Totales por producto y zona");
+  const sortedOrders = [...orders].sort((a, b) => {
+    const zonaCompare = (a.zona?.name ?? "").localeCompare(b.zona?.name ?? "", "es");
+    if (zonaCompare !== 0) return zonaCompare;
+    return a.fecha.localeCompare(b.fecha);
+  });
+
+  const sheet = workbook.addWorksheet("Detalle por producto");
   addBrandHeader(workbook, sheet);
   sheet.addRow([]);
 
-  const headers = ["Producto", ...zoneNames, "Total"];
+  const fixedHeaders = ["N°", "Fecha", "Cliente", "Zona"];
+  const headers = [...fixedHeaders, ...productNames, "Total"];
   const headerRow = sheet.addRow(headers);
   styleHeaderRow(headerRow);
-
-  // productName -> zoneName -> toneladas
-  const totals = new Map<string, Map<string, number>>();
-  for (const order of orders) {
-    const zoneName = order.zona?.name;
-    if (!zoneName) continue;
-    for (const it of order.items) {
-      const productName = it.product?.name;
-      if (!productName) continue;
-      const byZone = totals.get(productName) ?? new Map<string, number>();
-      byZone.set(zoneName, (byZone.get(zoneName) ?? 0) + it.cantidad);
-      totals.set(productName, byZone);
-    }
-  }
+  headerRow.getCell(headers.length).alignment = { vertical: "middle" };
+  productNames.forEach((_, i) => {
+    headerRow.getCell(fixedHeaders.length + i + 1).alignment = { wrapText: true, vertical: "middle", horizontal: "center" };
+  });
+  headerRow.height = 45;
 
   const firstDataRow = headerRow.number + 1;
-  for (const productName of productNames) {
-    const byZone = totals.get(productName) ?? new Map<string, number>();
-    const rowValues = zoneNames.map((z) => byZone.get(z) || null);
-    sheet.addRow([productName, ...rowValues, null]);
+  const totalColIndex = headers.length;
+
+  for (const order of sortedOrders) {
+    const tonnageByProduct = productTonnageByOrder(order);
+    const productValues = productNames.map((name) => tonnageByProduct.get(name) || null);
+    sheet.addRow([
+      order.numero,
+      formatFecha(order.fecha),
+      order.cliente,
+      order.zona?.name ?? "",
+      ...productValues,
+      orderTonnage(order),
+    ]);
   }
 
   const lastDataRow = sheet.lastRow!.number;
-  const totalColIndex = headers.length;
-  const totalColLetter = sheet.getColumn(totalColIndex).letter;
-
-  for (let r = firstDataRow; r <= lastDataRow; r++) {
-    const firstZoneLetter = sheet.getColumn(2).letter;
-    const lastZoneLetter = sheet.getColumn(1 + zoneNames.length).letter;
-    sheet.getRow(r).getCell(totalColIndex).value = {
-      formula: `SUM(${firstZoneLetter}${r}:${lastZoneLetter}${r})`,
-    };
-  }
 
   const totalRow = sheet.addRow(["TOTAL"]);
-  for (let c = 2; c <= headers.length; c++) {
-    const letter = sheet.getColumn(c).letter;
-    totalRow.getCell(c).value = { formula: `SUM(${letter}${firstDataRow}:${letter}${lastDataRow})` };
-  }
+  productNames.forEach((_, i) => {
+    const colIndex = fixedHeaders.length + i + 1;
+    const letter = sheet.getColumn(colIndex).letter;
+    totalRow.getCell(colIndex).value = { formula: `SUBTOTAL(9,${letter}${firstDataRow}:${letter}${lastDataRow})` };
+  });
+  const totalColLetter = sheet.getColumn(totalColIndex).letter;
+  totalRow.getCell(totalColIndex).value = {
+    formula: `SUBTOTAL(9,${totalColLetter}${firstDataRow}:${totalColLetter}${lastDataRow})`,
+  };
   styleTotalRow(totalRow);
 
-  sheet.columns = [{ width: 28 }, ...zoneNames.map(() => ({ width: 16 })), { width: 14 }];
+  sheet.autoFilter = { from: { row: headerRow.number, column: 1 }, to: { row: lastDataRow, column: headers.length } };
+
+  sheet.columns = [
+    { width: 12 },
+    { width: 12 },
+    { width: 26 },
+    { width: 16 },
+    ...productNames.map(() => ({ width: 13 })),
+    { width: 13 },
+  ];
 }
 
 export async function buildOrderListWorkbook(orders: OrderListItem[]) {
   const workbook = new ExcelJS.Workbook();
   addNotesSheet(workbook, orders);
-  addProductByZoneSheet(workbook, orders);
+  addNoteProductDetailSheet(workbook, orders);
   return workbook;
 }
