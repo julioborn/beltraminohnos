@@ -83,6 +83,11 @@ export function OrderForm({
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [fechaEntrega, setFechaEntrega] = useState("");
   const minFechaEntrega = useMemo(() => addBusinessDays(fecha, MIN_DIAS_HABILES_ENTREGA), [fecha]);
+  // El date picker nativo de iOS no bloquea fechas anteriores al "min" (solo
+  // lo valida al enviar, y esa validación no siempre se ve bien dentro de la
+  // PWA instalada) — por eso el aviso y el bloqueo de envío son explícitos acá,
+  // en vez de depender solo del atributo min.
+  const fechaEntregaTemprana = Boolean(fechaEntrega) && fechaEntrega < minFechaEntrega;
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [choferId, setChoferId] = useState("");
   const [selectedCamionIds, setSelectedCamionIds] = useState<string[]>([]);
@@ -256,11 +261,22 @@ export function OrderForm({
             min={minFechaEntrega}
             value={fechaEntrega}
             onChange={(e) => setFechaEntrega(e.target.value)}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            className={`rounded-md border px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+              fechaEntregaTemprana
+                ? "border-btm-red focus:border-btm-red focus:ring-btm-red"
+                : "border-black/15 focus:border-btm-navy focus:ring-btm-navy"
+            }`}
           />
-          <p className="text-xs text-btm-black/50">
-            Mínimo 4 días hábiles (tiempo de fabricación): {formatDiaEntrega(minFechaEntrega)}
-          </p>
+          {fechaEntregaTemprana ? (
+            <p className="text-xs font-medium text-btm-red">
+              Esa fecha es antes del mínimo por fabricación. Elegí desde el {formatDiaEntrega(minFechaEntrega)} en
+              adelante.
+            </p>
+          ) : (
+            <p className="text-xs text-btm-black/50">
+              Mínimo 4 días hábiles (tiempo de fabricación): {formatDiaEntrega(minFechaEntrega)}
+            </p>
+          )}
         </div>
       </Section>
 
@@ -504,8 +520,8 @@ export function OrderForm({
 
       <button
         type="submit"
-        disabled={pending}
-        className="self-start rounded-full bg-btm-navy px-8 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:opacity-60"
+        disabled={pending || fechaEntregaTemprana}
+        className="self-start rounded-full bg-btm-navy px-8 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Guardando..." : "Guardar nota"}
       </button>
