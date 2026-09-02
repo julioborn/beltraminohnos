@@ -18,3 +18,16 @@ export function eachDateInRange(startIso: string, endIso: string): string[] {
   }
   return days;
 }
+
+// Suma días hábiles (excluye sábado y domingo) a partir de una fecha ISO,
+// sin contar la fecha de partida como día 1 (ej: miércoles + 4 hábiles = martes).
+export function addBusinessDays(startIso: string, days: number): string {
+  const date = parseISODate(startIso);
+  let added = 0;
+  while (added < days) {
+    date.setDate(date.getDate() + 1);
+    const weekday = date.getDay();
+    if (weekday !== 0 && weekday !== 6) added++;
+  }
+  return toISODate(date);
+}

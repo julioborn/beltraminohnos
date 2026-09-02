@@ -3,7 +3,11 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { addBusinessDays } from "@/lib/date-range";
+import { formatFecha } from "@/lib/format";
 import type { Database } from "@/lib/supabase/database.types";
+
+const MAX_DIAS_HABILES_ENTREGA = 4;
 
 export type CreateOrderState = { error: string } | undefined;
 
@@ -25,6 +29,18 @@ export async function createOrderNote(
 
   if (!cliente) {
     return { error: "Ingresá el cliente." };
+  }
+
+  if (!fechaEntrega) {
+    return { error: "Ingresá la fecha de entrega estimada." };
+  }
+
+  const emisionBase = fecha ?? new Date().toISOString().slice(0, 10);
+  const maxFechaEntrega = addBusinessDays(emisionBase, MAX_DIAS_HABILES_ENTREGA);
+  if (fechaEntrega > maxFechaEntrega) {
+    return {
+      error: `La fecha de entrega no puede superar los ${MAX_DIAS_HABILES_ENTREGA} días hábiles desde la emisión (máximo ${formatFecha(maxFechaEntrega)}).`,
+    };
   }
 
   let items: unknown;
