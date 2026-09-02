@@ -164,12 +164,16 @@ export function ProductsPricesTable({
             </Link>
             <a
               href="/productos/pdf"
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               PDF
             </a>
             <a
               href="/productos/excel"
+              target="_blank"
+              rel="noopener noreferrer"
               className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               Excel
