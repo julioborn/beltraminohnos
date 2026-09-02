@@ -6,6 +6,7 @@ import type { OrderListItem } from "@/lib/pdf/types";
 
 const NAVY = "FF21305D";
 const NAVY_LIGHT = "FFEEF0F6";
+const MULTI_PRODUCT_TINT = "FFF3F4F8";
 
 function styleHeaderRow(row: ExcelJS.Row) {
   row.eachCell((cell) => {
@@ -54,9 +55,12 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
   // Un renglón por producto de la nota (no uno por nota): así cada producto
   // muestra su propia cantidad de toneladas por separado, en vez de un texto
   // combinado o un total global de la nota. Si la nota tiene más de un
-  // producto, se deja un renglón en blanco arriba Y abajo de su bloque, para
-  // que se note que está separado de las notas de un solo producto (sin
-  // duplicar el blanco cuando dos notas de varios productos quedan seguidas).
+  // producto, se deja un renglón en blanco arriba Y abajo de su bloque (sin
+  // duplicar el blanco cuando dos notas de varios productos quedan seguidas)
+  // Y ADEMÁS se le pone un recuadro + sombreado propio a esas filas, porque
+  // el renglón en blanco desaparece al filtrar (Excel oculta cualquier fila
+  // que no matchee el filtro, blancos incluidos) — el recuadro, al ser parte
+  // de cada fila de datos, se mantiene visible sin importar qué se filtre.
   const blocks = sortedOrders.map((order) => {
     const sharedFields = [
       order.numero,
@@ -85,7 +89,22 @@ export async function buildOrderListWorkbook(orders: OrderListItem[]) {
     if (i > 0 && (blocks[i - 1].isMulti || block.isMulti)) {
       sheet.addRow([]);
     }
-    for (const row of block.rows) sheet.addRow(row);
+
+    const addedRows = block.rows.map((rowValues) => sheet.addRow(rowValues));
+
+    if (block.isMulti) {
+      addedRows.forEach((row, idx) => {
+        const isFirst = idx === 0;
+        const isLast = idx === addedRows.length - 1;
+        row.eachCell((cell) => {
+          cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: MULTI_PRODUCT_TINT } };
+          cell.border = {
+            ...(isFirst ? { top: { style: "thin" as const, color: { argb: NAVY } } } : {}),
+            ...(isLast ? { bottom: { style: "thin" as const, color: { argb: NAVY } } } : {}),
+          };
+        });
+      });
+    }
   });
 
   const lastDataRow = sheet.lastRow!.number;
