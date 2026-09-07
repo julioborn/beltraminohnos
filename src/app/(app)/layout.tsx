@@ -4,16 +4,19 @@ import { createClient } from "@/lib/supabase/server";
 import { MobileMenu } from "@/components/mobile-menu";
 import { DolarBadge } from "@/components/dolar-badge";
 
+// Mismos 9 destinos y mismo orden que las cards de Inicio, para que el menú
+// lateral y la pantalla de inicio coincidan exactamente.
 const NAV_LINKS = [
   { href: "/inicio", label: "Inicio" },
-  { href: "/pedidos", label: "Notas de pedido" },
+  { href: "/pedidos", label: "Pedidos" },
   { href: "/cercanos", label: "Pedidos cercanos" },
   { href: "/repartos", label: "Repartos" },
-  { href: "/cotizaciones", label: "Cotizaciones" },
-  { href: "/productos", label: "Productos y precios" },
+  { href: "/productos", label: "Productos" },
+  { href: "/productos/pendientes", label: "Pendientes por producto" },
   { href: "/personal", label: "Personal" },
   { href: "/reportes", label: "Reportes" },
   { href: "/estadisticas", label: "Estadísticas" },
+  { href: "/cotizaciones", label: "Cotizaciones" },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
