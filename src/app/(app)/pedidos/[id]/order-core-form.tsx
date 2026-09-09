@@ -103,6 +103,7 @@ export function OrderCoreForm({
   );
 
   const total = itemsPayload.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
+  const hayProductoSinPrecio = items.some((it) => it.productId && it.cantidad && priceFor(it) === null);
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
@@ -252,7 +253,9 @@ export function OrderCoreForm({
                     </span>
                     <span className="px-2 py-1.5 text-sm">
                       {price === null ? (
-                        <span className="text-btm-red">Sin precio</span>
+                        <span className="font-semibold text-btm-red">
+                          {item.productId ? "Sin precio para esta zona" : "—"}
+                        </span>
                       ) : (
                         `$${price.toFixed(3)} · $${(price * cantidad).toFixed(2)}`
                       )}
@@ -267,6 +270,13 @@ export function OrderCoreForm({
         <p className="text-right font-display text-sm font-bold text-btm-navy">Total: ${total.toFixed(2)}</p>
       </Section>
 
+      {hayProductoSinPrecio && (
+        <p role="alert" className="text-sm font-medium text-btm-red">
+          Hay productos sin precio cargado para la zona elegida. Cargá el precio en Productos y precios antes de
+          guardar.
+        </p>
+      )}
+
       {state?.error && (
         <p role="alert" className="text-sm font-medium text-btm-red">
           {state.error}
@@ -276,8 +286,8 @@ export function OrderCoreForm({
       <div className="flex gap-2">
         <button
           type="submit"
-          disabled={pending}
-          className="cursor-pointer rounded-full bg-btm-navy px-6 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red disabled:opacity-60"
+          disabled={pending || hayProductoSinPrecio}
+          className="cursor-pointer rounded-full bg-btm-navy px-6 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
         >
           {pending ? "Guardando..." : "Guardar cambios"}
         </button>

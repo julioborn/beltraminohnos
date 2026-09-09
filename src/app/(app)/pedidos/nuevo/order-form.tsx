@@ -173,6 +173,7 @@ export function OrderForm({
   );
 
   const total = itemsPayload.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
+  const hayProductoSinPrecio = items.some((it) => it.productId && it.cantidad && priceFor(it) === null);
 
   return (
     <form action={action} className="flex flex-col gap-4">
@@ -495,7 +496,9 @@ export function OrderForm({
                     </span>
                     <span className="px-2 py-1.5 text-sm">
                       {price === null ? (
-                        <span className="text-btm-red">Sin precio</span>
+                        <span className="font-semibold text-btm-red">
+                          {item.productId ? "Sin precio para esta zona" : "—"}
+                        </span>
                       ) : (
                         `$${price.toFixed(3)} · $${(price * cantidad).toFixed(2)}`
                       )}
@@ -512,6 +515,13 @@ export function OrderForm({
         </p>
       </Section>
 
+      {hayProductoSinPrecio && (
+        <p role="alert" className="text-sm font-medium text-btm-red">
+          Hay productos sin precio cargado para la zona elegida. Cargá el precio en Productos y precios antes de
+          guardar la nota.
+        </p>
+      )}
+
       {state?.error && (
         <p role="alert" className="text-sm font-medium text-btm-red">
           {state.error}
@@ -520,7 +530,7 @@ export function OrderForm({
 
       <button
         type="submit"
-        disabled={pending || fechaEntregaTemprana}
+        disabled={pending || fechaEntregaTemprana || hayProductoSinPrecio}
         className="self-start rounded-full bg-btm-navy px-8 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Guardando..." : "Guardar nota"}

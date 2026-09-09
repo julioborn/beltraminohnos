@@ -5,9 +5,61 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addBusinessDays } from "@/lib/date-range";
 import { formatFecha } from "@/lib/format";
+import { getAllProducts, getPriceMap } from "@/lib/data/master-data";
+import { pricingPackagingType, type PackagingType } from "@/lib/packaging";
 import type { Database } from "@/lib/supabase/database.types";
 
 const MIN_DIAS_HABILES_ENTREGA = 4;
+
+type ParsedItem = { product_id: string; tipo_envase: PackagingType; cantidad: number };
+type PricedItem = ParsedItem & { precio_unitario: number };
+
+// El precio nunca se toma de lo que mande el navegador — se resuelve siempre
+// acá contra la lista de precios real, y si a algún producto le falta el
+// precio para la zona elegida, se rechaza la nota en vez de guardarla en $0
+// en silencio (así se coló la falta de precio de TERNERO 16% PREMIUM).
+async function resolveItemPrices(
+  zonaId: string | null,
+  rawItems: unknown[],
+): Promise<{ items: PricedItem[]; error?: undefined } | { items?: undefined; error: string }> {
+  if (!zonaId) {
+    return { error: "Seleccioná una zona comercial antes de guardar." };
+  }
+
+  const items: ParsedItem[] = rawItems
+    .filter((it): it is Record<string, unknown> => typeof it === "object" && it !== null)
+    .map((it) => ({
+      product_id: String(it.product_id ?? ""),
+      tipo_envase: String(it.tipo_envase ?? "") as PackagingType,
+      cantidad: Number(it.cantidad ?? 0),
+    }))
+    .filter((it) => it.product_id && it.cantidad > 0);
+
+  if (items.length === 0) {
+    return { error: "Agregá al menos un producto." };
+  }
+
+  const [products, priceMap] = await Promise.all([getAllProducts(), getPriceMap()]);
+  const productNameById = new Map(products.map((p) => [p.id, p.name]));
+
+  const missing = new Set<string>();
+  const resolved: PricedItem[] = items.map((it) => {
+    const packagingType = pricingPackagingType(it.tipo_envase);
+    const price = priceMap[`${it.product_id}_${packagingType}_${zonaId}`];
+    if (price === null || price === undefined) {
+      missing.add(productNameById.get(it.product_id) ?? "producto desconocido");
+    }
+    return { ...it, precio_unitario: price ?? 0 };
+  });
+
+  if (missing.size > 0) {
+    return {
+      error: `Falta cargar el precio de ${Array.from(missing).join(", ")} para esta zona. Cargalo en Productos y precios antes de guardar la nota.`,
+    };
+  }
+
+  return { items: resolved };
+}
 
 export type CreateOrderState = { error: string } | undefined;
 
@@ -43,15 +95,20 @@ export async function createOrderNote(
     };
   }
 
-  let items: unknown;
+  let itemsRawParsed: unknown;
   try {
-    items = JSON.parse(itemsRaw);
+    itemsRawParsed = JSON.parse(itemsRaw);
   } catch {
     return { error: "Los productos de la nota son inválidos." };
   }
 
-  if (!Array.isArray(items) || items.length === 0) {
+  if (!Array.isArray(itemsRawParsed) || itemsRawParsed.length === 0) {
     return { error: "Agregá al menos un producto." };
+  }
+
+  const priced = await resolveItemPrices(zonaId, itemsRawParsed);
+  if (priced.error) {
+    return { error: priced.error };
   }
 
   const supabase = await createClient();
@@ -63,7 +120,7 @@ export async function createOrderNote(
     p_vendedor_id: vendedorId,
     p_chofer_id: choferId,
     p_observaciones: observaciones,
-    p_items: items,
+    p_items: priced.items,
     p_provincia: provincia,
     p_localidad: localidad,
   } as Database["public"]["Functions"]["create_order_note"]["Args"]);
@@ -101,15 +158,20 @@ export async function updateOrderNoteCore(
     return { error: "Ingresá el cliente." };
   }
 
-  let items: unknown;
+  let itemsRawParsed: unknown;
   try {
-    items = JSON.parse(itemsRaw);
+    itemsRawParsed = JSON.parse(itemsRaw);
   } catch {
     return { error: "Los productos de la nota son inválidos." };
   }
 
-  if (!Array.isArray(items) || items.length === 0) {
+  if (!Array.isArray(itemsRawParsed) || itemsRawParsed.length === 0) {
     return { error: "Agregá al menos un producto." };
+  }
+
+  const priced = await resolveItemPrices(zonaId, itemsRawParsed);
+  if (priced.error) {
+    return { error: priced.error };
   }
 
   const supabase = await createClient();
@@ -119,7 +181,7 @@ export async function updateOrderNoteCore(
     p_zona_id: zonaId,
     p_fecha: fecha,
     p_vendedor_id: vendedorId,
-    p_items: items,
+    p_items: priced.items,
     p_provincia: provincia,
     p_localidad: localidad,
   } as Database["public"]["Functions"]["update_order_note"]["Args"]);
