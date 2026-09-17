@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import {
   getOrdersForReports,
   getOrderNotesPendingProduccion,
@@ -21,6 +23,10 @@ export default async function EstadisticasPage({
 }: {
   searchParams: Promise<ReportFilters>;
 }) {
+  if (!hasFullAccess(await getProfileRole())) {
+    redirect("/inicio");
+  }
+
   const params = await searchParams;
   const [orders, pendientesFabricacion, pendientesEntrega] = await Promise.all([
     getOrdersForReports(params),

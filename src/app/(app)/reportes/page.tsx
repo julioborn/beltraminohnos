@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
+import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getOrdersForReports, type ReportFilters } from "@/lib/data/orders";
 import {
   aggregateByCliente,
@@ -15,6 +17,10 @@ export default async function ReportesPage({
 }: {
   searchParams: Promise<ReportFilters>;
 }) {
+  if (!hasFullAccess(await getProfileRole())) {
+    redirect("/inicio");
+  }
+
   const params = await searchParams;
   const orders = await getOrdersForReports(params);
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();

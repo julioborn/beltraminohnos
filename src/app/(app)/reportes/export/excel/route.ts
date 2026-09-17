@@ -1,7 +1,12 @@
+import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getOrdersForReports, type ReportFilters } from "@/lib/data/orders";
 import { buildReportsWorkbook } from "@/lib/excel/reports-excel";
 
 export async function GET(request: Request) {
+  if (!hasFullAccess(await getProfileRole())) {
+    return new Response("No autorizado", { status: 403 });
+  }
+
   const { searchParams } = new URL(request.url);
   const filters: ReportFilters = Object.fromEntries(searchParams.entries());
 

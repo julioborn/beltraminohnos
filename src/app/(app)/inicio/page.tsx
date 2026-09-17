@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BrandTexture } from "@/components/brand-texture";
+import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 
 const ROW_1 = [
   {
@@ -84,6 +85,7 @@ const ROW_3 = [
     href: "/reportes",
     label: "Reportes",
     description: "Ventas por cliente, producto, vendedor y zona",
+    fullAccessOnly: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
@@ -96,6 +98,7 @@ const ROW_3 = [
     href: "/estadisticas",
     label: "Estadísticas",
     description: "Facturación, tendencias y rankings",
+    fullAccessOnly: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
         <path d="M18 20V10M12 20V4M6 20v-6" />
@@ -149,7 +152,11 @@ function HomeCard({
   );
 }
 
-export default function InicioPage() {
+export default async function InicioPage() {
+  const role = await getProfileRole();
+  const fullAccess = hasFullAccess(role);
+  const row3 = fullAccess ? ROW_3 : ROW_3.filter((item) => !item.fullAccessOnly);
+
   return (
     <div className="relative flex flex-1 flex-col items-center gap-10 overflow-hidden px-6 pt-8 pb-16 sm:pt-12">
       <BrandTexture opacity={0.05} />
@@ -178,11 +185,13 @@ export default function InicioPage() {
             <HomeCard key={item.href} {...item} accent="navy" />
           ))}
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          {ROW_3.map((item) => (
-            <HomeCard key={item.href} {...item} accent="navy" />
-          ))}
-        </div>
+        {row3.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            {row3.map((item) => (
+              <HomeCard key={item.href} {...item} accent="navy" />
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
