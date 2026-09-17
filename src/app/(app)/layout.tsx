@@ -39,14 +39,18 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   const fullAccess = hasFullAccess(role);
-  const navLinks = NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly);
+  const isLimitado = role === "limitado";
+  const navLinks = isLimitado
+    ? [{ href: "/mis-notas", label: "Mis notas" }]
+    : NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly);
+  const homeHref = isLimitado ? "/mis-notas" : "/inicio";
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <div className="bg-btm-navy" style={{ height: "env(safe-area-inset-top)" }} aria-hidden />
       <header className="relative flex items-center gap-2 border-b-[3px] border-btm-red bg-btm-navy px-4 py-3 shadow-[0_2px_12px_rgba(20,29,58,0.25)] sm:px-6">
         <MobileMenu navLinks={navLinks} fullName={fullName} />
-        <Link href="/inicio" className="flex items-center">
+        <Link href={homeHref} className="flex items-center">
           <Image
             src="/brand/btm-horizontal-tagline.png"
             alt="BTM Nutrición Animal"

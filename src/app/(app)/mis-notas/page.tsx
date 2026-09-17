@@ -1,0 +1,53 @@
+import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { getMyOrderNotes } from "@/lib/data/orders";
+import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
+import { formatFecha } from "@/lib/format";
+
+export default async function MisNotasPage() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const notes = user ? await getMyOrderNotes(user.id) : [];
+
+  return (
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
+      <Link
+        href="/pedidos/nuevo"
+        className="flex items-center justify-center gap-2 rounded-full bg-btm-navy px-6 py-4 font-display text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_14px_-4px_rgba(20,29,58,0.35)] hover:bg-btm-red"
+      >
+        + Nueva nota de pedido
+      </Link>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy/70">
+          Mis notas de pedido
+        </h2>
+
+        {notes.length === 0 ? (
+          <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
+            Todavía no cargaste ninguna nota.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
+            {notes.map((n) => (
+              <div key={n.id} className="flex flex-col gap-2 p-4">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-display text-sm font-bold text-btm-navy">{n.numero}</span>
+                  <span className="text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
+                </div>
+                <p className="text-sm text-btm-black/80">{n.cliente}</p>
+                <div className="flex flex-wrap gap-2">
+                  <ProduccionBadge estado={n.estado_produccion} />
+                  <LogisticaBadge estado={n.estado_logistica} />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
+    </div>
+  );
+}

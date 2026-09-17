@@ -11,7 +11,13 @@ const PROTECTED_PREFIXES = [
   "/personal",
   "/reportes",
   "/estadisticas",
+  "/mis-notas",
 ];
+
+// Rol "limitado" (ej. vendedores externos como Rural Mas): solo pueden
+// cargar notas de pedido nuevas y ver el listado de las suyas — nada más.
+const LIMITADO_HOME = "/mis-notas";
+const LIMITADO_ALLOWED_PREFIXES = ["/mis-notas", "/pedidos/nuevo"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -48,6 +54,21 @@ export async function proxy(request: NextRequest) {
     const loginUrl = new URL("/", request.url);
     loginUrl.searchParams.set("next", path);
     return NextResponse.redirect(loginUrl);
+  }
+
+  if (user) {
+    const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
+    const isLimitado = profile?.role === "limitado";
+
+    if (isLimitado) {
+      if (path === "/") {
+        return NextResponse.redirect(new URL(LIMITADO_HOME, request.url));
+      }
+      const isAllowed = LIMITADO_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
+      if (isProtected && !isAllowed) {
+        return NextResponse.redirect(new URL(LIMITADO_HOME, request.url));
+      }
+    }
   }
 
   if (path === "/" && user) {

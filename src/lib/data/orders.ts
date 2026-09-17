@@ -62,6 +62,18 @@ export async function getOrderNotesList(
   return data ?? [];
 }
 
+export async function getMyOrderNotes(userId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("order_notes")
+    .select("id, numero, cliente, fecha, estado_logistica, estado_produccion")
+    .eq("created_by", userId)
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  return data ?? [];
+}
+
 export async function getOrderNotesCount(params: OrderListFilters) {
   const supabase = await createClient();
   const hasProducto = Boolean(params.producto);

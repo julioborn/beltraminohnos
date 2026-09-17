@@ -18,10 +18,20 @@ export async function login(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: "Email o contraseña incorrectos." };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", data.user.id)
+    .single();
+
+  if (profile?.role === "limitado") {
+    redirect("/mis-notas");
   }
 
   redirect(next.startsWith("/") ? next : "/pedidos");

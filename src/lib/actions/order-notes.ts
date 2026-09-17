@@ -136,6 +136,19 @@ export async function createOrderNote(
   }
 
   revalidatePath("/pedidos");
+  revalidatePath("/mis-notas");
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const { data: profile } = user
+    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
+    : { data: null };
+
+  if (profile?.role === "limitado") {
+    redirect("/pedidos/nuevo?created=1");
+  }
+
   redirect(`/pedidos/${orderId}`);
 }
 
