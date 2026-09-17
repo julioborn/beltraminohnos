@@ -39,9 +39,17 @@ export default async function MisNotasPage() {
                   <span className="text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
                 </div>
                 <p className="text-sm text-btm-black/80">{n.cliente}</p>
-                <div className="flex flex-wrap gap-2">
-                  <ProduccionBadge estado={n.estado_produccion} />
-                  <LogisticaBadge estado={n.estado_logistica} />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap gap-2">
+                    <ProduccionBadge estado={n.estado_produccion} />
+                    <LogisticaBadge estado={n.estado_logistica} />
+                  </div>
+                  <a
+                    href={`/mis-notas/${n.id}/pdf`}
+                    className="rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+                  >
+                    PDF
+                  </a>
                 </div>
               </div>
             ))}

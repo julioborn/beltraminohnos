@@ -5,9 +5,9 @@ import { OrderForm } from "./order-form";
 export default async function NuevaNotaPage({
   searchParams,
 }: {
-  searchParams: Promise<{ created?: string }>;
+  searchParams: Promise<{ created?: string; nota?: string }>;
 }) {
-  const { created } = await searchParams;
+  const { created, nota } = await searchParams;
   const [masterData, priceMap, clientes] = await Promise.all([
     getMasterData(),
     getPriceMap(),
@@ -26,9 +26,17 @@ export default async function NuevaNotaPage({
         Nueva nota de pedido
       </h1>
       {created === "1" && (
-        <p className="mb-6 rounded-lg border border-btm-entregado bg-btm-entregado-bg px-4 py-3 text-sm font-semibold text-green-950">
-          Nota creada correctamente.
-        </p>
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-btm-entregado bg-btm-entregado-bg px-4 py-3">
+          <p className="text-sm font-semibold text-green-950">Nota creada correctamente.</p>
+          {nota && (
+            <a
+              href={`/mis-notas/${nota}/pdf`}
+              className="rounded-full bg-btm-navy px-4 py-2 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+            >
+              Descargar PDF
+            </a>
+          )}
+        </div>
       )}
       <OrderForm
         products={masterData.products}

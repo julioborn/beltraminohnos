@@ -159,18 +159,41 @@ export async function getOrdersForReports(filters: ReportFilters) {
   return data ?? [];
 }
 
+const ORDER_NOTE_DETAIL_SELECT = `id, numero, cliente, fecha, fecha_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
+   zona:zones(id, name), vendedor:vendedores(id, name), chofer:choferes(id, name),
+   camiones:order_note_camiones(camion:camiones(id, dominio, tipo, marca_modelo, anio, empresa, chofer_id)),
+   items:order_items(id, product_id, cantidad, tipo_envase, precio_unitario, estado_produccion, estado_logistica, product:products(name))`;
+
 export async function getOrderNoteDetail(id: string) {
   const supabase = await createClient();
 
   const { data: order } = await supabase
     .from("order_notes")
-    .select(
-      `id, numero, cliente, fecha, fecha_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
-       zona:zones(id, name), vendedor:vendedores(id, name), chofer:choferes(id, name),
-       camiones:order_note_camiones(camion:camiones(id, dominio, tipo, marca_modelo, anio, empresa, chofer_id)),
-       items:order_items(id, product_id, cantidad, tipo_envase, precio_unitario, estado_produccion, estado_logistica, product:products(name))`,
-    )
+    .select(ORDER_NOTE_DETAIL_SELECT)
     .eq("id", id)
+    .single();
+
+  if (!order) return null;
+
+  const { data: history } = await supabase
+    .from("order_status_history")
+    .select("id, estado, campo, changed_at, order_item_id")
+    .eq("order_note_id", id)
+    .order("changed_at", { ascending: true });
+
+  return { order, history: history ?? [] };
+}
+
+// Para el rol "limitado": solo puede descargar el PDF de una nota que él
+// mismo creó, nunca las de otro usuario.
+export async function getMyOrderNoteDetail(id: string, userId: string) {
+  const supabase = await createClient();
+
+  const { data: order } = await supabase
+    .from("order_notes")
+    .select(ORDER_NOTE_DETAIL_SELECT)
+    .eq("id", id)
+    .eq("created_by", userId)
     .single();
 
   if (!order) return null;

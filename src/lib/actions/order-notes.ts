@@ -146,7 +146,7 @@ export async function createOrderNote(
     : { data: null };
 
   if (profile?.role === "limitado") {
-    redirect("/pedidos/nuevo?created=1");
+    redirect(`/pedidos/nuevo?created=1&nota=${orderId}`);
   }
 
   redirect(`/pedidos/${orderId}`);
