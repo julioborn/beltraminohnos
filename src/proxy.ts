@@ -12,12 +12,18 @@ const PROTECTED_PREFIXES = [
   "/reportes",
   "/estadisticas",
   "/mis-notas",
+  "/consignaciones",
 ];
 
 // Rol "limitado" (ej. vendedores externos como Rural Mas): solo pueden
 // cargar notas de pedido nuevas y ver el listado de las suyas — nada más.
 const LIMITADO_HOME = "/mis-notas";
 const LIMITADO_ALLOWED_PREFIXES = ["/mis-notas", "/pedidos/nuevo"];
+
+// Rol "contable": solo puede analizar el módulo de consignaciones (sucursales),
+// nada más del resto de la app.
+const CONTABLE_HOME = "/consignaciones";
+const CONTABLE_ALLOWED_PREFIXES = ["/consignaciones"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -59,6 +65,7 @@ export async function proxy(request: NextRequest) {
   if (user) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     const isLimitado = profile?.role === "limitado";
+    const isContable = profile?.role === "contable";
 
     if (isLimitado) {
       if (path === "/") {
@@ -67,6 +74,16 @@ export async function proxy(request: NextRequest) {
       const isAllowed = LIMITADO_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
       if (isProtected && !isAllowed) {
         return NextResponse.redirect(new URL(LIMITADO_HOME, request.url));
+      }
+    }
+
+    if (isContable) {
+      if (path === "/") {
+        return NextResponse.redirect(new URL(CONTABLE_HOME, request.url));
+      }
+      const isAllowed = CONTABLE_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
+      if (isProtected && !isAllowed) {
+        return NextResponse.redirect(new URL(CONTABLE_HOME, request.url));
       }
     }
   }

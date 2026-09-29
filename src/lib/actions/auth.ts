@@ -34,6 +34,10 @@ export async function login(
     redirect("/mis-notas");
   }
 
+  if (profile?.role === "contable") {
+    redirect("/consignaciones");
+  }
+
   redirect(next.startsWith("/") ? next : "/pedidos");
 }
 

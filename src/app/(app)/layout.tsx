@@ -40,10 +40,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const fullAccess = hasFullAccess(role);
   const isLimitado = role === "limitado";
+  const isContable = role === "contable";
   const navLinks = isLimitado
     ? [{ href: "/mis-notas", label: "Mis notas" }]
-    : NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly);
-  const homeHref = isLimitado ? "/mis-notas" : "/inicio";
+    : isContable
+      ? [{ href: "/consignaciones", label: "Consignaciones" }]
+      : NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly);
+  const homeHref = isLimitado ? "/mis-notas" : isContable ? "/consignaciones" : "/inicio";
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

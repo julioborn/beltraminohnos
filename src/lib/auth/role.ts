@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 
-export type ProfileRole = "admin" | "empleado" | "limitado";
+export type ProfileRole = "admin" | "empleado" | "limitado" | "contable";
 
 export async function getProfileRole(): Promise<ProfileRole | null> {
   const supabase = await createClient();
