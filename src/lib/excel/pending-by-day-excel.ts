@@ -47,28 +47,58 @@ export async function buildPendingByDayWorkbook(
 
   const detailHeaderRow = sheet.addRow([
     "Producto",
-    "Nota",
+    "Total producto",
+    "Nota de Pedido",
     "Cliente",
     "Fecha de entrega",
     "Toneladas",
-    "Total producto",
   ]);
   detailHeaderRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
   });
 
+  // Agrupado por producto: el nombre y el total del producto se muestran
+  // una sola vez (celda combinada verticalmente), no repetidos en cada
+  // nota, para poder identificar cada producto y su total de un vistazo.
+  let groupStartRow = detailHeaderRow.number + 1;
+  let groupProduct: string | null = null;
+
+  function closeGroup(lastRowNumber: number) {
+    if (groupProduct !== null && lastRowNumber > groupStartRow) {
+      sheet.mergeCells(groupStartRow, 1, lastRowNumber, 1);
+      sheet.mergeCells(groupStartRow, 2, lastRowNumber, 2);
+      sheet.getCell(groupStartRow, 1).alignment = { vertical: "middle" };
+      sheet.getCell(groupStartRow, 2).alignment = { vertical: "middle" };
+    }
+  }
+
   for (const d of detail) {
+    const isNewGroup = d.productName !== groupProduct;
+    if (isNewGroup) {
+      closeGroup(sheet.lastRow!.number);
+      groupStartRow = (sheet.lastRow?.number ?? detailHeaderRow.number) + 1;
+      groupProduct = d.productName;
+    }
+
     const row = sheet.addRow([
-      d.productName,
+      isNewGroup ? d.productName : null,
+      isNewGroup ? d.productTotal : null,
       d.numero,
       d.cliente,
       d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—",
       d.cantidad,
-      d.productTotal,
     ]);
-    row.getCell(3).alignment = { wrapText: true, vertical: "top" };
+    row.getCell(1).font = { bold: true, color: { argb: "FF21305D" } };
+    row.getCell(2).font = { bold: true, color: { argb: "FF21305D" } };
+    row.getCell(4).alignment = { wrapText: true, vertical: "top" };
+    if (isNewGroup) {
+      row.eachCell((cell) => {
+        cell.border = { top: { style: "thin", color: { argb: "FFCBD0DC" } } };
+      });
+    }
   }
+  closeGroup(sheet.lastRow?.number ?? detailHeaderRow.number);
 
   sheet.autoFilter = {
     from: { row: detailHeaderRow.number, column: 1 },
@@ -79,7 +109,7 @@ export async function buildPendingByDayWorkbook(
   // La columna "Cliente" del detalle cae en un índice que, en la matriz de
   // arriba, es una columna de día (angosta) — se ensancha aparte para que
   // los nombres largos no queden apretados.
-  sheet.getColumn(3).width = 28;
+  sheet.getColumn(4).width = 28;
 
   return workbook;
 }

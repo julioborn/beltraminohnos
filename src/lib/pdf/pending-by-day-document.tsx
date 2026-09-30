@@ -43,12 +43,14 @@ const styles = StyleSheet.create({
   detailHeaderRow: { flexDirection: "row", backgroundColor: "#21305D", paddingVertical: 5 },
   detailRow: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#eeeeee" },
   detailHeaderCell: { fontFamily: "Helvetica-Bold", fontSize: 7, textTransform: "uppercase", color: "#ffffff" },
-  detailCellProduct: { width: "24%", paddingHorizontal: 4 },
+  detailCellProduct: { width: "20%", paddingHorizontal: 4 },
+  detailCellTotalProducto: { width: "12%", paddingHorizontal: 4, textAlign: "right" },
   detailCellNumero: { width: "12%", paddingHorizontal: 4 },
-  detailCellCliente: { width: "28%", paddingHorizontal: 4 },
-  detailCellFecha: { width: "10%", paddingHorizontal: 4 },
-  detailCellCantidad: { width: "12%", paddingHorizontal: 4, textAlign: "right" },
-  detailCellTotalProducto: { width: "14%", paddingHorizontal: 4, textAlign: "right", fontFamily: "Helvetica-Bold" },
+  detailCellCliente: { width: "30%", paddingHorizontal: 4 },
+  detailCellFecha: { width: "12%", paddingHorizontal: 4 },
+  detailCellCantidad: { width: "14%", paddingHorizontal: 4, textAlign: "right" },
+  detailGroupStart: { borderTopWidth: 1, borderTopColor: "#21305D" },
+  detailGroupLabel: { fontFamily: "Helvetica-Bold", color: "#21305D" },
 });
 
 function formatCantidad(n: number) {
@@ -146,22 +148,32 @@ export function PendingByDayDocument({
             <View style={styles.table}>
               <View style={styles.detailHeaderRow}>
                 <Text style={[styles.detailCellProduct, styles.detailHeaderCell]}>Producto</Text>
+                <Text style={[styles.detailCellTotalProducto, styles.detailHeaderCell]}>Total producto</Text>
                 <Text style={[styles.detailCellNumero, styles.detailHeaderCell]}>Nota</Text>
                 <Text style={[styles.detailCellCliente, styles.detailHeaderCell]}>Cliente</Text>
                 <Text style={[styles.detailCellFecha, styles.detailHeaderCell]}>Entrega</Text>
                 <Text style={[styles.detailCellCantidad, styles.detailHeaderCell]}>Toneladas</Text>
-                <Text style={[styles.detailCellTotalProducto, styles.detailHeaderCell]}>Total producto</Text>
               </View>
-              {detail.map((d, i) => (
-                <View key={`${d.numero}-${i}`} style={styles.detailRow}>
-                  <Text style={styles.detailCellProduct}>{d.productName}</Text>
-                  <Text style={styles.detailCellNumero}>{d.numero}</Text>
-                  <Text style={styles.detailCellCliente}>{d.cliente}</Text>
-                  <Text style={styles.detailCellFecha}>{d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—"}</Text>
-                  <Text style={styles.detailCellCantidad}>{formatCantidad(d.cantidad)}</Text>
-                  <Text style={styles.detailCellTotalProducto}>{formatCantidad(d.productTotal)}</Text>
-                </View>
-              ))}
+              {detail.map((d, i) => {
+                // Agrupado por producto: el nombre y el total solo se
+                // imprimen en la primera fila de cada producto, para poder
+                // identificar cada uno y su total de un vistazo.
+                const isNewGroup = i === 0 || detail[i - 1].productName !== d.productName;
+                return (
+                  <View key={`${d.numero}-${i}`} style={[styles.detailRow, isNewGroup ? styles.detailGroupStart : {}]}>
+                    <Text style={[styles.detailCellProduct, isNewGroup ? styles.detailGroupLabel : {}]}>
+                      {isNewGroup ? d.productName : ""}
+                    </Text>
+                    <Text style={[styles.detailCellTotalProducto, isNewGroup ? styles.detailGroupLabel : {}]}>
+                      {isNewGroup ? formatCantidad(d.productTotal) : ""}
+                    </Text>
+                    <Text style={styles.detailCellNumero}>{d.numero}</Text>
+                    <Text style={styles.detailCellCliente}>{d.cliente}</Text>
+                    <Text style={styles.detailCellFecha}>{d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—"}</Text>
+                    <Text style={styles.detailCellCantidad}>{formatCantidad(d.cantidad)}</Text>
+                  </View>
+                );
+              })}
             </View>
           </View>
         )}
