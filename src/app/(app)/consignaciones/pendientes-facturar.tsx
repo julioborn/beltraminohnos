@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { marcarMovimientosFacturados } from "@/lib/actions/consignaciones";
 import { formatArs } from "@/lib/format";
+import { ScrollFade } from "@/components/scroll-fade";
 
 export type PendienteSucursalProducto = {
   key: string;
@@ -59,37 +60,39 @@ export function PendientesPorProducto({ groups }: { groups: PendienteSucursalPro
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto rounded-lg border border-black/10">
-        <table className="w-full min-w-[560px] text-sm">
-          <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-            <tr>
-              <th className="w-8 px-3 py-2.5" />
-              <th className="px-3 py-2.5">Sucursal</th>
-              <th className="px-3 py-2.5">Producto</th>
-              <th className="px-3 py-2.5 text-right">Bolsas</th>
-              <th className="px-3 py-2.5 text-right">A facturar</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {groups.map((g) => (
-              <tr key={g.key}>
-                <td className="px-3 py-2.5">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(g.key)}
-                    onChange={() => toggle(g.key)}
-                    className="h-4 w-4 accent-btm-navy"
-                  />
-                </td>
-                <td className="px-3 py-2.5 font-semibold text-btm-navy">{g.sucursalName}</td>
-                <td className="px-3 py-2.5">{g.productName}</td>
-                <td className="px-3 py-2.5 text-right">{g.bolsas}</td>
-                <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
+      <ScrollFade>
+        <div className="overflow-x-auto rounded-lg border border-black/10">
+          <table className="w-full min-w-[560px] text-sm">
+            <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+              <tr>
+                <th className="w-8 px-3 py-2.5" />
+                <th className="px-3 py-2.5">Sucursal</th>
+                <th className="px-3 py-2.5">Producto</th>
+                <th className="px-3 py-2.5 text-right">Bolsas</th>
+                <th className="px-3 py-2.5 text-right">A facturar</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {groups.map((g) => (
+                <tr key={g.key}>
+                  <td className="px-3 py-2.5">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(g.key)}
+                      onChange={() => toggle(g.key)}
+                      className="h-4 w-4 accent-btm-navy"
+                    />
+                  </td>
+                  <td className="px-3 py-2.5 font-semibold text-btm-navy">{g.sucursalName}</td>
+                  <td className="px-3 py-2.5">{g.productName}</td>
+                  <td className="px-3 py-2.5 text-right">{g.bolsas}</td>
+                  <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ScrollFade>
       <button
         type="button"
         onClick={marcarSeleccionados}
@@ -125,39 +128,41 @@ export function PendientesPorCliente({ groups }: { groups: PendienteSucursalClie
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="overflow-x-auto rounded-lg border border-black/10">
-        <table className="w-full min-w-[680px] text-sm">
-          <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-            <tr>
-              <th className="w-8 px-3 py-2.5" />
-              <th className="px-3 py-2.5">Sucursal</th>
-              <th className="px-3 py-2.5">Cliente</th>
-              <th className="px-3 py-2.5">CUIT</th>
-              <th className="px-3 py-2.5 text-right">A facturar</th>
-              <th className="px-3 py-2.5 text-right">Comisión sucursal</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {groups.map((g) => (
-              <tr key={g.key}>
-                <td className="px-3 py-2.5">
-                  <input
-                    type="checkbox"
-                    checked={selected.has(g.key)}
-                    onChange={() => toggle(g.key)}
-                    className="h-4 w-4 accent-btm-navy"
-                  />
-                </td>
-                <td className="px-3 py-2.5 font-semibold text-btm-navy">{g.sucursalName}</td>
-                <td className="px-3 py-2.5">{g.clienteNombre}</td>
-                <td className="px-3 py-2.5">{g.clienteCuit ?? "—"}</td>
-                <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
-                <td className="px-3 py-2.5 text-right">{formatArs(g.comisionArs)}</td>
+      <ScrollFade>
+        <div className="overflow-x-auto rounded-lg border border-black/10">
+          <table className="w-full min-w-[680px] text-sm">
+            <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+              <tr>
+                <th className="w-8 px-3 py-2.5" />
+                <th className="px-3 py-2.5">Sucursal</th>
+                <th className="px-3 py-2.5">Cliente</th>
+                <th className="px-3 py-2.5">CUIT</th>
+                <th className="px-3 py-2.5 text-right">A facturar</th>
+                <th className="px-3 py-2.5 text-right">Comisión sucursal</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody className="divide-y divide-black/5">
+              {groups.map((g) => (
+                <tr key={g.key}>
+                  <td className="px-3 py-2.5">
+                    <input
+                      type="checkbox"
+                      checked={selected.has(g.key)}
+                      onChange={() => toggle(g.key)}
+                      className="h-4 w-4 accent-btm-navy"
+                    />
+                  </td>
+                  <td className="px-3 py-2.5 font-semibold text-btm-navy">{g.sucursalName}</td>
+                  <td className="px-3 py-2.5">{g.clienteNombre}</td>
+                  <td className="px-3 py-2.5">{g.clienteCuit ?? "—"}</td>
+                  <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
+                  <td className="px-3 py-2.5 text-right">{formatArs(g.comisionArs)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ScrollFade>
       <button
         type="button"
         onClick={marcarSeleccionados}

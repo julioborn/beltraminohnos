@@ -10,6 +10,7 @@ import {
   type ConsignacionFilters,
 } from "@/lib/data/consignaciones";
 import { formatArs, formatFecha } from "@/lib/format";
+import { ScrollFade } from "@/components/scroll-fade";
 import {
   PendientesPorProducto,
   PendientesPorCliente,
@@ -85,32 +86,34 @@ export default async function ConsignacionesPage({
             Todavía no hay sucursales cargadas.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-black/10">
-            <table className="w-full min-w-[560px] text-sm">
-              <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                <tr>
-                  <th className="px-4 py-2.5">Sucursal</th>
-                  <th className="px-4 py-2.5 text-right">Total vendido</th>
-                  <th className="px-4 py-2.5 text-right">Pagado</th>
-                  <th className="px-4 py-2.5 text-right">Saldo</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/5">
-                {saldos.map((s) => (
-                  <tr key={s.sucursalId}>
-                    <td className="px-4 py-2.5 font-semibold text-btm-navy">{s.sucursalName}</td>
-                    <td className="px-4 py-2.5 text-right">{formatArs(s.totalVentas)}</td>
-                    <td className="px-4 py-2.5 text-right">{formatArs(s.totalPagado)}</td>
-                    <td
-                      className={`px-4 py-2.5 text-right font-semibold ${s.saldo > 0 ? "text-btm-red" : "text-btm-black/70"}`}
-                    >
-                      {formatArs(s.saldo)}
-                    </td>
+          <ScrollFade>
+            <div className="overflow-x-auto rounded-lg border border-black/10">
+              <table className="w-full min-w-[560px] text-sm">
+                <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                  <tr>
+                    <th className="px-4 py-2.5">Sucursal</th>
+                    <th className="px-4 py-2.5 text-right">Total vendido</th>
+                    <th className="px-4 py-2.5 text-right">Pagado</th>
+                    <th className="px-4 py-2.5 text-right">Saldo</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {saldos.map((s) => (
+                    <tr key={s.sucursalId}>
+                      <td className="px-4 py-2.5 font-semibold text-btm-navy">{s.sucursalName}</td>
+                      <td className="px-4 py-2.5 text-right">{formatArs(s.totalVentas)}</td>
+                      <td className="px-4 py-2.5 text-right">{formatArs(s.totalPagado)}</td>
+                      <td
+                        className={`px-4 py-2.5 text-right font-semibold ${s.saldo > 0 ? "text-btm-red" : "text-btm-black/70"}`}
+                      >
+                        {formatArs(s.saldo)}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ScrollFade>
         )}
       </section>
 
@@ -144,26 +147,28 @@ export default async function ConsignacionesPage({
             Todavía no hay stock cargado.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-black/10">
-            <table className="w-full min-w-[520px] text-sm">
-              <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                <tr>
-                  <th className="px-3 py-2.5">Sucursal</th>
-                  <th className="px-3 py-2.5">Producto</th>
-                  <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/5">
-                {stockFisico.map((r) => (
-                  <tr key={`${r.sucursalId}_${r.productId}`}>
-                    <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
-                    <td className="px-3 py-2.5">{r.productName}</td>
-                    <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
+          <ScrollFade>
+            <div className="overflow-x-auto rounded-lg border border-black/10">
+              <table className="w-full min-w-[520px] text-sm">
+                <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                  <tr>
+                    <th className="px-3 py-2.5">Sucursal</th>
+                    <th className="px-3 py-2.5">Producto</th>
+                    <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {stockFisico.map((r) => (
+                    <tr key={`${r.sucursalId}_${r.productId}`}>
+                      <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
+                      <td className="px-3 py-2.5">{r.productName}</td>
+                      <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ScrollFade>
         )}
       </section>
 
@@ -241,40 +246,42 @@ export default async function ConsignacionesPage({
             No hay movimientos cargados todavía.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-black/10">
-            <table className="w-full min-w-[880px] text-sm">
-              <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                <tr>
-                  <th className="px-3 py-2.5">Fecha</th>
-                  <th className="px-3 py-2.5">Sucursal</th>
-                  <th className="px-3 py-2.5">Producto</th>
-                  <th className="px-3 py-2.5">Tipo</th>
-                  <th className="px-3 py-2.5 text-right">Bolsas</th>
-                  <th className="px-3 py-2.5 text-right">Monto</th>
-                  <th className="px-3 py-2.5">Cliente</th>
-                  <th className="px-3 py-2.5">CUIT</th>
-                  <th className="px-3 py-2.5">Facturación</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-black/5">
-                {movimientos.map((m) => (
-                  <tr key={m.id}>
-                    <td className="px-3 py-2.5 whitespace-nowrap">{formatFecha(m.fecha)}</td>
-                    <td className="px-3 py-2.5">{m.sucursal?.name ?? "—"}</td>
-                    <td className="px-3 py-2.5">{m.product?.name ?? "—"}</td>
-                    <td className="px-3 py-2.5">{TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
-                    <td className="px-3 py-2.5 text-right">{m.cantidad_bolsas}</td>
-                    <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
-                    <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
-                    <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
-                    <td className="px-3 py-2.5">
-                      <FacturacionBadge estado={m.estado_facturacion} />
-                    </td>
+          <ScrollFade>
+            <div className="overflow-x-auto rounded-lg border border-black/10">
+              <table className="w-full min-w-[880px] text-sm">
+                <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                  <tr>
+                    <th className="px-3 py-2.5">Fecha</th>
+                    <th className="px-3 py-2.5">Sucursal</th>
+                    <th className="px-3 py-2.5">Producto</th>
+                    <th className="px-3 py-2.5">Tipo</th>
+                    <th className="px-3 py-2.5 text-right">Bolsas</th>
+                    <th className="px-3 py-2.5 text-right">Monto</th>
+                    <th className="px-3 py-2.5">Cliente</th>
+                    <th className="px-3 py-2.5">CUIT</th>
+                    <th className="px-3 py-2.5">Facturación</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-black/5">
+                  {movimientos.map((m) => (
+                    <tr key={m.id}>
+                      <td className="px-3 py-2.5 whitespace-nowrap">{formatFecha(m.fecha)}</td>
+                      <td className="px-3 py-2.5">{m.sucursal?.name ?? "—"}</td>
+                      <td className="px-3 py-2.5">{m.product?.name ?? "—"}</td>
+                      <td className="px-3 py-2.5">{TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
+                      <td className="px-3 py-2.5 text-right">{m.cantidad_bolsas}</td>
+                      <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
+                      <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
+                      <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
+                      <td className="px-3 py-2.5">
+                        <FacturacionBadge estado={m.estado_facturacion} />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </ScrollFade>
         )}
       </section>
     </div>

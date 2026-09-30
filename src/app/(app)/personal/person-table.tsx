@@ -106,7 +106,7 @@ export function PersonTable({
 
   return (
     <div className="btm-card flex flex-col gap-4 p-4 sm:p-6">
-      <form action={action} className="flex items-end gap-3 rounded-lg border border-black/10 p-4">
+      <form action={action} className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:items-end">
         <div className="flex flex-1 flex-col gap-1">
           <label htmlFor={`name-${placeholder}`} className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
             Agregar
@@ -116,13 +116,13 @@ export function PersonTable({
             name="name"
             required
             placeholder={placeholder}
-            className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+            className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
           />
         </div>
         <button
           type="submit"
           disabled={pending}
-          className="cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60"
+          className="w-full cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60 sm:w-auto"
         >
           {pending ? "Agregando..." : "Agregar"}
         </button>

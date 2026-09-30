@@ -187,7 +187,7 @@ export function OrderCoreForm({
             const cantidad = Number(item.cantidad) || 0;
             return (
               <div key={item.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3">
-                <div className="flex items-end gap-2">
+                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
                   <div className="flex flex-1 flex-col gap-1">
                     <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
                       Producto
@@ -206,30 +206,32 @@ export function OrderCoreForm({
                     </select>
                   </div>
 
-                  <div className="flex w-32 shrink-0 flex-col gap-1 sm:w-40">
-                    <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                      Envase
-                    </label>
-                    <select
-                      value={item.tipoEnvase}
-                      onChange={(e) => updateItem(item.key, { tipoEnvase: e.target.value as PackagingType })}
-                      className="w-full rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
-                    >
-                      {PACKAGING_TYPES.map((t) => (
-                        <option key={t} value={t}>
-                          {PACKAGING_LABELS[t]}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <div className="flex items-end gap-2">
+                    <div className="flex flex-1 flex-col gap-1 sm:w-40 sm:flex-initial">
+                      <label className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                        Envase
+                      </label>
+                      <select
+                        value={item.tipoEnvase}
+                        onChange={(e) => updateItem(item.key, { tipoEnvase: e.target.value as PackagingType })}
+                        className="w-full rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
+                      >
+                        {PACKAGING_TYPES.map((t) => (
+                          <option key={t} value={t}>
+                            {PACKAGING_LABELS[t]}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
 
-                  <button
-                    type="button"
-                    onClick={() => removeItem(item.key)}
-                    className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
-                  >
-                    Quitar
-                  </button>
+                    <button
+                      type="button"
+                      onClick={() => removeItem(item.key)}
+                      className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
+                    >
+                      Quitar
+                    </button>
+                  </div>
                 </div>
 
                 <div className="flex items-end gap-2">

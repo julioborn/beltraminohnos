@@ -119,30 +119,30 @@ export function CamionesTable({ camiones, choferes }: { camiones: Camion[]; chof
 
   return (
     <div className="btm-card flex flex-col gap-4 p-4 sm:p-6">
-      <form action={createAction} className="flex flex-wrap items-end gap-3 rounded-lg border border-black/10 p-4">
+      <form action={createAction} className="grid grid-cols-2 gap-3 rounded-lg border border-black/10 p-4 sm:flex sm:flex-wrap sm:items-end">
         <div className="flex flex-col gap-1">
           <label htmlFor="dominio" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Dominio</label>
-          <input id="dominio" name="dominio" required placeholder="Ej: AB123CD" className="w-32 rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy" />
+          <input id="dominio" name="dominio" required placeholder="Ej: AB123CD" className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy sm:w-32" />
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="tipo" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Tipo</label>
-          <input id="tipo" name="tipo" required placeholder="Ej: CHASIS" className="w-32 rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy" />
+          <input id="tipo" name="tipo" required placeholder="Ej: CHASIS" className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy sm:w-32" />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
           <label htmlFor="marca_modelo" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Marca / modelo</label>
-          <input id="marca_modelo" name="marca_modelo" placeholder="Ej: VOLKSVAGUEN 17280 E" className="w-52 rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy" />
+          <input id="marca_modelo" name="marca_modelo" placeholder="Ej: VOLKSVAGUEN 17280 E" className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy sm:w-52" />
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="anio" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Año</label>
-          <input id="anio" name="anio" type="number" placeholder="Ej: 2020" className="w-24 rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy" />
+          <input id="anio" name="anio" type="number" placeholder="Ej: 2020" className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy sm:w-24" />
         </div>
         <div className="flex flex-col gap-1">
           <label htmlFor="empresa" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Empresa</label>
-          <input id="empresa" name="empresa" placeholder="Ej: TSP" className="w-24 rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy" />
+          <input id="empresa" name="empresa" placeholder="Ej: TSP" className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy sm:w-24" />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="col-span-2 flex flex-col gap-1 sm:col-span-1">
           <label htmlFor="chofer_id" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Chofer</label>
-          <select id="chofer_id" name="chofer_id" defaultValue="" className="w-44 rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy">
+          <select id="chofer_id" name="chofer_id" defaultValue="" className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy sm:w-44">
             <option value="">Sin asignar</option>
             {choferes.map((c) => (
               <option key={c.id} value={c.id}>{c.name}</option>
@@ -152,7 +152,7 @@ export function CamionesTable({ camiones, choferes }: { camiones: Camion[]; chof
         <button
           type="submit"
           disabled={createPending}
-          className="cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60"
+          className="col-span-2 w-full cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60 sm:w-auto"
         >
           {createPending ? "Agregando..." : "Agregar"}
         </button>

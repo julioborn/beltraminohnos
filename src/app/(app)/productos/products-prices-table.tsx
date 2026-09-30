@@ -177,7 +177,7 @@ export function ProductsPricesTable({
           </div>
         </div>
 
-        <form action={createAction} className="flex items-end gap-3 rounded-lg border border-black/10 p-4">
+        <form action={createAction} className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:items-end">
           <div className="flex flex-1 flex-col gap-1">
             <label htmlFor="name" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
               Nuevo producto
@@ -187,13 +187,13 @@ export function ProductsPricesTable({
               name="name"
               required
               placeholder="Ej: TERNERO 16%"
-              className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+              className="w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
             />
           </div>
           <button
             type="submit"
             disabled={createPending}
-            className="cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60"
+            className="w-full cursor-pointer rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red disabled:opacity-60 sm:w-auto"
           >
             {createPending ? "Agregando..." : "Agregar"}
           </button>
