@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -26,7 +27,9 @@ export async function getSucursales() {
   return data ?? [];
 }
 
-export async function getSucursalByProfileId(profileId: string) {
+// El layout (para el link "Mi sucursal") y la propia página la piden por
+// separado en la misma request — cache() evita pedirla dos veces.
+export const getSucursalByProfileId = cache(async (profileId: string) => {
   const supabase = await createClient();
   const { data } = await supabase
     .from("sucursales")
@@ -35,7 +38,7 @@ export async function getSucursalByProfileId(profileId: string) {
     .eq("active", true)
     .maybeSingle();
   return data;
-}
+});
 
 export async function getSucursalMovimientos(filters: ConsignacionFilters) {
   const supabase = await createClient();

@@ -1,14 +1,11 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth/role";
 import { getMyOrderNotes } from "@/lib/data/orders";
 import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
 import { formatFecha } from "@/lib/format";
 
 export default async function MisNotasPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   const notes = user ? await getMyOrderNotes(user.id) : [];
 

@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { hasFullAccess, type ProfileRole } from "@/lib/auth/role";
+import { getAuthUser, hasFullAccess, type ProfileRole } from "@/lib/auth/role";
 import { getSucursalByProfileId } from "@/lib/data/consignaciones";
 import { MobileMenu } from "@/components/mobile-menu";
 import { DolarBadge } from "@/components/dolar-badge";
@@ -22,10 +22,8 @@ const NAV_LINKS = [
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
+  const user = await getAuthUser();
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
 
   let fullName = user?.email ?? "";
   let role: ProfileRole | null = null;

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { renderToBuffer } from "@react-pdf/renderer";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth/role";
 import { getMyOrderNoteDetail } from "@/lib/data/orders";
 import { OrderNoteDocument } from "@/lib/pdf/order-note-document";
 
@@ -9,10 +9,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> },
 ) {
   const { id } = await params;
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   if (!user) notFound();
 
   const detail = await getMyOrderNoteDetail(id, user.id);

@@ -1,5 +1,5 @@
 import { getMasterData, getPriceMap, getClientes } from "@/lib/data/master-data";
-import { createClient } from "@/lib/supabase/server";
+import { getAuthUser } from "@/lib/auth/role";
 import { QuoteForm } from "./quote-form";
 
 export default async function CotizacionesPage() {
@@ -9,10 +9,7 @@ export default async function CotizacionesPage() {
     getClientes(),
   ]);
 
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
   const defaultVendedorId = masterData.vendedores.find((v) => v.profile_id === user?.id)?.id ?? "";
 
   return (

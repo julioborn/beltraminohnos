@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
-import { hasFullAccess, getProfileRole } from "@/lib/auth/role";
+import { hasFullAccess, getProfileRole, getAuthUser } from "@/lib/auth/role";
 import {
   getSucursalByProfileId,
   getSucursalMovimientos,
@@ -17,10 +16,7 @@ const TIPO_LABELS: Record<string, string> = {
 };
 
 export default async function MiSucursalPage() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getAuthUser();
 
   if (!user) redirect("/inicio");
 
