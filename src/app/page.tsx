@@ -1,6 +1,7 @@
 import Image from "next/image";
 import { LoginForm } from "@/components/login-form";
 import { BrandTexture } from "@/components/brand-texture";
+import { ViewportHeightFix } from "@/components/viewport-height-fix";
 
 export default async function HomePage({
   searchParams,
@@ -10,7 +11,12 @@ export default async function HomePage({
   const { next } = await searchParams;
 
   return (
-    <div id="login-page" className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto bg-btm-navy px-6 py-16">
+    <div
+      id="login-page"
+      className="fixed inset-x-0 top-0 flex flex-col items-center justify-center overflow-y-auto bg-btm-navy px-6 py-16"
+      style={{ height: "var(--app-vh, 100dvh)" }}
+    >
+      <ViewportHeightFix />
       <BrandTexture opacity={0.08} invert />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 opacity-[0.07]"

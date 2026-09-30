@@ -118,6 +118,22 @@ const ROW_3 = [
   },
 ];
 
+const ROW_4 = [
+  {
+    href: "/consignaciones",
+    label: "Consignaciones",
+    description: "Mercadería en consignación por sucursal",
+    fullAccessOnly: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <rect x="3" y="7" width="18" height="14" rx="2" />
+        <path d="M3 11h18" />
+        <path d="M8 3h8l2 4H6l2-4Z" />
+      </svg>
+    ),
+  },
+];
+
 function HomeCard({
   href,
   label,
@@ -156,6 +172,7 @@ export default async function InicioPage() {
   const role = await getProfileRole();
   const fullAccess = hasFullAccess(role);
   const row3 = fullAccess ? ROW_3 : ROW_3.filter((item) => !item.fullAccessOnly);
+  const row4 = fullAccess ? ROW_4 : ROW_4.filter((item) => !item.fullAccessOnly);
 
   return (
     <div className="relative flex flex-1 flex-col items-center gap-10 overflow-hidden px-6 pt-8 pb-16 sm:pt-12">
@@ -188,6 +205,13 @@ export default async function InicioPage() {
         {row3.length > 0 && (
           <div className="grid grid-cols-3 gap-2 sm:gap-4">
             {row3.map((item) => (
+              <HomeCard key={item.href} {...item} accent="navy" />
+            ))}
+          </div>
+        )}
+        {row4.length > 0 && (
+          <div className="grid grid-cols-3 gap-2 sm:gap-4">
+            {row4.map((item) => (
               <HomeCard key={item.href} {...item} accent="navy" />
             ))}
           </div>

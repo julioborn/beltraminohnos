@@ -19,6 +19,7 @@ const NAV_LINKS = [
   { href: "/reportes", label: "Reportes", fullAccessOnly: true },
   { href: "/estadisticas", label: "Estadísticas", fullAccessOnly: true },
   { href: "/cotizaciones", label: "Cotizaciones" },
+  { href: "/consignaciones", label: "Consignaciones", fullAccessOnly: true },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
