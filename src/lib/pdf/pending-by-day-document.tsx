@@ -1,8 +1,8 @@
 import fs from "fs";
 import path from "path";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
-import { formatDiaEntrega } from "@/lib/format";
-import type { PendingDayMatrix, PendingDayMode } from "@/lib/reports/pending-by-day";
+import { formatDiaEntrega, formatFecha } from "@/lib/format";
+import type { PendingDayMatrix, PendingDayMode, PendingDetailRow } from "@/lib/reports/pending-by-day";
 
 const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
 const ICON_SRC = { data: iconBuffer, format: "png" as const };
@@ -32,6 +32,22 @@ const styles = StyleSheet.create({
   cellTotal: { paddingHorizontal: 3, textAlign: "right", fontFamily: "Helvetica-Bold" },
   muted: { color: "#a8a5a2" },
   navy: { color: "#21305D", fontFamily: "Helvetica-Bold" },
+  detailTitle: {
+    marginTop: 16,
+    marginBottom: 6,
+    fontSize: 9,
+    fontFamily: "Helvetica-Bold",
+    color: "#21305D",
+    textTransform: "uppercase",
+  },
+  detailHeaderRow: { flexDirection: "row", backgroundColor: "#21305D", paddingVertical: 5 },
+  detailRow: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#eeeeee" },
+  detailHeaderCell: { fontFamily: "Helvetica-Bold", fontSize: 7, textTransform: "uppercase", color: "#ffffff" },
+  detailCellProduct: { width: "28%", paddingHorizontal: 4 },
+  detailCellNumero: { width: "14%", paddingHorizontal: 4 },
+  detailCellCliente: { width: "34%", paddingHorizontal: 4 },
+  detailCellFecha: { width: "12%", paddingHorizontal: 4 },
+  detailCellCantidad: { width: "12%", paddingHorizontal: 4, textAlign: "right" },
 });
 
 function formatCantidad(n: number) {
@@ -50,11 +66,13 @@ export function PendingByDayDocument({
   mode,
   start,
   end,
+  detail,
 }: {
   matrix: PendingDayMatrix;
   mode: PendingDayMode;
   start: string;
   end: string;
+  detail: PendingDetailRow[];
 }) {
   const productWidth = 20;
   const totalWidth = 9;
@@ -120,6 +138,30 @@ export function PendingByDayDocument({
             </Text>
           </View>
         </View>
+
+        {detail.length > 0 && (
+          <View>
+            <Text style={styles.detailTitle}>Detalle por cliente — {formatDiaEntrega(start)} al {formatDiaEntrega(end)}</Text>
+            <View style={styles.table}>
+              <View style={styles.detailHeaderRow}>
+                <Text style={[styles.detailCellProduct, styles.detailHeaderCell]}>Producto</Text>
+                <Text style={[styles.detailCellNumero, styles.detailHeaderCell]}>Nota</Text>
+                <Text style={[styles.detailCellCliente, styles.detailHeaderCell]}>Cliente</Text>
+                <Text style={[styles.detailCellFecha, styles.detailHeaderCell]}>Entrega</Text>
+                <Text style={[styles.detailCellCantidad, styles.detailHeaderCell]}>Toneladas</Text>
+              </View>
+              {detail.map((d, i) => (
+                <View key={`${d.numero}-${i}`} style={styles.detailRow}>
+                  <Text style={styles.detailCellProduct}>{d.productName}</Text>
+                  <Text style={styles.detailCellNumero}>{d.numero}</Text>
+                  <Text style={styles.detailCellCliente}>{d.cliente}</Text>
+                  <Text style={styles.detailCellFecha}>{d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—"}</Text>
+                  <Text style={styles.detailCellCantidad}>{formatCantidad(d.cantidad)}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </Page>
     </Document>
   );

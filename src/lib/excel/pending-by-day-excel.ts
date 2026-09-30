@@ -1,12 +1,18 @@
 import ExcelJS from "exceljs";
-import { formatDiaEntrega } from "@/lib/format";
+import { formatDiaEntrega, formatFecha } from "@/lib/format";
 import { addBrandHeader } from "./brand-header";
-import type { PendingDayMatrix, PendingDayMode } from "@/lib/reports/pending-by-day";
+import type { PendingDayMatrix, PendingDayMode, PendingDetailRow } from "@/lib/reports/pending-by-day";
 
 const NAVY = "FF21305D";
 const NAVY_LIGHT = "FFEEF0F6";
 
-export async function buildPendingByDayWorkbook(matrix: PendingDayMatrix, mode: PendingDayMode, start: string, end: string) {
+export async function buildPendingByDayWorkbook(
+  matrix: PendingDayMatrix,
+  mode: PendingDayMode,
+  start: string,
+  end: string,
+  detail: PendingDetailRow[],
+) {
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet("Pendientes por producto");
 
@@ -33,6 +39,27 @@ export async function buildPendingByDayWorkbook(matrix: PendingDayMatrix, mode: 
   });
 
   sheet.columns = [{ width: 30 }, ...matrix.days.map(() => ({ width: 11 })), { width: 12 }];
+
+  const detailSheet = workbook.addWorksheet("Detalle por cliente");
+  addBrandHeader(workbook, detailSheet);
+  detailSheet.addRow([`${modeLabel} — ${formatDiaEntrega(start)} al ${formatDiaEntrega(end)}`]).font = { italic: true };
+  detailSheet.addRow([]);
+
+  const detailHeaderRow = detailSheet.addRow(["Producto", "Nota", "Cliente", "Fecha de entrega", "Toneladas"]);
+  detailHeaderRow.eachCell((cell) => {
+    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
+    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
+  });
+
+  for (const d of detail) {
+    detailSheet.addRow([d.productName, d.numero, d.cliente, d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—", d.cantidad]);
+  }
+
+  detailSheet.autoFilter = {
+    from: { row: detailHeaderRow.number, column: 1 },
+    to: { row: detailHeaderRow.number + detail.length, column: 5 },
+  };
+  detailSheet.columns = [{ width: 30 }, { width: 12 }, { width: 34 }, { width: 16 }, { width: 12 }];
 
   return workbook;
 }

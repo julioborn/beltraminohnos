@@ -87,6 +87,39 @@ export function buildPendingDayMatrix(
   return { days, rows, totalByDay, grandTotal };
 }
 
+export type PendingDetailRow = {
+  productName: string;
+  numero: string;
+  cliente: string;
+  fechaEntrega: string | null;
+  cantidad: number;
+};
+
+// Detalle de qué notas/clientes componen cada producto pendiente, agregado
+// para todo el rango elegido — mismo dato que ya se puede ver haciendo clic
+// en un producto en pantalla, pero aplanado para los exports PDF/Excel.
+export function buildPendingDetail(
+  matrix: PendingDayMatrix,
+  orders: PendingDayOrder[],
+  mode: PendingDayMode,
+  range: { start: string; end: string },
+): PendingDetailRow[] {
+  const rows: PendingDetailRow[] = [];
+  for (const row of matrix.rows) {
+    if (row.total === 0) continue;
+    for (const note of notesForProduct(orders, row.productId, mode, range)) {
+      rows.push({
+        productName: row.productName,
+        numero: note.numero,
+        cliente: note.cliente,
+        fechaEntrega: note.fecha_entrega,
+        cantidad: note.cantidad,
+      });
+    }
+  }
+  return rows;
+}
+
 export function notesForProduct(
   orders: PendingDayOrder[],
   productId: string,
