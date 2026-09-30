@@ -49,6 +49,15 @@ body {
   font-family: var(--font-inter), Arial, Helvetica, sans-serif;
 }
 
+/* En iOS Safari el alto real del viewport puede variar según la barra de
+   navegación (se muestra/oculta al scrollear), y un contenedor "fixed" o en
+   dvh puede quedar corto por unos pixeles, asomando el fondo del body debajo
+   del login. En vez de perseguir esa medida exacta, el body mismo pasa a
+   navy en esta pantalla — así lo que se asome ya es navy, no color crema. */
+body:has(#login-page) {
+  background: var(--btm-navy);
+}
+
 /* iOS Safari zooms in on focus when a form field's font-size is under 16px.
    Force 16px on mobile only, so the desktop/tablet type scale is untouched. */
 @media (max-width: 640px) {

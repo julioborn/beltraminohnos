@@ -10,7 +10,7 @@ export default async function HomePage({
   const { next } = await searchParams;
 
   return (
-    <div className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto bg-btm-navy px-6 py-16">
+    <div id="login-page" className="fixed inset-0 flex flex-col items-center justify-center overflow-y-auto bg-btm-navy px-6 py-16">
       <BrandTexture opacity={0.08} invert />
       <div
         className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 opacity-[0.07]"
