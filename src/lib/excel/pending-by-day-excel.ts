@@ -45,21 +45,35 @@ export async function buildPendingByDayWorkbook(
   detailSheet.addRow([`${modeLabel} — ${formatDiaEntrega(start)} al ${formatDiaEntrega(end)}`]).font = { italic: true };
   detailSheet.addRow([]);
 
-  const detailHeaderRow = detailSheet.addRow(["Producto", "Nota", "Cliente", "Fecha de entrega", "Toneladas"]);
+  const detailHeaderRow = detailSheet.addRow([
+    "Producto",
+    "Nota",
+    "Cliente",
+    "Fecha de entrega",
+    "Toneladas",
+    "Total producto",
+  ]);
   detailHeaderRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
   });
 
   for (const d of detail) {
-    detailSheet.addRow([d.productName, d.numero, d.cliente, d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—", d.cantidad]);
+    detailSheet.addRow([
+      d.productName,
+      d.numero,
+      d.cliente,
+      d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—",
+      d.cantidad,
+      d.productTotal,
+    ]);
   }
 
   detailSheet.autoFilter = {
     from: { row: detailHeaderRow.number, column: 1 },
-    to: { row: detailHeaderRow.number + detail.length, column: 5 },
+    to: { row: detailHeaderRow.number + detail.length, column: 6 },
   };
-  detailSheet.columns = [{ width: 30 }, { width: 12 }, { width: 34 }, { width: 16 }, { width: 12 }];
+  detailSheet.columns = [{ width: 30 }, { width: 12 }, { width: 34 }, { width: 16 }, { width: 12 }, { width: 14 }];
 
   return workbook;
 }

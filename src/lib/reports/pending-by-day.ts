@@ -89,6 +89,7 @@ export function buildPendingDayMatrix(
 
 export type PendingDetailRow = {
   productName: string;
+  productTotal: number;
   numero: string;
   cliente: string;
   fechaEntrega: string | null;
@@ -110,6 +111,7 @@ export function buildPendingDetail(
     for (const note of notesForProduct(orders, row.productId, mode, range)) {
       rows.push({
         productName: row.productName,
+        productTotal: row.total,
         numero: note.numero,
         cliente: note.cliente,
         fechaEntrega: note.fecha_entrega,

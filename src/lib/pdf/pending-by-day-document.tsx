@@ -43,11 +43,12 @@ const styles = StyleSheet.create({
   detailHeaderRow: { flexDirection: "row", backgroundColor: "#21305D", paddingVertical: 5 },
   detailRow: { flexDirection: "row", paddingVertical: 4, borderBottomWidth: 1, borderBottomColor: "#eeeeee" },
   detailHeaderCell: { fontFamily: "Helvetica-Bold", fontSize: 7, textTransform: "uppercase", color: "#ffffff" },
-  detailCellProduct: { width: "28%", paddingHorizontal: 4 },
-  detailCellNumero: { width: "14%", paddingHorizontal: 4 },
-  detailCellCliente: { width: "34%", paddingHorizontal: 4 },
-  detailCellFecha: { width: "12%", paddingHorizontal: 4 },
+  detailCellProduct: { width: "24%", paddingHorizontal: 4 },
+  detailCellNumero: { width: "12%", paddingHorizontal: 4 },
+  detailCellCliente: { width: "28%", paddingHorizontal: 4 },
+  detailCellFecha: { width: "10%", paddingHorizontal: 4 },
   detailCellCantidad: { width: "12%", paddingHorizontal: 4, textAlign: "right" },
+  detailCellTotalProducto: { width: "14%", paddingHorizontal: 4, textAlign: "right", fontFamily: "Helvetica-Bold" },
 });
 
 function formatCantidad(n: number) {
@@ -149,6 +150,7 @@ export function PendingByDayDocument({
                 <Text style={[styles.detailCellCliente, styles.detailHeaderCell]}>Cliente</Text>
                 <Text style={[styles.detailCellFecha, styles.detailHeaderCell]}>Entrega</Text>
                 <Text style={[styles.detailCellCantidad, styles.detailHeaderCell]}>Toneladas</Text>
+                <Text style={[styles.detailCellTotalProducto, styles.detailHeaderCell]}>Total producto</Text>
               </View>
               {detail.map((d, i) => (
                 <View key={`${d.numero}-${i}`} style={styles.detailRow}>
@@ -157,6 +159,7 @@ export function PendingByDayDocument({
                   <Text style={styles.detailCellCliente}>{d.cliente}</Text>
                   <Text style={styles.detailCellFecha}>{d.fechaEntrega ? formatFecha(d.fechaEntrega) : "—"}</Text>
                   <Text style={styles.detailCellCantidad}>{formatCantidad(d.cantidad)}</Text>
+                  <Text style={styles.detailCellTotalProducto}>{formatCantidad(d.productTotal)}</Text>
                 </View>
               ))}
             </View>
