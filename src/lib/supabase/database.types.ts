@@ -398,17 +398,23 @@ export type Database = {
       products: {
         Row: {
           active: boolean
+          comision_pct: number | null
           id: string
+          kg_por_bolsa: number
           name: string
         }
         Insert: {
           active?: boolean
+          comision_pct?: number | null
           id?: string
+          kg_por_bolsa?: number
           name: string
         }
         Update: {
           active?: boolean
+          comision_pct?: number | null
           id?: string
+          kg_por_bolsa?: number
           name?: string
         }
         Relationships: []
@@ -541,6 +547,8 @@ export type Database = {
           cantidad_bolsas: number
           cliente_cuit: string | null
           cliente_nombre: string | null
+          comision_ars: number | null
+          comision_pct: number | null
           created_at: string
           created_by: string | null
           estado_facturacion: Database["public"]["Enums"]["estado_facturacion_consignacion"]
@@ -549,7 +557,7 @@ export type Database = {
           monto_ars: number | null
           n_factura: string | null
           observaciones: string | null
-          precio_usd_kg: number | null
+          precio_usd: number | null
           product_id: string
           remito: string | null
           sucursal_id: string
@@ -560,6 +568,8 @@ export type Database = {
           cantidad_bolsas: number
           cliente_cuit?: string | null
           cliente_nombre?: string | null
+          comision_ars?: number | null
+          comision_pct?: number | null
           created_at?: string
           created_by?: string | null
           estado_facturacion?: Database["public"]["Enums"]["estado_facturacion_consignacion"]
@@ -568,7 +578,7 @@ export type Database = {
           monto_ars?: number | null
           n_factura?: string | null
           observaciones?: string | null
-          precio_usd_kg?: number | null
+          precio_usd?: number | null
           product_id: string
           remito?: string | null
           sucursal_id: string
@@ -579,6 +589,8 @@ export type Database = {
           cantidad_bolsas?: number
           cliente_cuit?: string | null
           cliente_nombre?: string | null
+          comision_ars?: number | null
+          comision_pct?: number | null
           created_at?: string
           created_by?: string | null
           estado_facturacion?: Database["public"]["Enums"]["estado_facturacion_consignacion"]
@@ -587,7 +599,7 @@ export type Database = {
           monto_ars?: number | null
           n_factura?: string | null
           observaciones?: string | null
-          precio_usd_kg?: number | null
+          precio_usd?: number | null
           product_id?: string
           remito?: string | null
           sucursal_id?: string
@@ -669,45 +681,6 @@ export type Database = {
           },
         ]
       }
-      sucursal_precios: {
-        Row: {
-          id: string
-          price_usd_kg: number
-          product_id: string
-          sucursal_id: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          price_usd_kg: number
-          product_id: string
-          sucursal_id: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          price_usd_kg?: number
-          product_id?: string
-          sucursal_id?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "sucursal_precios_product_id_fkey"
-            columns: ["product_id"]
-            isOneToOne: false
-            referencedRelation: "products"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "sucursal_precios_sucursal_id_fkey"
-            columns: ["sucursal_id"]
-            isOneToOne: false
-            referencedRelation: "sucursales"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       sucursales: {
         Row: {
           active: boolean
@@ -716,6 +689,7 @@ export type Database = {
           id: string
           name: string
           profile_id: string | null
+          zona_id: string
         }
         Insert: {
           active?: boolean
@@ -724,6 +698,7 @@ export type Database = {
           id?: string
           name: string
           profile_id?: string | null
+          zona_id: string
         }
         Update: {
           active?: boolean
@@ -732,6 +707,7 @@ export type Database = {
           id?: string
           name?: string
           profile_id?: string | null
+          zona_id?: string
         }
         Relationships: [
           {
@@ -739,6 +715,13 @@ export type Database = {
             columns: ["profile_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sucursales_zona_id_fkey"
+            columns: ["zona_id"]
+            isOneToOne: false
+            referencedRelation: "zones"
             referencedColumns: ["id"]
           },
         ]

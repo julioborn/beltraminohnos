@@ -18,7 +18,7 @@ const PROTECTED_PREFIXES = [
 // Rol "limitado" (ej. vendedores externos como Rural Mas): solo pueden
 // cargar notas de pedido nuevas y ver el listado de las suyas — nada más.
 const LIMITADO_HOME = "/mis-notas";
-const LIMITADO_ALLOWED_PREFIXES = ["/mis-notas", "/pedidos/nuevo"];
+const LIMITADO_ALLOWED_PREFIXES = ["/mis-notas", "/pedidos/nuevo", "/consignaciones/mi-sucursal"];
 
 // Rol "contable": solo puede analizar el módulo de consignaciones (sucursales),
 // nada más del resto de la app.

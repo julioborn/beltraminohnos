@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { hasFullAccess, type ProfileRole } from "@/lib/auth/role";
+import { getSucursalByProfileId } from "@/lib/data/consignaciones";
 import { MobileMenu } from "@/components/mobile-menu";
 import { DolarBadge } from "@/components/dolar-badge";
 
@@ -41,11 +42,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const fullAccess = hasFullAccess(role);
   const isLimitado = role === "limitado";
   const isContable = role === "contable";
+  const misucursal = user ? await getSucursalByProfileId(user.id) : null;
+
   const navLinks = isLimitado
-    ? [{ href: "/mis-notas", label: "Mis notas" }]
+    ? [
+        { href: "/mis-notas", label: "Mis notas" },
+        ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Mi sucursal" }] : []),
+      ]
     : isContable
       ? [{ href: "/consignaciones", label: "Consignaciones" }]
-      : NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly);
+      : [
+          ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
+          ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Mi sucursal" }] : []),
+        ];
   const homeHref = isLimitado ? "/mis-notas" : isContable ? "/consignaciones" : "/inicio";
 
   return (

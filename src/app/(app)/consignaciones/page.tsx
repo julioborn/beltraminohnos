@@ -5,9 +5,17 @@ import {
   getSucursales,
   getSucursalMovimientos,
   getSucursalSaldos,
+  getStockFisico,
+  getVentasPorProducto,
   type ConsignacionFilters,
 } from "@/lib/data/consignaciones";
 import { formatArs, formatFecha } from "@/lib/format";
+import {
+  PendientesPorProducto,
+  PendientesPorCliente,
+  type PendienteSucursalProducto,
+  type PendienteSucursalCliente,
+} from "./pendientes-facturar";
 
 const TIPO_LABELS: Record<string, string> = {
   INGRESO_STOCK: "Ingreso stock",
@@ -26,11 +34,18 @@ export default async function ConsignacionesPage({
   }
 
   const params = await searchParams;
-  const [sucursales, movimientos, saldos] = await Promise.all([
-    getSucursales(),
-    getSucursalMovimientos(params),
-    getSucursalSaldos(),
-  ]);
+  const rangeFilters = { desde: params.desde, hasta: params.hasta };
+
+  const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta] =
+    await Promise.all([
+      getSucursales(),
+      getSucursalMovimientos(params),
+      getSucursalSaldos(),
+      getStockFisico(),
+      getVentasPorProducto(rangeFilters),
+      getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "VENTA", estado: "PENDIENTE" }),
+      getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
+    ]);
 
   const hasFilter = Boolean(params.desde || params.hasta || params.sucursal || params.tipo || params.estado);
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();
@@ -39,6 +54,9 @@ export default async function ConsignacionesPage({
   const totalPendienteFacturar = saldos.reduce((sum, s) => sum + s.totalPendienteFacturar, 0);
   const totalPagado = saldos.reduce((sum, s) => sum + s.totalPagado, 0);
   const totalSaldo = saldos.reduce((sum, s) => sum + s.saldo, 0);
+
+  const gruposPorProducto = groupPorProducto(pendientesVenta);
+  const gruposPorCliente = groupPorCliente(pendientesDirecta);
 
   return (
     <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -88,6 +106,59 @@ export default async function ConsignacionesPage({
                     >
                       {formatArs(s.saldo)}
                     </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+          Ventas por producto
+        </h2>
+        <VentasPorProductoChart data={ventasPorProducto} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+          Pendientes de facturar a la sucursal
+        </h2>
+        <PendientesPorProducto groups={gruposPorProducto} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+          Pendientes de facturar directo al cliente
+        </h2>
+        <PendientesPorCliente groups={gruposPorCliente} />
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+          Stock físico por sucursal
+        </h2>
+        {stockFisico.length === 0 ? (
+          <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
+            Todavía no hay stock cargado.
+          </p>
+        ) : (
+          <div className="overflow-x-auto rounded-lg border border-black/10">
+            <table className="w-full min-w-[520px] text-sm">
+              <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                <tr>
+                  <th className="px-3 py-2.5">Sucursal</th>
+                  <th className="px-3 py-2.5">Producto</th>
+                  <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5">
+                {stockFisico.map((r) => (
+                  <tr key={`${r.sucursalId}_${r.productId}`}>
+                    <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
+                    <td className="px-3 py-2.5">{r.productName}</td>
+                    <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
                   </tr>
                 ))}
               </tbody>
@@ -210,11 +281,85 @@ export default async function ConsignacionesPage({
   );
 }
 
+type MovimientoRow = Awaited<ReturnType<typeof getSucursalMovimientos>>[number];
+
+function groupPorProducto(rows: MovimientoRow[]): PendienteSucursalProducto[] {
+  const map = new Map<string, PendienteSucursalProducto>();
+  for (const m of rows) {
+    if (!m.sucursal || !m.product) continue;
+    const key = `${m.sucursal.id}_${m.product.id}`;
+    const group = map.get(key) ?? {
+      key,
+      sucursalName: m.sucursal.name,
+      productName: m.product.name,
+      bolsas: 0,
+      montoArs: 0,
+      ids: [] as string[],
+    };
+    group.bolsas += m.cantidad_bolsas;
+    group.montoArs += m.monto_ars ?? 0;
+    group.ids.push(m.id);
+    map.set(key, group);
+  }
+  return Array.from(map.values()).sort((a, b) => b.montoArs - a.montoArs);
+}
+
+function groupPorCliente(rows: MovimientoRow[]): PendienteSucursalCliente[] {
+  const map = new Map<string, PendienteSucursalCliente>();
+  for (const m of rows) {
+    if (!m.sucursal) continue;
+    const clienteNombre = m.cliente_nombre ?? "Sin especificar";
+    const key = `${m.sucursal.id}_${clienteNombre}_${m.cliente_cuit ?? ""}`;
+    const group = map.get(key) ?? {
+      key,
+      sucursalName: m.sucursal.name,
+      clienteNombre,
+      clienteCuit: m.cliente_cuit,
+      montoArs: 0,
+      comisionArs: 0,
+      ids: [] as string[],
+    };
+    group.montoArs += m.monto_ars ?? 0;
+    group.comisionArs += m.comision_ars ?? 0;
+    group.ids.push(m.id);
+    map.set(key, group);
+  }
+  return Array.from(map.values()).sort((a, b) => b.montoArs - a.montoArs);
+}
+
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-black/10 bg-white p-4">
       <p className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">{label}</p>
       <p className="font-display text-xl font-extrabold text-btm-navy sm:text-2xl">{value}</p>
+    </div>
+  );
+}
+
+function VentasPorProductoChart({ data }: { data: { productName: string; montoArs: number }[] }) {
+  if (data.length === 0) {
+    return <p className="text-sm text-btm-black/50">Sin ventas en el período.</p>;
+  }
+
+  const top = data.slice(0, 10);
+  const max = Math.max(...top.map((d) => d.montoArs), 1);
+
+  return (
+    <div className="flex items-end gap-3 overflow-x-auto pb-1">
+      {top.map((d) => (
+        <div key={d.productName} className="flex min-w-[64px] flex-1 flex-col items-center gap-1.5">
+          <div className="flex h-32 w-full items-end">
+            <div
+              className="w-full rounded-t-md bg-btm-navy"
+              style={{ height: `${Math.max((d.montoArs / max) * 100, d.montoArs > 0 ? 4 : 0)}%` }}
+              title={formatArs(d.montoArs)}
+            />
+          </div>
+          <span className="text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50">
+            {d.productName}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }

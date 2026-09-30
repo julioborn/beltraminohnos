@@ -12,14 +12,29 @@ export type ConsignacionFilters = {
   estado?: string;
 };
 
-const MOVIMIENTO_SELECT = `id, fecha, tipo_movimiento, cantidad_bolsas, precio_usd_kg, tipo_cambio,
-  cliente_nombre, cliente_cuit, monto_ars, estado_facturacion, n_factura, remito, observaciones,
+const MOVIMIENTO_SELECT = `id, fecha, tipo_movimiento, cantidad_bolsas, precio_usd, tipo_cambio,
+  cliente_nombre, cliente_cuit, monto_ars, comision_pct, comision_ars, estado_facturacion,
+  n_factura, remito, observaciones,
   sucursal:sucursales(id, name), product:products(id, name)`;
 
 export async function getSucursales() {
   const supabase = await createClient();
-  const { data } = await supabase.from("sucursales").select("id, name, cuit, profile_id, active").order("name");
+  const { data } = await supabase
+    .from("sucursales")
+    .select("id, name, cuit, profile_id, active, zona_id, zona:zones(id, name)")
+    .order("name");
   return data ?? [];
+}
+
+export async function getSucursalByProfileId(profileId: string) {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sucursales")
+    .select("id, name, cuit, zona_id, zona:zones(id, name)")
+    .eq("profile_id", profileId)
+    .eq("active", true)
+    .maybeSingle();
+  return data;
 }
 
 export async function getSucursalMovimientos(filters: ConsignacionFilters) {
@@ -97,4 +112,64 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
       saldo: totalVentas - totalPagado,
     };
   });
+}
+
+export type StockFisicoRow = {
+  sucursalId: string;
+  sucursalName: string;
+  productId: string;
+  productName: string;
+  bolsas: number;
+};
+
+export async function getStockFisico(): Promise<StockFisicoRow[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sucursal_movimientos")
+    .select("tipo_movimiento, cantidad_bolsas, sucursal:sucursales(id, name), product:products(id, name)");
+
+  const map = new Map<string, StockFisicoRow>();
+  for (const m of data ?? []) {
+    if (!m.sucursal || !m.product) continue;
+    const key = `${m.sucursal.id}_${m.product.id}`;
+    const row = map.get(key) ?? {
+      sucursalId: m.sucursal.id,
+      sucursalName: m.sucursal.name,
+      productId: m.product.id,
+      productName: m.product.name,
+      bolsas: 0,
+    };
+    row.bolsas += m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    map.set(key, row);
+  }
+
+  return Array.from(map.values())
+    .filter((r) => r.bolsas !== 0)
+    .sort((a, b) => a.sucursalName.localeCompare(b.sucursalName) || a.productName.localeCompare(b.productName));
+}
+
+export type VentaPorProducto = { productName: string; bolsas: number; montoArs: number };
+
+export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "desde" | "hasta">): Promise<VentaPorProducto[]> {
+  const supabase = await createClient();
+  let query = supabase
+    .from("sucursal_movimientos")
+    .select("cantidad_bolsas, monto_ars, product:products(name)")
+    .in("tipo_movimiento", ["VENTA", "DIRECTA_CLIENTE"]);
+
+  if (filters.desde) query = query.gte("fecha", filters.desde);
+  if (filters.hasta) query = query.lte("fecha", filters.hasta);
+
+  const { data } = await query;
+
+  const map = new Map<string, VentaPorProducto>();
+  for (const m of data ?? []) {
+    const label = m.product?.name ?? "—";
+    const row = map.get(label) ?? { productName: label, bolsas: 0, montoArs: 0 };
+    row.bolsas += m.cantidad_bolsas;
+    row.montoArs += m.monto_ars ?? 0;
+    map.set(label, row);
+  }
+
+  return Array.from(map.values()).sort((a, b) => b.montoArs - a.montoArs);
 }
