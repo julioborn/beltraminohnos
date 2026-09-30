@@ -38,14 +38,14 @@ export async function buildPendingByDayWorkbook(
     cell.border = { top: { style: "medium", color: { argb: NAVY } } };
   });
 
-  sheet.columns = [{ width: 30 }, ...matrix.days.map(() => ({ width: 11 })), { width: 12 }];
+  // Todo en una sola hoja: el detalle por cliente va debajo de la matriz,
+  // no en una pestaña aparte.
+  sheet.addRow([]);
+  sheet.addRow([]);
+  sheet.addRow(["Detalle por cliente"]).font = { bold: true, size: 12, color: { argb: "FF21305D" } };
+  sheet.addRow([]);
 
-  const detailSheet = workbook.addWorksheet("Detalle por cliente");
-  addBrandHeader(workbook, detailSheet);
-  detailSheet.addRow([`${modeLabel} — ${formatDiaEntrega(start)} al ${formatDiaEntrega(end)}`]).font = { italic: true };
-  detailSheet.addRow([]);
-
-  const detailHeaderRow = detailSheet.addRow([
+  const detailHeaderRow = sheet.addRow([
     "Producto",
     "Nota",
     "Cliente",
@@ -59,7 +59,7 @@ export async function buildPendingByDayWorkbook(
   });
 
   for (const d of detail) {
-    detailSheet.addRow([
+    const row = sheet.addRow([
       d.productName,
       d.numero,
       d.cliente,
@@ -67,13 +67,19 @@ export async function buildPendingByDayWorkbook(
       d.cantidad,
       d.productTotal,
     ]);
+    row.getCell(3).alignment = { wrapText: true, vertical: "top" };
   }
 
-  detailSheet.autoFilter = {
+  sheet.autoFilter = {
     from: { row: detailHeaderRow.number, column: 1 },
     to: { row: detailHeaderRow.number + detail.length, column: 6 },
   };
-  detailSheet.columns = [{ width: 30 }, { width: 12 }, { width: 34 }, { width: 16 }, { width: 12 }, { width: 14 }];
+
+  sheet.columns = [{ width: 30 }, ...matrix.days.map(() => ({ width: 13 })), { width: 14 }];
+  // La columna "Cliente" del detalle cae en un índice que, en la matriz de
+  // arriba, es una columna de día (angosta) — se ensancha aparte para que
+  // los nombres largos no queden apretados.
+  sheet.getColumn(3).width = 28;
 
   return workbook;
 }
