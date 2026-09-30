@@ -23,7 +23,7 @@ const plexMono = IBM_Plex_Mono({
 
 export const metadata: Metadata = {
   title: "BTM",
-  description: "Sistema de notas de pedido de Beltramino Hnos.",
+  description: "Sistema de gestión de Beltramino Hnos.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",

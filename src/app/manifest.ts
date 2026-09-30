@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "BTM Pedidos y Logística",
     short_name: "BTM",
-    description: "Sistema de notas de pedido de Beltramino Hnos.",
+    description: "Sistema de gestión de Beltramino Hnos.",
     id: "/",
     start_url: "/",
     scope: "/",
