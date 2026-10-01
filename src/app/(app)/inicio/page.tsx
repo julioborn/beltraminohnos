@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { BrandTexture } from "@/components/brand-texture";
-import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
+import { getAuthUser, getProfileRole, hasFullAccess } from "@/lib/auth/role";
+import { getSucursalByProfileId } from "@/lib/data/consignaciones";
 
 const ROW_1 = [
   {
@@ -134,6 +135,19 @@ const ROW_4 = [
   },
 ];
 
+const MI_SUCURSAL_CARD = {
+  href: "/consignaciones/mi-sucursal",
+  label: "Mi sucursal",
+  description: "Cargar movimientos y ver tu saldo",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <rect x="3" y="7" width="18" height="14" rx="2" />
+      <path d="M3 11h18" />
+      <path d="M8 3h8l2 4H6l2-4Z" />
+    </svg>
+  ),
+};
+
 function HomeCard({
   href,
   label,
@@ -172,7 +186,13 @@ export default async function InicioPage() {
   const role = await getProfileRole();
   const fullAccess = hasFullAccess(role);
   const row3 = fullAccess ? ROW_3 : ROW_3.filter((item) => !item.fullAccessOnly);
-  const row4 = fullAccess ? ROW_4 : ROW_4.filter((item) => !item.fullAccessOnly);
+
+  const user = await getAuthUser();
+  const misucursal = user ? await getSucursalByProfileId(user.id) : null;
+  const row4 = [
+    ...(fullAccess ? ROW_4 : ROW_4.filter((item) => !item.fullAccessOnly)),
+    ...(misucursal ? [MI_SUCURSAL_CARD] : []),
+  ];
 
   return (
     <div className="relative flex flex-1 flex-col items-center gap-10 overflow-hidden px-6 pt-8 pb-16 sm:pt-12">

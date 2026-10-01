@@ -1,22 +1,36 @@
 import Link from "next/link";
 import { getAuthUser } from "@/lib/auth/role";
 import { getMyOrderNotes } from "@/lib/data/orders";
+import { getSucursalByProfileId } from "@/lib/data/consignaciones";
 import { LogisticaBadge, ProduccionBadge } from "@/components/estado-badge";
 import { formatFecha } from "@/lib/format";
 
 export default async function MisNotasPage() {
   const user = await getAuthUser();
 
-  const notes = user ? await getMyOrderNotes(user.id) : [];
+  const [notes, misucursal] = await Promise.all([
+    user ? getMyOrderNotes(user.id) : Promise.resolve([]),
+    user ? getSucursalByProfileId(user.id) : Promise.resolve(null),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col gap-6 px-4 py-8">
-      <Link
-        href="/pedidos/nuevo"
-        className="flex items-center justify-center gap-2 rounded-full bg-btm-navy px-6 py-4 font-display text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_14px_-4px_rgba(20,29,58,0.35)] hover:bg-btm-red"
-      >
-        + Nueva nota de pedido
-      </Link>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <Link
+          href="/pedidos/nuevo"
+          className="flex flex-1 items-center justify-center gap-2 rounded-full bg-btm-navy px-6 py-4 font-display text-sm font-bold uppercase tracking-wide text-white shadow-[0_4px_14px_-4px_rgba(20,29,58,0.35)] hover:bg-btm-red"
+        >
+          + Nueva nota de pedido
+        </Link>
+        {misucursal && (
+          <Link
+            href="/consignaciones/mi-sucursal"
+            className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-btm-navy px-6 py-4 font-display text-sm font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          >
+            Mi sucursal
+          </Link>
+        )}
+      </div>
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy/70">
