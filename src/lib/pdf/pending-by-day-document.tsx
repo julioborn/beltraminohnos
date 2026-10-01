@@ -2,7 +2,7 @@ import fs from "fs";
 import path from "path";
 import { Document, Page, Text, View, Image, StyleSheet } from "@react-pdf/renderer";
 import { formatDiaEntrega, formatFecha } from "@/lib/format";
-import type { PendingDayMatrix, PendingDayMode, PendingDetailRow } from "@/lib/reports/pending-by-day";
+import { PENDING_DAY_MODE_LABELS, type PendingDayMatrix, type PendingDayMode, type PendingDetailRow } from "@/lib/reports/pending-by-day";
 
 const iconBuffer = fs.readFileSync(path.join(process.cwd(), "public/brand/btm-icon-mark-white.png"));
 const ICON_SRC = { data: iconBuffer, format: "png" as const };
@@ -80,7 +80,7 @@ export function PendingByDayDocument({
   const productWidth = 20;
   const totalWidth = 9;
   const dayWidth = (100 - productWidth - totalWidth) / Math.max(matrix.days.length, 1);
-  const modeLabel = mode === "fabricacion" ? "Pendiente de fabricación" : "Pendiente de entrega";
+  const modeLabel = PENDING_DAY_MODE_LABELS[mode];
 
   return (
     <Document>

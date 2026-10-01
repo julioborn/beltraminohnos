@@ -13,7 +13,19 @@ export type PendingDayOrder = {
   }[];
 };
 
-export type PendingDayMode = "fabricacion" | "entrega";
+export type PendingDayMode = "fabricacion" | "entrega" | "fabricado";
+
+export const PENDING_DAY_MODE_LABELS: Record<PendingDayMode, string> = {
+  fabricacion: "Pendiente de fabricación",
+  entrega: "Pendiente de entrega",
+  fabricado: "Ya fabricado",
+};
+
+function isRelevant(mode: PendingDayMode, item: { estado_produccion: string; estado_logistica: string }) {
+  if (mode === "fabricacion") return item.estado_produccion === "PENDIENTE";
+  if (mode === "entrega") return item.estado_logistica === "PENDIENTE";
+  return item.estado_produccion === "FABRICADO";
+}
 
 export type PendingProductNoteRef = {
   id: string;
@@ -57,8 +69,7 @@ export function buildPendingDayMatrix(
 
     for (const it of o.items) {
       if (!it.product_id) continue;
-      const relevant = mode === "fabricacion" ? it.estado_produccion === "PENDIENTE" : it.estado_logistica === "PENDIENTE";
-      if (!relevant) continue;
+      if (!isRelevant(mode, it)) continue;
 
       let row = rowsByProduct.get(it.product_id);
       if (!row) {
@@ -137,8 +148,7 @@ export function notesForProduct(
 
     for (const it of o.items) {
       if (it.product_id !== productId) continue;
-      const relevant = mode === "fabricacion" ? it.estado_produccion === "PENDIENTE" : it.estado_logistica === "PENDIENTE";
-      if (!relevant) continue;
+      if (!isRelevant(mode, it)) continue;
       refs.push({ id: o.id, numero: o.numero, cliente: o.cliente, fecha_entrega: o.fecha_entrega, cantidad: it.cantidad });
     }
   }

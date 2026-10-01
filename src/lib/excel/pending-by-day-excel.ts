@@ -1,7 +1,7 @@
 import ExcelJS from "exceljs";
 import { formatDiaEntrega, formatFecha } from "@/lib/format";
 import { addBrandHeader } from "./brand-header";
-import type { PendingDayMatrix, PendingDayMode, PendingDetailRow } from "@/lib/reports/pending-by-day";
+import { PENDING_DAY_MODE_LABELS, type PendingDayMatrix, type PendingDayMode, type PendingDetailRow } from "@/lib/reports/pending-by-day";
 
 const NAVY = "FF21305D";
 const NAVY_LIGHT = "FFEEF0F6";
@@ -17,7 +17,7 @@ export async function buildPendingByDayWorkbook(
   const sheet = workbook.addWorksheet("Pendientes por producto");
 
   addBrandHeader(workbook, sheet);
-  const modeLabel = mode === "fabricacion" ? "Pendiente de fabricación" : "Pendiente de entrega";
+  const modeLabel = PENDING_DAY_MODE_LABELS[mode];
   sheet.addRow([`${modeLabel} — ${formatDiaEntrega(start)} al ${formatDiaEntrega(end)}`]).font = { italic: true };
   sheet.addRow([]);
 

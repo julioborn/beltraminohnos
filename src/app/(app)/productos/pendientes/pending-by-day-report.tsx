@@ -95,6 +95,7 @@ export function PendingByDayReport({
           <div className="flex flex-wrap gap-2">
             <ModeButton label="Pendiente de fabricación" active={mode === "fabricacion"} onClick={() => changeMode("fabricacion")} />
             <ModeButton label="Pendiente de entrega" active={mode === "entrega"} onClick={() => changeMode("entrega")} />
+            <ModeButton label="Ya fabricado" active={mode === "fabricado"} onClick={() => changeMode("fabricado")} />
           </div>
         )}
         {matrix && range.start && range.end && (
@@ -288,6 +289,7 @@ function ProductNotesView({
         <div className="flex flex-wrap gap-2">
           <ModeButton label="Pendiente de fabricación" active={mode === "fabricacion"} onClick={() => onModeChange("fabricacion")} />
           <ModeButton label="Pendiente de entrega" active={mode === "entrega"} onClick={() => onModeChange("entrega")} />
+          <ModeButton label="Ya fabricado" active={mode === "fabricado"} onClick={() => onModeChange("fabricado")} />
         </div>
       </div>
 

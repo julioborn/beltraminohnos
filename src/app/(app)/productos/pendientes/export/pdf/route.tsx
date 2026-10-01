@@ -8,7 +8,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const start = searchParams.get("start");
   const end = searchParams.get("end");
-  const mode: PendingDayMode = searchParams.get("mode") === "entrega" ? "entrega" : "fabricacion";
+  const modeParam = searchParams.get("mode");
+  const mode: PendingDayMode = modeParam === "entrega" || modeParam === "fabricado" ? modeParam : "fabricacion";
 
   if (!start || !end) {
     return new Response("Falta el rango de fechas.", { status: 400 });

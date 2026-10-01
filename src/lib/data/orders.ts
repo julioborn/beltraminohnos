@@ -100,6 +100,10 @@ export async function getOrderNotesCount(params: OrderListFilters) {
   return count ?? 0;
 }
 
+// Sin filtro de estado a nivel nota: antes excluía las notas 100% fabricadas
+// y entregadas, lo cual tenía sentido cuando esto solo mostraba pendientes,
+// pero también esconde el historial que necesita el modo "Ya fabricado".
+// El filtro por estado real se hace a nivel ítem, en el cliente.
 export async function getOrdersPendingSummary() {
   const supabase = await createClient();
 
@@ -109,8 +113,7 @@ export async function getOrdersPendingSummary() {
       `id, numero, cliente, fecha, fecha_entrega, estado_logistica, estado_produccion,
        items:order_items(cantidad, product_id, estado_produccion, estado_logistica, product:products(name))`,
     )
-    .or("estado_produccion.neq.FABRICADO,estado_logistica.neq.ENTREGADO")
-    .order("fecha", { ascending: true })
+    .order("fecha", { ascending: false })
     .limit(2000);
 
   return data ?? [];
