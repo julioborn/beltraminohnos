@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import { getProfileRole } from "@/lib/auth/role";
+import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getSucursalByProfileId } from "@/lib/data/consignaciones";
 import { getPriceMap } from "@/lib/data/master-data";
 import { getDolarOficial } from "@/lib/dolar";
@@ -26,10 +26,34 @@ export async function crearMovimientoSucursal(
   } = await supabase.auth.getUser();
   if (!user) return { error: "No autenticado." };
 
-  // El sucursal_id nunca sale de lo que mande el formulario — se resuelve
-  // siempre contra el usuario logueado, igual que el precio más abajo.
-  const sucursal = await getSucursalByProfileId(user.id);
-  if (!sucursal) return { error: "Tu cuenta no está vinculada a ninguna sucursal." };
+  // El sucursal_id nunca sale de lo que mande el formulario para una cuenta
+  // de sucursal normal — se resuelve contra el usuario logueado, igual que
+  // el precio más abajo. La contadora y los admins son la única excepción:
+  // ellos sí pueden elegir la sucursal, para cargar movimientos atrasados
+  // de cualquiera (ej. historial que todavía no estaba en el sistema).
+  const role = await getProfileRole();
+  const puedeElegirSucursal = role === "contable" || hasFullAccess(role);
+
+  const sucursal = puedeElegirSucursal
+    ? await (async () => {
+        const sucursalId = String(formData.get("sucursal_id") ?? "");
+        if (!sucursalId) return null;
+        const { data } = await supabase
+          .from("sucursales")
+          .select("id, name, cuit, zona_id, zona:zones(id, name)")
+          .eq("id", sucursalId)
+          .single();
+        return data;
+      })()
+    : await getSucursalByProfileId(user.id);
+
+  if (!sucursal) {
+    return {
+      error: puedeElegirSucursal
+        ? "Seleccioná la sucursal para este movimiento."
+        : "Tu cuenta no está vinculada a ninguna sucursal.",
+    };
+  }
 
   const tipo = String(formData.get("tipo_movimiento") ?? "");
   const productId = String(formData.get("product_id") ?? "");

@@ -9,6 +9,7 @@ import {
   getVentasPorProducto,
   type ConsignacionFilters,
 } from "@/lib/data/consignaciones";
+import { getActiveProducts } from "@/lib/data/master-data";
 import { formatArs, formatFecha } from "@/lib/format";
 import { ScrollFade } from "@/components/scroll-fade";
 import {
@@ -17,6 +18,7 @@ import {
   type PendienteSucursalProducto,
   type PendienteSucursalCliente,
 } from "./pendientes-facturar";
+import { CargarMovimientoAdminForm } from "./cargar-movimiento-form";
 
 const TIPO_LABELS: Record<string, string> = {
   INGRESO_STOCK: "Ingreso stock",
@@ -37,7 +39,7 @@ export default async function ConsignacionesPage({
   const params = await searchParams;
   const rangeFilters = { desde: params.desde, hasta: params.hasta };
 
-  const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta] =
+  const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta, products] =
     await Promise.all([
       getSucursales(),
       getSucursalMovimientos(params),
@@ -46,6 +48,7 @@ export default async function ConsignacionesPage({
       getVentasPorProducto(rangeFilters),
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "VENTA", estado: "PENDIENTE" }),
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
+      getActiveProducts(),
     ]);
 
   const hasFilter = Boolean(params.desde || params.hasta || params.sucursal || params.tipo || params.estado);
@@ -69,6 +72,8 @@ export default async function ConsignacionesPage({
           <p className="text-sm text-btm-black/60">Mercadería en consignación por sucursal</p>
         </div>
       </div>
+
+      <CargarMovimientoAdminForm sucursales={sucursales} products={products} />
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi label="Total vendido" value={formatArs(totalVentas)} />
