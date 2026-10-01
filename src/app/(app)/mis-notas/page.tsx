@@ -27,7 +27,7 @@ export default async function MisNotasPage() {
             href="/consignaciones/mi-sucursal"
             className="flex flex-1 items-center justify-center gap-2 rounded-full border-2 border-btm-navy px-6 py-4 font-display text-sm font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
           >
-            Mi sucursal
+            Consignaciones
           </Link>
         )}
       </div>

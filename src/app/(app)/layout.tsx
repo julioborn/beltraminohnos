@@ -46,13 +46,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const navLinks = isLimitado
     ? [
         { href: "/mis-notas", label: "Mis notas" },
-        ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Mi sucursal" }] : []),
+        ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
       ]
     : isContable
       ? [{ href: "/consignaciones", label: "Consignaciones" }]
       : [
           ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
-          ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Mi sucursal" }] : []),
+          ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
         ];
   const homeHref = isLimitado ? "/mis-notas" : isContable ? "/consignaciones" : "/inicio";
 

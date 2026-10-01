@@ -137,7 +137,7 @@ const ROW_4 = [
 
 const MI_SUCURSAL_CARD = {
   href: "/consignaciones/mi-sucursal",
-  label: "Mi sucursal",
+  label: "Consignaciones",
   description: "Cargar movimientos y ver tu saldo",
   icon: (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
