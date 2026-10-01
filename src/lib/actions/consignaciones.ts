@@ -14,9 +14,11 @@ type MovimientoInsert = Database["public"]["Tables"]["sucursal_movimientos"]["In
 const IVA = 1.21;
 const TIPOS_MOVIMIENTO: TipoMovimiento[] = ["INGRESO_STOCK", "VENTA", "DIRECTA_CLIENTE"];
 
+type ParsedItem = { product_id: string; cantidad_bolsas: number };
+
 export type CrearMovimientoState = { error: string } | undefined;
 
-export async function crearMovimientoSucursal(
+export async function crearMovimientosSucursal(
   _prevState: CrearMovimientoState,
   formData: FormData,
 ): Promise<CrearMovimientoState> {
@@ -56,68 +58,119 @@ export async function crearMovimientoSucursal(
   }
 
   const tipo = String(formData.get("tipo_movimiento") ?? "");
-  const productId = String(formData.get("product_id") ?? "");
-  const cantidadBolsas = Number(formData.get("cantidad_bolsas") ?? 0);
+  if (!TIPOS_MOVIMIENTO.includes(tipo as TipoMovimiento)) {
+    return { error: "Seleccioná el tipo de movimiento." };
+  }
+  const tipoMovimiento = tipo as TipoMovimiento;
+
   const clienteNombre = String(formData.get("cliente_nombre") ?? "").trim() || null;
   const clienteCuit = String(formData.get("cliente_cuit") ?? "").trim() || null;
   const fecha = String(formData.get("fecha") ?? "") || new Date().toISOString().slice(0, 10);
   const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
 
-  if (!TIPOS_MOVIMIENTO.includes(tipo as TipoMovimiento)) {
-    return { error: "Seleccioná el tipo de movimiento." };
-  }
-  const tipoMovimiento = tipo as TipoMovimiento;
-  if (!productId) return { error: "Seleccioná un producto." };
-  if (!cantidadBolsas || cantidadBolsas <= 0) return { error: "Ingresá la cantidad de bolsas." };
   if (tipoMovimiento === "DIRECTA_CLIENTE" && !clienteNombre) {
     return { error: "Ingresá el cliente al que se le factura esta venta directa." };
   }
 
-  const insert: MovimientoInsert = {
-    sucursal_id: sucursal.id,
-    fecha,
-    tipo_movimiento: tipoMovimiento,
-    product_id: productId,
-    cantidad_bolsas: cantidadBolsas,
-    cliente_nombre: clienteNombre,
-    cliente_cuit: clienteCuit,
-    observaciones,
-    created_by: user.id,
-  };
+  let itemsRaw: unknown;
+  try {
+    itemsRaw = JSON.parse(String(formData.get("items") ?? "[]"));
+  } catch {
+    return { error: "Los productos cargados son inválidos." };
+  }
 
-  if (tipoMovimiento === "VENTA" || tipoMovimiento === "DIRECTA_CLIENTE") {
-    const [{ data: product }, priceMap, dolar] = await Promise.all([
-      supabase.from("products").select("name, kg_por_bolsa, comision_pct").eq("id", productId).single(),
+  const items: ParsedItem[] = Array.isArray(itemsRaw)
+    ? itemsRaw
+        .filter((it): it is Record<string, unknown> => typeof it === "object" && it !== null)
+        .map((it) => ({
+          product_id: String(it.product_id ?? ""),
+          cantidad_bolsas: Number(it.cantidad_bolsas ?? 0),
+        }))
+        .filter((it) => it.product_id && it.cantidad_bolsas > 0)
+    : [];
+
+  if (items.length === 0) return { error: "Agregá al menos un producto." };
+
+  const inserts: MovimientoInsert[] = [];
+
+  if (tipoMovimiento === "INGRESO_STOCK") {
+    for (const it of items) {
+      inserts.push({
+        sucursal_id: sucursal.id,
+        fecha,
+        tipo_movimiento: tipoMovimiento,
+        product_id: it.product_id,
+        cantidad_bolsas: it.cantidad_bolsas,
+        observaciones,
+        created_by: user.id,
+      });
+    }
+  } else {
+    const [productsRes, priceMap, dolar] = await Promise.all([
+      supabase
+        .from("products")
+        .select("id, name, kg_por_bolsa, comision_pct")
+        .in("id", items.map((it) => it.product_id)),
       getPriceMap(),
       getDolarOficial(),
     ]);
 
-    if (!product) return { error: "Producto inválido." };
-
-    const precioUsd = priceMap[`${productId}_BOLSA_${sucursal.zona_id}`];
-    if (precioUsd === null || precioUsd === undefined) {
-      return {
-        error: `Falta cargar el precio de ${product.name} para la zona de tu sucursal. Avisale a BTM para que lo cargue en Productos y precios.`,
-      };
-    }
     if (dolar.venta === null) {
       return { error: "No se pudo obtener la cotización del dólar. Probá de nuevo en unos minutos." };
     }
 
-    const toneladas = (cantidadBolsas * product.kg_por_bolsa) / 1000;
-    const montoArs = toneladas * precioUsd * dolar.venta * IVA;
+    const productById = new Map((productsRes.data ?? []).map((p) => [p.id, p]));
+    const missing = new Set<string>();
 
-    insert.precio_usd = precioUsd;
-    insert.tipo_cambio = dolar.venta;
-    insert.monto_ars = montoArs;
+    for (const it of items) {
+      const product = productById.get(it.product_id);
+      if (!product) {
+        missing.add("producto desconocido");
+        continue;
+      }
+      const precioUsd = priceMap[`${it.product_id}_BOLSA_${sucursal.zona_id}`];
+      if (precioUsd === null || precioUsd === undefined) {
+        missing.add(product.name);
+      }
+    }
 
-    if (tipoMovimiento === "DIRECTA_CLIENTE" && product.comision_pct !== null) {
-      insert.comision_pct = product.comision_pct;
-      insert.comision_ars = montoArs * (product.comision_pct / 100);
+    if (missing.size > 0) {
+      return {
+        error: `Falta cargar el precio de ${Array.from(missing).join(", ")} para la zona de la sucursal. Avisale a BTM para que lo cargue en Productos y precios.`,
+      };
+    }
+
+    for (const it of items) {
+      const product = productById.get(it.product_id)!;
+      const precioUsd = priceMap[`${it.product_id}_BOLSA_${sucursal.zona_id}`]!;
+      const toneladas = (it.cantidad_bolsas * product.kg_por_bolsa) / 1000;
+      const montoArs = toneladas * precioUsd * dolar.venta * IVA;
+
+      const insert: MovimientoInsert = {
+        sucursal_id: sucursal.id,
+        fecha,
+        tipo_movimiento: tipoMovimiento,
+        product_id: it.product_id,
+        cantidad_bolsas: it.cantidad_bolsas,
+        cliente_nombre: clienteNombre,
+        cliente_cuit: clienteCuit,
+        observaciones,
+        created_by: user.id,
+        precio_usd: precioUsd,
+        tipo_cambio: dolar.venta,
+        monto_ars: montoArs,
+      };
+
+      if (tipoMovimiento === "DIRECTA_CLIENTE" && product.comision_pct !== null) {
+        insert.comision_pct = product.comision_pct;
+        insert.comision_ars = montoArs * (product.comision_pct / 100);
+      }
+
+      inserts.push(insert);
     }
   }
 
-  const { error } = await supabase.from("sucursal_movimientos").insert(insert);
+  const { error } = await supabase.from("sucursal_movimientos").insert(inserts);
   if (error) return { error: `No se pudo guardar el movimiento: ${error.message}` };
 
   revalidatePath("/consignaciones");
