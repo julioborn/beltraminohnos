@@ -63,7 +63,7 @@ export default async function ConsignacionesPage({
   const gruposPorCliente = groupPorCliente(pendientesDirecta);
 
   return (
-    <div className="flex flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
+    <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
