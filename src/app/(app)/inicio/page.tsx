@@ -133,6 +133,19 @@ const ROW_4 = [
       </svg>
     ),
   },
+  {
+    href: "/produccion",
+    label: "Producción",
+    description: "Turnos de fábrica y consumo de materia prima",
+    fullAccessOnly: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <path d="M4 21V9l8-6 8 6v12" />
+        <path d="M9 21v-6h6v6" />
+        <path d="M9 14V9h6v5" />
+      </svg>
+    ),
+  },
 ];
 
 const MI_SUCURSAL_CARD = {

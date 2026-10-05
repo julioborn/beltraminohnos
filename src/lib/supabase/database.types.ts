@@ -97,6 +97,68 @@ export type Database = {
         }
         Relationships: []
       }
+      formula_ingredientes: {
+        Row: {
+          formula_id: string
+          id: string
+          item: number
+          plataforma: string
+          producto: string
+          set_kg: number
+        }
+        Insert: {
+          formula_id: string
+          id?: string
+          item: number
+          plataforma: string
+          producto: string
+          set_kg: number
+        }
+        Update: {
+          formula_id?: string
+          id?: string
+          item?: number
+          plataforma?: string
+          producto?: string
+          set_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "formula_ingredientes_formula_id_fkey"
+            columns: ["formula_id"]
+            isOneToOne: false
+            referencedRelation: "formulas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      formulas: {
+        Row: {
+          active: boolean
+          codigo: string
+          created_at: string
+          id: string
+          nombre: string
+          set_total_kg: number
+        }
+        Insert: {
+          active?: boolean
+          codigo: string
+          created_at?: string
+          id?: string
+          nombre: string
+          set_total_kg: number
+        }
+        Update: {
+          active?: boolean
+          codigo?: string
+          created_at?: string
+          id?: string
+          nombre?: string
+          set_total_kg?: number
+        }
+        Relationships: []
+      }
       locality_coords: {
         Row: {
           created_at: string
@@ -391,6 +453,130 @@ export type Database = {
             columns: ["zone_id"]
             isOneToOne: false
             referencedRelation: "zones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      produccion_reemplazos: {
+        Row: {
+          autorizo: string | null
+          id: string
+          motivo: string | null
+          produccion_id: string
+          reemplazo: string | null
+        }
+        Insert: {
+          autorizo?: string | null
+          id?: string
+          motivo?: string | null
+          produccion_id: string
+          reemplazo?: string | null
+        }
+        Update: {
+          autorizo?: string | null
+          id?: string
+          motivo?: string | null
+          produccion_id?: string
+          reemplazo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "produccion_reemplazos_produccion_id_fkey"
+            columns: ["produccion_id"]
+            isOneToOne: false
+            referencedRelation: "producciones"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      producciones: {
+        Row: {
+          bolsas_cantidad: number | null
+          ciclos_completados: number
+          created_at: string
+          created_by: string | null
+          formula_id: string | null
+          granel_kg: number | null
+          id: string
+          kg_objetivo: number | null
+          kg_producido_real: number | null
+          numero: string
+          partida: string | null
+          producto_id: string | null
+          rotulo_bolsas: string | null
+          stock_bolsas_cantidad: number | null
+          stock_granel_kg: number | null
+          tipo_alimento: string | null
+          tipo_envase: Database["public"]["Enums"]["packaging_type"] | null
+          turno_id: string
+        }
+        Insert: {
+          bolsas_cantidad?: number | null
+          ciclos_completados?: number
+          created_at?: string
+          created_by?: string | null
+          formula_id?: string | null
+          granel_kg?: number | null
+          id?: string
+          kg_objetivo?: number | null
+          kg_producido_real?: number | null
+          numero?: string
+          partida?: string | null
+          producto_id?: string | null
+          rotulo_bolsas?: string | null
+          stock_bolsas_cantidad?: number | null
+          stock_granel_kg?: number | null
+          tipo_alimento?: string | null
+          tipo_envase?: Database["public"]["Enums"]["packaging_type"] | null
+          turno_id: string
+        }
+        Update: {
+          bolsas_cantidad?: number | null
+          ciclos_completados?: number
+          created_at?: string
+          created_by?: string | null
+          formula_id?: string | null
+          granel_kg?: number | null
+          id?: string
+          kg_objetivo?: number | null
+          kg_producido_real?: number | null
+          numero?: string
+          partida?: string | null
+          producto_id?: string | null
+          rotulo_bolsas?: string | null
+          stock_bolsas_cantidad?: number | null
+          stock_granel_kg?: number | null
+          tipo_alimento?: string | null
+          tipo_envase?: Database["public"]["Enums"]["packaging_type"] | null
+          turno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "producciones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producciones_formula_id_fkey"
+            columns: ["formula_id"]
+            isOneToOne: false
+            referencedRelation: "formulas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producciones_producto_id_fkey"
+            columns: ["producto_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "producciones_turno_id_fkey"
+            columns: ["turno_id"]
+            isOneToOne: false
+            referencedRelation: "turnos"
             referencedColumns: ["id"]
           },
         ]
@@ -726,6 +912,152 @@ export type Database = {
           },
         ]
       }
+      turno_empleados: {
+        Row: {
+          firma_confirmada: boolean
+          hora_ingreso: string | null
+          hora_salida: string | null
+          id: string
+          nombre: string
+          turno_id: string
+        }
+        Insert: {
+          firma_confirmada?: boolean
+          hora_ingreso?: string | null
+          hora_salida?: string | null
+          id?: string
+          nombre: string
+          turno_id: string
+        }
+        Update: {
+          firma_confirmada?: boolean
+          hora_ingreso?: string | null
+          hora_salida?: string | null
+          id?: string
+          nombre?: string
+          turno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turno_empleados_turno_id_fkey"
+            columns: ["turno_id"]
+            isOneToOne: false
+            referencedRelation: "turnos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      turno_paradas: {
+        Row: {
+          detalle: string | null
+          id: string
+          minutos: number | null
+          tipo: Database["public"]["Enums"]["parada_tipo"]
+          turno_id: string
+        }
+        Insert: {
+          detalle?: string | null
+          id?: string
+          minutos?: number | null
+          tipo: Database["public"]["Enums"]["parada_tipo"]
+          turno_id: string
+        }
+        Update: {
+          detalle?: string | null
+          id?: string
+          minutos?: number | null
+          tipo?: Database["public"]["Enums"]["parada_tipo"]
+          turno_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turno_paradas_turno_id_fkey"
+            columns: ["turno_id"]
+            isOneToOne: false
+            referencedRelation: "turnos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      turnos: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          engrase_eje_prensa_hs: string | null
+          engrase_rolo_hs: string | null
+          estado_conos_silos:
+            | Database["public"]["Enums"]["estado_conos_silos"]
+            | null
+          estado_limpieza: Database["public"]["Enums"]["estado_limpieza"] | null
+          fecha: string
+          firma_confirmada: boolean
+          hora_ingreso: string | null
+          hora_salida: string | null
+          id: string
+          numero: string
+          observaciones: string | null
+          operador_anterior: string | null
+          operador_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          engrase_eje_prensa_hs?: string | null
+          engrase_rolo_hs?: string | null
+          estado_conos_silos?:
+            | Database["public"]["Enums"]["estado_conos_silos"]
+            | null
+          estado_limpieza?:
+            | Database["public"]["Enums"]["estado_limpieza"]
+            | null
+          fecha?: string
+          firma_confirmada?: boolean
+          hora_ingreso?: string | null
+          hora_salida?: string | null
+          id?: string
+          numero?: string
+          observaciones?: string | null
+          operador_anterior?: string | null
+          operador_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          engrase_eje_prensa_hs?: string | null
+          engrase_rolo_hs?: string | null
+          estado_conos_silos?:
+            | Database["public"]["Enums"]["estado_conos_silos"]
+            | null
+          estado_limpieza?:
+            | Database["public"]["Enums"]["estado_limpieza"]
+            | null
+          fecha?: string
+          firma_confirmada?: boolean
+          hora_ingreso?: string | null
+          hora_salida?: string | null
+          id?: string
+          numero?: string
+          observaciones?: string | null
+          operador_anterior?: string | null
+          operador_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "turnos_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "turnos_operador_id_fkey"
+            columns: ["operador_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       vendedores: {
         Row: {
           active: boolean
@@ -832,10 +1164,13 @@ export type Database = {
     }
     Enums: {
       estado_campo: "LOGISTICA" | "PRODUCCION"
+      estado_conos_silos: "BIEN" | "GOLPEADOS"
       estado_facturacion_consignacion: "PENDIENTE" | "FACTURADO"
+      estado_limpieza: "B" | "R" | "M"
       logistica_status: "PENDIENTE" | "ENTREGADO" | "PARCIAL"
       order_status: "PENDIENTE" | "FABRICADO" | "ENTREGADO" | "PARCIAL"
       packaging_type: "GRANEL" | "BOLSA" | "BIG_BAG"
+      parada_tipo: "ROTURA" | "CORTE_LUZ" | "FALTA_MATERIA_PRIMA" | "OTROS"
       produccion_status: "PENDIENTE" | "FABRICADO" | "PARCIAL"
       tipo_movimiento_consignacion:
         | "INGRESO_STOCK"
@@ -969,10 +1304,13 @@ export const Constants = {
   public: {
     Enums: {
       estado_campo: ["LOGISTICA", "PRODUCCION"],
+      estado_conos_silos: ["BIEN", "GOLPEADOS"],
       estado_facturacion_consignacion: ["PENDIENTE", "FACTURADO"],
+      estado_limpieza: ["B", "R", "M"],
       logistica_status: ["PENDIENTE", "ENTREGADO", "PARCIAL"],
       order_status: ["PENDIENTE", "FABRICADO", "ENTREGADO", "PARCIAL"],
       packaging_type: ["GRANEL", "BOLSA", "BIG_BAG"],
+      parada_tipo: ["ROTURA", "CORTE_LUZ", "FALTA_MATERIA_PRIMA", "OTROS"],
       produccion_status: ["PENDIENTE", "FABRICADO", "PARCIAL"],
       tipo_movimiento_consignacion: [
         "INGRESO_STOCK",

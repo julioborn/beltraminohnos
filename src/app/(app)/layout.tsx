@@ -20,6 +20,7 @@ const NAV_LINKS = [
   { href: "/estadisticas", label: "Estadísticas", fullAccessOnly: true },
   { href: "/cotizaciones", label: "Cotizaciones" },
   { href: "/consignaciones", label: "Consignaciones", fullAccessOnly: true },
+  { href: "/produccion", label: "Producción", fullAccessOnly: true },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -41,6 +42,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const fullAccess = hasFullAccess(role);
   const isLimitado = role === "limitado";
   const isContable = role === "contable";
+  const isOperador = role === "operador";
   const misucursal = user ? await getSucursalByProfileId(user.id) : null;
 
   const navLinks = isLimitado
@@ -50,11 +52,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       ]
     : isContable
       ? [{ href: "/consignaciones", label: "Consignaciones" }]
-      : [
-          ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
-          ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
-        ];
-  const homeHref = isLimitado ? "/mis-notas" : isContable ? "/consignaciones" : "/inicio";
+      : isOperador
+        ? [{ href: "/produccion/cargar", label: "Producción" }]
+        : [
+            ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
+            ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
+          ];
+  const homeHref = isLimitado ? "/mis-notas" : isContable ? "/consignaciones" : isOperador ? "/produccion/cargar" : "/inicio";
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

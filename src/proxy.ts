@@ -13,6 +13,7 @@ const PROTECTED_PREFIXES = [
   "/estadisticas",
   "/mis-notas",
   "/consignaciones",
+  "/produccion",
 ];
 
 // Rol "limitado" (ej. vendedores externos como Rural Mas): solo pueden
@@ -24,6 +25,11 @@ const LIMITADO_ALLOWED_PREFIXES = ["/mis-notas", "/pedidos/nuevo", "/consignacio
 // nada más del resto de la app.
 const CONTABLE_HOME = "/consignaciones";
 const CONTABLE_ALLOWED_PREFIXES = ["/consignaciones"];
+
+// Rol "operador" (piso de fábrica): solo carga la planilla de producción
+// de su turno, nada más del resto de la app.
+const OPERADOR_HOME = "/produccion/cargar";
+const OPERADOR_ALLOWED_PREFIXES = ["/produccion/cargar"];
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
@@ -66,6 +72,7 @@ export async function proxy(request: NextRequest) {
     const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
     const isLimitado = profile?.role === "limitado";
     const isContable = profile?.role === "contable";
+    const isOperador = profile?.role === "operador";
 
     if (isLimitado) {
       if (path === "/") {
@@ -84,6 +91,16 @@ export async function proxy(request: NextRequest) {
       const isAllowed = CONTABLE_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
       if (isProtected && !isAllowed) {
         return NextResponse.redirect(new URL(CONTABLE_HOME, request.url));
+      }
+    }
+
+    if (isOperador) {
+      if (path === "/") {
+        return NextResponse.redirect(new URL(OPERADOR_HOME, request.url));
+      }
+      const isAllowed = OPERADOR_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
+      if (isProtected && !isAllowed) {
+        return NextResponse.redirect(new URL(OPERADOR_HOME, request.url));
       }
     }
   }
