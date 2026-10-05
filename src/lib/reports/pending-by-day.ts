@@ -24,7 +24,9 @@ export const PENDING_DAY_MODE_LABELS: Record<PendingDayMode, string> = {
 function isRelevant(mode: PendingDayMode, item: { estado_produccion: string; estado_logistica: string }) {
   if (mode === "fabricacion") return item.estado_produccion === "PENDIENTE";
   if (mode === "entrega") return item.estado_logistica === "PENDIENTE";
-  return item.estado_produccion === "FABRICADO";
+  // "Ya fabricado" es lo que falta entregar y ya está fabricado (para armar
+  // repartos) — lo ya entregado no aporta nada acá y antes aparecía igual.
+  return item.estado_produccion === "FABRICADO" && item.estado_logistica !== "ENTREGADO";
 }
 
 export type PendingProductNoteRef = {
