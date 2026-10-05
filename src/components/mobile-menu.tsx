@@ -53,7 +53,7 @@ export function MobileMenu({ navLinks, fullName }: { navLinks: NavLink[]; fullNa
               </button>
             </div>
 
-            <nav className="flex flex-1 flex-col gap-1 p-4">
+            <nav className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-4">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
