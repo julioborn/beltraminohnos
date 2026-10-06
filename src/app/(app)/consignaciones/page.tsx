@@ -10,7 +10,7 @@ import {
   type ConsignacionFilters,
 } from "@/lib/data/consignaciones";
 import { getActiveProducts } from "@/lib/data/master-data";
-import { formatArs, formatFecha } from "@/lib/format";
+import { formatArs } from "@/lib/format";
 import { ScrollFade } from "@/components/scroll-fade";
 import {
   PendientesPorProducto,
@@ -19,12 +19,7 @@ import {
   type PendienteSucursalCliente,
 } from "./pendientes-facturar";
 import { CargarMovimientoAdminForm } from "./cargar-movimiento-form";
-
-const TIPO_LABELS: Record<string, string> = {
-  INGRESO_STOCK: "Ingreso stock",
-  VENTA: "Venta sucursal",
-  DIRECTA_CLIENTE: "Directa cliente",
-};
+import { MovimientosTable } from "./movimientos-table";
 
 export default async function ConsignacionesPage({
   searchParams,
@@ -251,42 +246,7 @@ export default async function ConsignacionesPage({
             No hay movimientos cargados todavía.
           </p>
         ) : (
-          <ScrollFade>
-            <div className="overflow-x-auto rounded-lg border border-black/10">
-              <table className="w-full min-w-[880px] text-sm">
-                <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                  <tr>
-                    <th className="px-3 py-2.5">Fecha</th>
-                    <th className="px-3 py-2.5">Sucursal</th>
-                    <th className="px-3 py-2.5">Producto</th>
-                    <th className="px-3 py-2.5">Tipo</th>
-                    <th className="px-3 py-2.5 text-right">Bolsas</th>
-                    <th className="px-3 py-2.5 text-right">Monto</th>
-                    <th className="px-3 py-2.5">Cliente</th>
-                    <th className="px-3 py-2.5">CUIT</th>
-                    <th className="px-3 py-2.5">Facturación</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5">
-                  {movimientos.map((m) => (
-                    <tr key={m.id}>
-                      <td className="px-3 py-2.5 whitespace-nowrap">{formatFecha(m.fecha)}</td>
-                      <td className="px-3 py-2.5">{m.sucursal?.name ?? "—"}</td>
-                      <td className="px-3 py-2.5">{m.product?.name ?? "—"}</td>
-                      <td className="px-3 py-2.5">{TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
-                      <td className="px-3 py-2.5 text-right">{m.cantidad_bolsas}</td>
-                      <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
-                      <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
-                      <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
-                      <td className="px-3 py-2.5">
-                        <FacturacionBadge estado={m.estado_facturacion} />
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ScrollFade>
+          <MovimientosTable movimientos={movimientos} products={products} />
         )}
       </section>
     </div>
@@ -373,21 +333,5 @@ function VentasPorProductoChart({ data }: { data: { productName: string; montoAr
         </div>
       ))}
     </div>
-  );
-}
-
-function FacturacionBadge({ estado }: { estado: "PENDIENTE" | "FACTURADO" }) {
-  const config =
-    estado === "FACTURADO"
-      ? { label: "Facturado", bg: "bg-btm-entregado-bg text-green-950", dot: "bg-btm-entregado" }
-      : { label: "Pendiente", bg: "bg-btm-pendiente-bg text-amber-900", dot: "bg-btm-pendiente" };
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide ${config.bg}`}
-    >
-      <span className={`h-2 w-2 rounded-full ${config.dot}`} aria-hidden />
-      {config.label}
-    </span>
   );
 }

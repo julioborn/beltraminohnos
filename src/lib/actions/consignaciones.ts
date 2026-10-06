@@ -178,6 +178,72 @@ export async function crearMovimientosSucursal(
   return undefined;
 }
 
+export type ActualizarMovimientoState = { error: string } | undefined;
+
+// Solo contable/admin corrigen movimientos ya cargados (típicamente por un
+// cliente de sucursal, sin revisión previa) — fecha, producto y cantidad.
+// El precio USD y el tipo de cambio quedan históricos (los que ya tenía
+// guardados ese movimiento); el monto en ARS y la comisión se recalculan
+// a partir de esos valores históricos, no de una cotización nueva.
+export async function actualizarMovimientoSucursal(
+  _prevState: ActualizarMovimientoState,
+  formData: FormData,
+): Promise<ActualizarMovimientoState> {
+  const role = await getProfileRole();
+  if (role !== "admin" && role !== "contable") {
+    return { error: "No autorizado." };
+  }
+
+  const supabase = await createClient();
+  const id = String(formData.get("id") ?? "");
+  if (!id) return { error: "Movimiento inválido." };
+
+  const fecha = String(formData.get("fecha") ?? "");
+  const productId = String(formData.get("product_id") ?? "");
+  const cantidadBolsas = Number(formData.get("cantidad_bolsas") ?? 0);
+
+  if (!fecha) return { error: "Ingresá la fecha." };
+  if (!productId) return { error: "Seleccioná el producto." };
+  if (!cantidadBolsas || cantidadBolsas <= 0) return { error: "Ingresá una cantidad de bolsas válida." };
+
+  const [existingRes, productRes] = await Promise.all([
+    supabase
+      .from("sucursal_movimientos")
+      .select("tipo_movimiento, precio_usd, tipo_cambio, comision_pct")
+      .eq("id", id)
+      .maybeSingle(),
+    supabase.from("products").select("kg_por_bolsa").eq("id", productId).single(),
+  ]);
+
+  if (!existingRes.data) return { error: "El movimiento no existe." };
+  if (!productRes.data) return { error: "Producto inválido." };
+
+  const existing = existingRes.data;
+  const product = productRes.data;
+
+  const update: Database["public"]["Tables"]["sucursal_movimientos"]["Update"] = {
+    fecha,
+    product_id: productId,
+    cantidad_bolsas: cantidadBolsas,
+  };
+
+  if (existing.tipo_movimiento !== "INGRESO_STOCK" && existing.precio_usd !== null && existing.tipo_cambio !== null) {
+    const toneladas = (cantidadBolsas * product.kg_por_bolsa) / 1000;
+    const montoArs = toneladas * existing.precio_usd * existing.tipo_cambio * IVA;
+    update.monto_ars = montoArs;
+    if (existing.comision_pct !== null) {
+      update.comision_ars = montoArs * (existing.comision_pct / 100);
+    }
+  }
+
+  const { error } = await supabase.from("sucursal_movimientos").update(update).eq("id", id);
+  if (error) return { error: `No se pudo actualizar el movimiento: ${error.message}` };
+
+  revalidatePath("/consignaciones");
+  revalidatePath("/consignaciones/mi-sucursal");
+  return undefined;
+}
+
 export async function marcarMovimientosFacturados(ids: string[]) {
   const role = await getProfileRole();
   if (role !== "admin" && role !== "contable") {
