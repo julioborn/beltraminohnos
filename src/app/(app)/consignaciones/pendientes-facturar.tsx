@@ -19,6 +19,7 @@ export type PendienteSucursalCliente = {
   sucursalName: string;
   clienteNombre: string;
   clienteCuit: string | null;
+  bolsas: number;
   montoArs: number;
   comisionArs: number;
   ids: string[];
@@ -137,6 +138,7 @@ export function PendientesPorCliente({ groups }: { groups: PendienteSucursalClie
                 <th className="px-3 py-2.5">Sucursal</th>
                 <th className="px-3 py-2.5">Cliente</th>
                 <th className="px-3 py-2.5">CUIT</th>
+                <th className="px-3 py-2.5 text-right">Bolsas</th>
                 <th className="px-3 py-2.5 text-right">A facturar</th>
                 <th className="px-3 py-2.5 text-right">Comisión sucursal</th>
               </tr>
@@ -155,6 +157,7 @@ export function PendientesPorCliente({ groups }: { groups: PendienteSucursalClie
                   <td className="px-3 py-2.5 font-semibold text-btm-navy">{g.sucursalName}</td>
                   <td className="px-3 py-2.5">{g.clienteNombre}</td>
                   <td className="px-3 py-2.5">{g.clienteCuit ?? "—"}</td>
+                  <td className="px-3 py-2.5 text-right">{g.bolsas}</td>
                   <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
                   <td className="px-3 py-2.5 text-right">{formatArs(g.comisionArs)}</td>
                 </tr>

@@ -317,10 +317,12 @@ function groupPorCliente(rows: MovimientoRow[]): PendienteSucursalCliente[] {
       sucursalName: m.sucursal.name,
       clienteNombre,
       clienteCuit: m.cliente_cuit,
+      bolsas: 0,
       montoArs: 0,
       comisionArs: 0,
       ids: [] as string[],
     };
+    group.bolsas += m.cantidad_bolsas;
     group.montoArs += m.monto_ars ?? 0;
     group.comisionArs += m.comision_ars ?? 0;
     group.ids.push(m.id);

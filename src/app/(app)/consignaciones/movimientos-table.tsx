@@ -5,9 +5,11 @@ import { actualizarMovimientoSucursal } from "@/lib/actions/consignaciones";
 import { formatArs, formatFecha } from "@/lib/format";
 import { ScrollFade } from "@/components/scroll-fade";
 import type { getSucursalMovimientos } from "@/lib/data/consignaciones";
+import type { Database } from "@/lib/supabase/database.types";
 
 type Movimiento = Awaited<ReturnType<typeof getSucursalMovimientos>>[number];
 type Option = { id: string; name: string };
+type TipoMovimiento = Database["public"]["Enums"]["tipo_movimiento_consignacion"];
 
 const TIPO_LABELS: Record<string, string> = {
   INGRESO_STOCK: "Ingreso stock",
@@ -83,9 +85,20 @@ function MovimientoEditRow({
 }) {
   const [state, formAction, pending] = useActionState(actualizarMovimientoSucursal, undefined);
   const [fecha, setFecha] = useState(movimiento.fecha);
+  const [tipo, setTipo] = useState<TipoMovimiento>(movimiento.tipo_movimiento);
   const [productId, setProductId] = useState(movimiento.product?.id ?? "");
   const [cantidadBolsas, setCantidadBolsas] = useState(String(movimiento.cantidad_bolsas));
+  const [clienteNombre, setClienteNombre] = useState(movimiento.cliente_nombre ?? "");
+  const [clienteCuit, setClienteCuit] = useState(movimiento.cliente_cuit ?? "");
   const wasPending = useRef(false);
+
+  function handleTipoChange(next: TipoMovimiento) {
+    setTipo(next);
+    if (next !== "DIRECTA_CLIENTE") {
+      setClienteNombre("");
+      setClienteCuit("");
+    }
+  }
 
   useEffect(() => {
     if (wasPending.current && !pending && !state?.error) {
@@ -120,7 +133,17 @@ function MovimientoEditRow({
           ))}
         </select>
       </td>
-      <td className="px-3 py-2.5">{TIPO_LABELS[movimiento.tipo_movimiento] ?? movimiento.tipo_movimiento}</td>
+      <td className="px-3 py-2.5">
+        <select
+          value={tipo}
+          onChange={(e) => handleTipoChange(e.target.value as TipoMovimiento)}
+          className="w-full min-w-[140px] rounded-md border border-black/15 bg-white px-2 py-1.5 text-sm"
+        >
+          <option value="INGRESO_STOCK">Ingreso stock</option>
+          <option value="VENTA">Venta sucursal</option>
+          <option value="DIRECTA_CLIENTE">Directa cliente</option>
+        </select>
+      </td>
       <td className="px-3 py-2.5 text-right">
         <input
           type="number"
@@ -132,10 +155,34 @@ function MovimientoEditRow({
         />
       </td>
       <td className="px-3 py-2.5 text-right text-xs text-btm-black/50">
-        {movimiento.monto_ars != null ? "se recalcula" : "—"}
+        {tipo !== "INGRESO_STOCK" ? "se recalcula" : "—"}
       </td>
-      <td className="px-3 py-2.5">{movimiento.cliente_nombre ?? "—"}</td>
-      <td className="px-3 py-2.5">{movimiento.cliente_cuit ?? "—"}</td>
+      <td className="px-3 py-2.5">
+        {tipo === "DIRECTA_CLIENTE" ? (
+          <input
+            type="text"
+            value={clienteNombre}
+            onChange={(e) => setClienteNombre(e.target.value)}
+            placeholder="Cliente"
+            className="w-full min-w-[120px] rounded-md border border-black/15 px-2 py-1.5 text-sm"
+          />
+        ) : (
+          "—"
+        )}
+      </td>
+      <td className="px-3 py-2.5">
+        {tipo === "DIRECTA_CLIENTE" ? (
+          <input
+            type="text"
+            value={clienteCuit}
+            onChange={(e) => setClienteCuit(e.target.value)}
+            placeholder="CUIT"
+            className="w-full min-w-[100px] rounded-md border border-black/15 px-2 py-1.5 text-sm"
+          />
+        ) : (
+          "—"
+        )}
+      </td>
       <td className="px-3 py-2.5">
         <FacturacionBadge estado={movimiento.estado_facturacion} />
       </td>
@@ -143,8 +190,11 @@ function MovimientoEditRow({
         <form action={formAction} className="flex flex-col items-end gap-1">
           <input type="hidden" name="id" value={movimiento.id} />
           <input type="hidden" name="fecha" value={fecha} />
+          <input type="hidden" name="tipo_movimiento" value={tipo} />
           <input type="hidden" name="product_id" value={productId} />
           <input type="hidden" name="cantidad_bolsas" value={cantidadBolsas} />
+          <input type="hidden" name="cliente_nombre" value={clienteNombre} />
+          <input type="hidden" name="cliente_cuit" value={clienteCuit} />
           <div className="flex gap-1.5 whitespace-nowrap">
             <button
               type="button"
@@ -155,7 +205,7 @@ function MovimientoEditRow({
             </button>
             <button
               type="submit"
-              disabled={pending || !productId || !cantidadBolsas}
+              disabled={pending || !productId || !cantidadBolsas || (tipo === "DIRECTA_CLIENTE" && !clienteNombre.trim())}
               className="rounded-md bg-btm-navy px-3 py-1 text-xs font-semibold text-white hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
             >
               {pending ? "..." : "Guardar"}
