@@ -151,6 +151,28 @@ export async function getStockFisico(): Promise<StockFisicoRow[]> {
     .sort((a, b) => a.sucursalName.localeCompare(b.sucursalName) || a.productName.localeCompare(b.productName));
 }
 
+export type StockFisicoProducto = { productId: string; productName: string; bolsas: number };
+
+export async function getStockFisicoSucursal(sucursalId: string): Promise<StockFisicoProducto[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sucursal_movimientos")
+    .select("tipo_movimiento, cantidad_bolsas, product:products(id, name)")
+    .eq("sucursal_id", sucursalId);
+
+  const map = new Map<string, StockFisicoProducto>();
+  for (const m of data ?? []) {
+    if (!m.product) continue;
+    const row = map.get(m.product.id) ?? { productId: m.product.id, productName: m.product.name, bolsas: 0 };
+    row.bolsas += m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    map.set(m.product.id, row);
+  }
+
+  return Array.from(map.values())
+    .filter((r) => r.bolsas !== 0)
+    .sort((a, b) => a.productName.localeCompare(b.productName));
+}
+
 export type VentaPorProducto = { productName: string; bolsas: number; montoArs: number };
 
 export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "desde" | "hasta">): Promise<VentaPorProducto[]> {
