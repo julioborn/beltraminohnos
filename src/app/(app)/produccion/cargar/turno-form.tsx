@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { crearTurno } from "@/lib/actions/produccion";
+import { FormulaCombobox } from "./formula-combobox";
 
 type Formula = { id: string; codigo: string; nombre: string; set_total_kg: number };
 type Operador = { id: string; nombre: string };
@@ -425,18 +426,11 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex-1">
                     <Field label="Fórmula">
-                      <select
+                      <FormulaCombobox
+                        formulas={formulas}
                         value={p.formulaId}
-                        onChange={(e) => updateProduccion(p.key, { formulaId: e.target.value })}
-                        className={inputClass}
-                      >
-                        <option value="">Seleccionar...</option>
-                        {formulas.map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.codigo} · {f.nombre}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(id) => updateProduccion(p.key, { formulaId: id })}
+                      />
                     </Field>
                     {formula && (
                       <p className="mt-1 text-xs text-btm-black/50">Set total: {formula.set_total_kg} kg</p>
