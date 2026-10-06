@@ -40,9 +40,18 @@ export const getSucursalByProfileId = cache(async (profileId: string) => {
   return data;
 });
 
-export async function getSucursalMovimientos(filters: ConsignacionFilters) {
+export const MOVIMIENTOS_PAGE_SIZE = 20;
+
+export async function getSucursalMovimientos(
+  filters: ConsignacionFilters,
+  pagination?: { page: number; pageSize: number },
+) {
   const supabase = await createClient();
-  let query = supabase.from("sucursal_movimientos").select(MOVIMIENTO_SELECT).order("fecha", { ascending: false });
+  let query = supabase
+    .from("sucursal_movimientos")
+    .select(MOVIMIENTO_SELECT)
+    .order("fecha", { ascending: false })
+    .order("created_at", { ascending: false });
 
   if (filters.desde) query = query.gte("fecha", filters.desde);
   if (filters.hasta) query = query.lte("fecha", filters.hasta);
@@ -50,8 +59,29 @@ export async function getSucursalMovimientos(filters: ConsignacionFilters) {
   if (filters.tipo) query = query.eq("tipo_movimiento", filters.tipo as TipoMovimiento);
   if (filters.estado) query = query.eq("estado_facturacion", filters.estado as EstadoFacturacion);
 
+  if (pagination) {
+    const from = (pagination.page - 1) * pagination.pageSize;
+    const to = from + pagination.pageSize - 1;
+    const { data } = await query.range(from, to);
+    return data ?? [];
+  }
+
   const { data } = await query.limit(500);
   return data ?? [];
+}
+
+export async function getSucursalMovimientosCount(filters: ConsignacionFilters) {
+  const supabase = await createClient();
+  let query = supabase.from("sucursal_movimientos").select("id", { count: "exact", head: true });
+
+  if (filters.desde) query = query.gte("fecha", filters.desde);
+  if (filters.hasta) query = query.lte("fecha", filters.hasta);
+  if (filters.sucursal) query = query.eq("sucursal_id", filters.sucursal);
+  if (filters.tipo) query = query.eq("tipo_movimiento", filters.tipo as TipoMovimiento);
+  if (filters.estado) query = query.eq("estado_facturacion", filters.estado as EstadoFacturacion);
+
+  const { count } = await query;
+  return count ?? 0;
 }
 
 export async function getSucursalPagos(filters: Pick<ConsignacionFilters, "desde" | "hasta" | "sucursal">) {

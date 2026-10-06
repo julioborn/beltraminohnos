@@ -1,10 +1,13 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { hasFullAccess, getProfileRole, getAuthUser } from "@/lib/auth/role";
 import {
   getSucursalByProfileId,
   getSucursalMovimientos,
+  getSucursalMovimientosCount,
   getSucursalSaldos,
   getStockFisicoSucursal,
+  MOVIMIENTOS_PAGE_SIZE,
 } from "@/lib/data/consignaciones";
 import { getActiveProducts } from "@/lib/data/master-data";
 import { MiSucursalForm } from "./mi-sucursal-form";
@@ -16,7 +19,13 @@ const TIPO_LABELS: Record<string, string> = {
   DIRECTA_CLIENTE: "Directa cliente",
 };
 
-export default async function MiSucursalPage() {
+export default async function MiSucursalPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ page?: string }>;
+}) {
+  const { page: pageParam } = await searchParams;
+  const page = Math.max(1, Number(pageParam) || 1);
   const user = await getAuthUser();
 
   if (!user) redirect("/inicio");
@@ -38,14 +47,20 @@ export default async function MiSucursalPage() {
     );
   }
 
-  const [products, movimientos, saldos, stockFisico] = await Promise.all([
+  const [products, movimientos, movimientosCount, saldos, stockFisico] = await Promise.all([
     getActiveProducts(),
-    getSucursalMovimientos({ sucursal: sucursal.id }),
+    getSucursalMovimientos({ sucursal: sucursal.id }, { page, pageSize: MOVIMIENTOS_PAGE_SIZE }),
+    getSucursalMovimientosCount({ sucursal: sucursal.id }),
     getSucursalSaldos(),
     getStockFisicoSucursal(sucursal.id),
   ]);
 
+  const totalPages = Math.max(1, Math.ceil(movimientosCount / MOVIMIENTOS_PAGE_SIZE));
   const miSaldo = saldos.find((s) => s.sucursalId === sucursal.id);
+
+  function pageHref(targetPage: number) {
+    return `/consignaciones/mi-sucursal${targetPage > 1 ? `?page=${targetPage}` : ""}`;
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 px-4 py-8">
@@ -111,6 +126,40 @@ export default async function MiSucursalPage() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {movimientosCount > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <p className="text-xs text-btm-black/50">
+              Página {page} de {totalPages} · {movimientosCount} movimiento{movimientosCount === 1 ? "" : "s"}
+            </p>
+            <div className="flex items-center gap-2">
+              {page > 1 ? (
+                <Link
+                  href={pageHref(page - 1)}
+                  className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+                >
+                  Anterior
+                </Link>
+              ) : (
+                <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                  Anterior
+                </span>
+              )}
+              {page < totalPages ? (
+                <Link
+                  href={pageHref(page + 1)}
+                  className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+                >
+                  Siguiente
+                </Link>
+              ) : (
+                <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                  Siguiente
+                </span>
+              )}
+            </div>
           </div>
         )}
       </section>
