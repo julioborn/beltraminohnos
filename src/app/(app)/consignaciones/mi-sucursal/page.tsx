@@ -19,12 +19,20 @@ const TIPO_LABELS: Record<string, string> = {
   DIRECTA_CLIENTE: "Directa cliente",
 };
 
+type Tab = "cargar" | "movimientos" | "stock";
+const TABS: { key: Tab; label: string }[] = [
+  { key: "cargar", label: "Cargar movimiento" },
+  { key: "movimientos", label: "Mis movimientos" },
+  { key: "stock", label: "Stock físico" },
+];
+
 export default async function MiSucursalPage({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string }>;
 }) {
-  const { page: pageParam } = await searchParams;
+  const { tab: tabParam, page: pageParam } = await searchParams;
+  const tab: Tab = TABS.some((t) => t.key === tabParam) ? (tabParam as Tab) : "cargar";
   const page = Math.max(1, Number(pageParam) || 1);
   const user = await getAuthUser();
 
@@ -58,8 +66,14 @@ export default async function MiSucursalPage({
   const totalPages = Math.max(1, Math.ceil(movimientosCount / MOVIMIENTOS_PAGE_SIZE));
   const miSaldo = saldos.find((s) => s.sucursalId === sucursal.id);
 
+  function tabHref(targetTab: Tab) {
+    return `/consignaciones/mi-sucursal${targetTab !== "cargar" ? `?tab=${targetTab}` : ""}`;
+  }
+
   function pageHref(targetPage: number) {
-    return `/consignaciones/mi-sucursal${targetPage > 1 ? `?page=${targetPage}` : ""}`;
+    const sp = new URLSearchParams({ tab: "movimientos" });
+    if (targetPage > 1) sp.set("page", String(targetPage));
+    return `/consignaciones/mi-sucursal?${sp.toString()}`;
   }
 
   return (
@@ -79,90 +93,102 @@ export default async function MiSucursalPage({
         </div>
       )}
 
-      <MiSucursalForm products={products} />
+      <div className="flex flex-wrap gap-2">
+        {TABS.map((t) => (
+          <Link
+            key={t.key}
+            href={tabHref(t.key)}
+            className={`rounded-full border px-4 py-2 text-xs font-semibold uppercase tracking-wide transition-colors ${
+              tab === t.key ? "border-btm-navy bg-btm-navy text-white" : "border-btm-navy text-btm-navy hover:bg-btm-navy/10"
+            }`}
+          >
+            {t.label}
+          </Link>
+        ))}
+      </div>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-          Mis movimientos
-        </h2>
-        {movimientos.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
-            Todavía no cargaste ningún movimiento.
-          </p>
-        ) : (
-          <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
-            {movimientos.map((m) => (
-              <div key={m.id} className="flex flex-col gap-1 p-3 text-sm">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-btm-navy">{m.product?.name}</span>
-                  <span className="text-xs text-btm-black/50">{formatFecha(m.fecha)}</span>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-2 text-btm-black/70">
-                  <span>
-                    {TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento} · {m.cantidad_bolsas} bolsas
-                    {m.cliente_nombre ? ` · ${m.cliente_nombre}` : ""}
-                  </span>
-                  {m.monto_ars != null && <span className="font-semibold">{formatArs(m.monto_ars)}</span>}
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+      {tab === "cargar" && <MiSucursalForm products={products} />}
 
-        {movimientosCount > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="text-xs text-btm-black/50">
-              Página {page} de {totalPages} · {movimientosCount} movimiento{movimientosCount === 1 ? "" : "s"}
+      {tab === "movimientos" && (
+        <section className="flex flex-col gap-3">
+          {movimientos.length === 0 ? (
+            <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
+              Todavía no cargaste ningún movimiento.
             </p>
-            <div className="flex items-center gap-2">
-              {page > 1 ? (
-                <Link
-                  href={pageHref(page - 1)}
-                  className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
-                >
-                  Anterior
-                </Link>
-              ) : (
-                <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
-                  Anterior
-                </span>
-              )}
-              {page < totalPages ? (
-                <Link
-                  href={pageHref(page + 1)}
-                  className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
-                >
-                  Siguiente
-                </Link>
-              ) : (
-                <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
-                  Siguiente
-                </span>
-              )}
+          ) : (
+            <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
+              {movimientos.map((m) => (
+                <div key={m.id} className="flex flex-col gap-1 p-3 text-sm">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-semibold text-btm-navy">{m.product?.name}</span>
+                    <span className="text-xs text-btm-black/50">{formatFecha(m.fecha)}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-btm-black/70">
+                    <span>
+                      {TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento} · {m.cantidad_bolsas} bolsas
+                      {m.cliente_nombre ? ` · ${m.cliente_nombre}` : ""}
+                    </span>
+                    {m.monto_ars != null && <span className="font-semibold">{formatArs(m.monto_ars)}</span>}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        )}
-      </section>
+          )}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-          Stock físico
-        </h2>
-        {stockFisico.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
-            Todavía no hay stock cargado.
-          </p>
-        ) : (
-          <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
-            {stockFisico.map((s) => (
-              <div key={s.productId} className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm">
-                <span className="font-semibold text-btm-navy">{s.productName}</span>
-                <span className="text-btm-black/70">{s.bolsas} bolsas</span>
+          {movimientosCount > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <p className="text-xs text-btm-black/50">
+                Página {page} de {totalPages} · {movimientosCount} movimiento{movimientosCount === 1 ? "" : "s"}
+              </p>
+              <div className="flex items-center gap-2">
+                {page > 1 ? (
+                  <Link
+                    href={pageHref(page - 1)}
+                    className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+                  >
+                    Anterior
+                  </Link>
+                ) : (
+                  <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                    Anterior
+                  </span>
+                )}
+                {page < totalPages ? (
+                  <Link
+                    href={pageHref(page + 1)}
+                    className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+                  >
+                    Siguiente
+                  </Link>
+                ) : (
+                  <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                    Siguiente
+                  </span>
+                )}
               </div>
-            ))}
-          </div>
-        )}
-      </section>
+            </div>
+          )}
+        </section>
+      )}
+
+      {tab === "stock" && (
+        <section className="flex flex-col gap-3">
+          {stockFisico.length === 0 ? (
+            <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
+              Todavía no hay stock cargado.
+            </p>
+          ) : (
+            <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
+              {stockFisico.map((s) => (
+                <div key={s.productId} className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm">
+                  <span className="font-semibold text-btm-navy">{s.productName}</span>
+                  <span className="text-btm-black/70">{s.bolsas} bolsas</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
