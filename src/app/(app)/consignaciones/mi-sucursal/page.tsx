@@ -79,26 +79,6 @@ export default async function MiSucursalPage({
         </div>
       )}
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-          Stock físico
-        </h2>
-        {stockFisico.length === 0 ? (
-          <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
-            Todavía no hay stock cargado.
-          </p>
-        ) : (
-          <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
-            {stockFisico.map((s) => (
-              <div key={s.productId} className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm">
-                <span className="font-semibold text-btm-navy">{s.productName}</span>
-                <span className="text-btm-black/70">{s.bolsas} bolsas</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </section>
-
       <MiSucursalForm products={products} />
 
       <section className="flex flex-col gap-3">
@@ -160,6 +140,26 @@ export default async function MiSucursalPage({
                 </span>
               )}
             </div>
+          </div>
+        )}
+      </section>
+
+      <section className="flex flex-col gap-3">
+        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+          Stock físico
+        </h2>
+        {stockFisico.length === 0 ? (
+          <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
+            Todavía no hay stock cargado.
+          </p>
+        ) : (
+          <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
+            {stockFisico.map((s) => (
+              <div key={s.productId} className="flex items-center justify-between gap-2 px-3 py-2.5 text-sm">
+                <span className="font-semibold text-btm-navy">{s.productName}</span>
+                <span className="text-btm-black/70">{s.bolsas} bolsas</span>
+              </div>
+            ))}
           </div>
         )}
       </section>
