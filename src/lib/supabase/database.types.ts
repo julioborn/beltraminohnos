@@ -186,6 +186,27 @@ export type Database = {
         }
         Relationships: []
       }
+      operadores_fabrica: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          nombre: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          nombre: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
       order_items: {
         Row: {
           cantidad: number
@@ -611,18 +632,21 @@ export type Database = {
           full_name: string | null
           id: string
           role: string
+          ve_produccion: boolean
         }
         Insert: {
           created_at?: string
           full_name?: string | null
           id: string
           role?: string
+          ve_produccion?: boolean
         }
         Update: {
           created_at?: string
           full_name?: string | null
           id?: string
           role?: string
+          ve_produccion?: boolean
         }
         Relationships: []
       }
@@ -1053,7 +1077,7 @@ export type Database = {
             foreignKeyName: "turnos_operador_id_fkey"
             columns: ["operador_id"]
             isOneToOne: false
-            referencedRelation: "profiles"
+            referencedRelation: "operadores_fabrica"
             referencedColumns: ["id"]
           },
         ]

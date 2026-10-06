@@ -62,6 +62,19 @@ export async function crearTurno(_prevState: CrearTurnoState, formData: FormData
   } = await supabase.auth.getUser();
   if (!user) return { error: "No autenticado." };
 
+  // La PC de fábrica usa una sola cuenta compartida — el operador real se
+  // elige de la lista en el formulario, nunca se infiere del login.
+  const operadorId = str(formData.get("operador_id"));
+  if (!operadorId) return { error: "Seleccioná quién realizó el turno." };
+
+  const { data: operador } = await supabase
+    .from("operadores_fabrica")
+    .select("id")
+    .eq("id", operadorId)
+    .eq("active", true)
+    .maybeSingle();
+  if (!operador) return { error: "El operador seleccionado no es válido." };
+
   const fecha = String(formData.get("fecha") ?? "") || new Date().toISOString().slice(0, 10);
   const horaIngreso = str(formData.get("hora_ingreso"));
   const horaSalida = str(formData.get("hora_salida"));
@@ -129,7 +142,7 @@ export async function crearTurno(_prevState: CrearTurnoState, formData: FormData
     .from("turnos")
     .insert({
       fecha,
-      operador_id: user.id,
+      operador_id: operadorId,
       hora_ingreso: horaIngreso,
       hora_salida: horaSalida,
       firma_confirmada: firmaConfirmada,

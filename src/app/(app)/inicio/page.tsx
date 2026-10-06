@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BrandTexture } from "@/components/brand-texture";
 import { getAuthUser, getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getSucursalByProfileId } from "@/lib/data/consignaciones";
+import { createClient } from "@/lib/supabase/server";
 
 const ROW_1 = [
   {
@@ -161,6 +162,19 @@ const MI_SUCURSAL_CARD = {
   ),
 };
 
+const PRODUCCION_ADMIN_CARD = {
+  href: "/produccion",
+  label: "Producción",
+  description: "Turnos de fábrica y consumo de materia prima",
+  icon: (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+      <path d="M4 21V9l8-6 8 6v12" />
+      <path d="M9 21v-6h6v6" />
+      <path d="M9 14V9h6v5" />
+    </svg>
+  ),
+};
+
 function HomeCard({
   href,
   label,
@@ -202,9 +216,18 @@ export default async function InicioPage() {
 
   const user = await getAuthUser();
   const misucursal = user ? await getSucursalByProfileId(user.id) : null;
+
+  let veProduccion = false;
+  if (user && !fullAccess) {
+    const supabase = await createClient();
+    const { data: profile } = await supabase.from("profiles").select("ve_produccion").eq("id", user.id).single();
+    veProduccion = profile?.ve_produccion ?? false;
+  }
+
   const row4 = [
     ...(fullAccess ? ROW_4 : ROW_4.filter((item) => !item.fullAccessOnly)),
     ...(misucursal ? [MI_SUCURSAL_CARD] : []),
+    ...(veProduccion ? [PRODUCCION_ADMIN_CARD] : []),
   ];
 
   return (

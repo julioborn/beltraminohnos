@@ -31,6 +31,11 @@ const CONTABLE_ALLOWED_PREFIXES = ["/consignaciones"];
 const OPERADOR_HOME = "/produccion/cargar";
 const OPERADOR_ALLOWED_PREFIXES = ["/produccion/cargar"];
 
+// Rol "produccion" (ej. Pablo Althaus): solo puede ver el panel de
+// administración de Producción, nada más del resto de la app.
+const PRODUCCION_HOME = "/produccion";
+const PRODUCCION_ALLOWED_PREFIXES = ["/produccion"];
+
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request });
 
@@ -73,6 +78,7 @@ export async function proxy(request: NextRequest) {
     const isLimitado = profile?.role === "limitado";
     const isContable = profile?.role === "contable";
     const isOperador = profile?.role === "operador";
+    const isProduccion = profile?.role === "produccion";
 
     if (isLimitado) {
       if (path === "/") {
@@ -101,6 +107,16 @@ export async function proxy(request: NextRequest) {
       const isAllowed = OPERADOR_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
       if (isProtected && !isAllowed) {
         return NextResponse.redirect(new URL(OPERADOR_HOME, request.url));
+      }
+    }
+
+    if (isProduccion) {
+      if (path === "/") {
+        return NextResponse.redirect(new URL(PRODUCCION_HOME, request.url));
+      }
+      const isAllowed = PRODUCCION_ALLOWED_PREFIXES.some((prefix) => path.startsWith(prefix));
+      if (isProtected && !isAllowed) {
+        return NextResponse.redirect(new URL(PRODUCCION_HOME, request.url));
       }
     }
   }

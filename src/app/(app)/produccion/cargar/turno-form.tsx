@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { crearTurno } from "@/lib/actions/produccion";
 
 type Formula = { id: string; codigo: string; nombre: string; set_total_kg: number };
+type Operador = { id: string; nombre: string };
 
 type Empleado = { key: string; nombre: string; horaIngreso: string; horaSalida: string; firmaConfirmada: boolean };
 type Parada = { key: string; tipo: string; detalle: string; minutos: string };
@@ -83,12 +84,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass = "w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy";
 
-export function TurnoForm({ formulas }: { formulas: Formula[] }) {
+export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; operadores: Operador[] }) {
   const [state, formAction, pending] = useActionState(crearTurno, undefined);
   const [formKey, setFormKey] = useState(0);
   const [success, setSuccess] = useState(false);
   const wasPending = useRef(false);
 
+  const [operadorId, setOperadorId] = useState("");
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [horaIngreso, setHoraIngreso] = useState("");
   const [horaSalida, setHoraSalida] = useState("");
@@ -107,6 +109,7 @@ export function TurnoForm({ formulas }: { formulas: Formula[] }) {
   useEffect(() => {
     if (wasPending.current && !pending && !state?.error) {
       setFormKey((k) => k + 1);
+      setOperadorId("");
       setFecha(new Date().toISOString().slice(0, 10));
       setHoraIngreso("");
       setHoraSalida("");
@@ -209,6 +212,7 @@ export function TurnoForm({ formulas }: { formulas: Formula[] }) {
 
   return (
     <form key={formKey} action={formAction} className="flex flex-col gap-4">
+      <input type="hidden" name="operador_id" value={operadorId} />
       <input type="hidden" name="fecha" value={fecha} />
       <input type="hidden" name="hora_ingreso" value={horaIngreso} />
       <input type="hidden" name="hora_salida" value={horaSalida} />
@@ -224,6 +228,16 @@ export function TurnoForm({ formulas }: { formulas: Formula[] }) {
       <input type="hidden" name="producciones" value={produccionesPayload} />
 
       <Section title="Datos del turno">
+        <Field label="Operador">
+          <select value={operadorId} onChange={(e) => setOperadorId(e.target.value)} className={inputClass}>
+            <option value="">Seleccionar...</option>
+            {operadores.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.nombre}
+              </option>
+            ))}
+          </select>
+        </Field>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <Field label="Fecha">
             <input type="date" value={fecha} onChange={(e) => setFecha(e.target.value)} className={inputClass} />
@@ -619,7 +633,7 @@ export function TurnoForm({ formulas }: { formulas: Formula[] }) {
 
       <button
         type="submit"
-        disabled={pending || !hayProduccionValida}
+        disabled={pending || !hayProduccionValida || !operadorId}
         className="self-start rounded-full bg-btm-navy px-8 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
       >
         {pending ? "Guardando..." : "Guardar turno"}

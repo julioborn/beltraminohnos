@@ -16,10 +16,23 @@ export async function getFormulas() {
   return data ?? [];
 }
 
+// Computadora única en planta, cuenta compartida: el operador que carga el
+// turno se elige de esta lista (no hay un login por persona), no se infiere
+// del usuario autenticado.
+export async function getOperadoresFabrica() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("operadores_fabrica")
+    .select("id, nombre")
+    .eq("active", true)
+    .order("nombre");
+  return data ?? [];
+}
+
 const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confirmada,
   estado_conos_silos, estado_limpieza, operador_anterior, engrase_rolo_hs, engrase_eje_prensa_hs,
   observaciones, created_at,
-  operador:profiles!turnos_operador_id_fkey(id, full_name),
+  operador:operadores_fabrica(id, nombre),
   turno_empleados(id, nombre, hora_ingreso, hora_salida, firma_confirmada),
   turno_paradas(id, tipo, detalle, minutos),
   producciones(id, numero, kg_objetivo, kg_producido_real, tipo_envase, partida, tipo_alimento,
@@ -45,12 +58,15 @@ export async function getTurnoDetalle(id: string) {
   return data;
 }
 
-export async function getMisTurnos(operadorId: string) {
+// La PC de fábrica usa una sola cuenta compartida, así que "mis turnos" acá
+// significa "los últimos turnos cargados desde esta cuenta" (created_by),
+// no los de un operador puntual — eso ahora se elige por turno, no por login.
+export async function getTurnosRecientesDeCuenta(createdBy: string) {
   const supabase = await createClient();
   const { data } = await supabase
     .from("turnos")
     .select(TURNO_SELECT)
-    .eq("operador_id", operadorId)
+    .eq("created_by", createdBy)
     .order("fecha", { ascending: false })
     .limit(30);
   return data ?? [];

@@ -29,20 +29,23 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   let fullName = user?.email ?? "";
   let role: ProfileRole | null = null;
+  let veProduccion = false;
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("full_name, role")
+      .select("full_name, role, ve_produccion")
       .eq("id", user.id)
       .single();
     fullName = profile?.full_name || user.email || "";
     role = (profile?.role as ProfileRole | undefined) ?? null;
+    veProduccion = profile?.ve_produccion ?? false;
   }
 
   const fullAccess = hasFullAccess(role);
   const isLimitado = role === "limitado";
   const isContable = role === "contable";
   const isOperador = role === "operador";
+  const isProduccionRole = role === "produccion";
   const misucursal = user ? await getSucursalByProfileId(user.id) : null;
 
   const navLinks = isLimitado
@@ -54,11 +57,22 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       ? [{ href: "/consignaciones", label: "Consignaciones" }]
       : isOperador
         ? [{ href: "/produccion/cargar", label: "Producción" }]
-        : [
-            ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
-            ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
-          ];
-  const homeHref = isLimitado ? "/mis-notas" : isContable ? "/consignaciones" : isOperador ? "/produccion/cargar" : "/inicio";
+        : isProduccionRole
+          ? [{ href: "/produccion", label: "Producción" }]
+          : [
+              ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
+              ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
+              ...(veProduccion && !fullAccess ? [{ href: "/produccion", label: "Producción" }] : []),
+            ];
+  const homeHref = isLimitado
+    ? "/mis-notas"
+    : isContable
+      ? "/consignaciones"
+      : isOperador
+        ? "/produccion/cargar"
+        : isProduccionRole
+          ? "/produccion"
+          : "/inicio";
 
   return (
     <div className="flex min-h-full flex-1 flex-col">

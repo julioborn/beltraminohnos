@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
-export type ProfileRole = "admin" | "empleado" | "limitado" | "contable" | "operador";
+export type ProfileRole = "admin" | "empleado" | "limitado" | "contable" | "operador" | "produccion";
 
 // auth.getUser() valida el JWT contra el servidor de Supabase (a diferencia
 // de getSession(), que solo lee la cookie) — es la forma correcta de

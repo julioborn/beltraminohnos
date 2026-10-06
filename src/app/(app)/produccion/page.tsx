@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
+import { getAuthUser, getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getTurnos, getConsumoMateriaPrima, type ProduccionFilters } from "@/lib/data/produccion";
+import { createClient } from "@/lib/supabase/server";
 import { formatFecha } from "@/lib/format";
 import { ScrollFade } from "@/components/scroll-fade";
 
@@ -11,7 +12,16 @@ export default async function ProduccionPage({
   searchParams: Promise<ProduccionFilters>;
 }) {
   const role = await getProfileRole();
-  if (!hasFullAccess(role)) {
+  const user = await getAuthUser();
+
+  let veProduccion = false;
+  if (user && !hasFullAccess(role) && role !== "produccion") {
+    const supabase = await createClient();
+    const { data: profile } = await supabase.from("profiles").select("ve_produccion").eq("id", user.id).single();
+    veProduccion = profile?.ve_produccion ?? false;
+  }
+
+  if (!hasFullAccess(role) && role !== "produccion" && !veProduccion) {
     redirect("/inicio");
   }
 
@@ -116,7 +126,7 @@ export default async function ProduccionPage({
                   <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-btm-black/70">
-                  <span>Operador: {t.operador?.full_name ?? "—"}</span>
+                  <span>Operador: {t.operador?.nombre ?? "—"}</span>
                   {t.hora_ingreso && <span>· Ingreso {t.hora_ingreso.slice(0, 5)}</span>}
                   {t.hora_salida && <span>· Salida {t.hora_salida.slice(0, 5)}</span>}
                 </div>
