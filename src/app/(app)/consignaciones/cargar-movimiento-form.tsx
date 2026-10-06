@@ -19,7 +19,7 @@ export function CargarMovimientoAdminForm({ sucursales, products }: { sucursales
   const [items, setItems] = useState<Item[]>([emptyItem()]);
   const [formKey, setFormKey] = useState(0);
   const [success, setSuccess] = useState(false);
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const wasPending = useRef(false);
 
   useEffect(() => {
