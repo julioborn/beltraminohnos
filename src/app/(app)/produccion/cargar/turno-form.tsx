@@ -509,6 +509,8 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                   </button>
                 </div>
 
+                {formula && (
+                <>
                 <SubGroup title="Datos del producto">
                   <Field label="Kg objetivo">
                     <input
@@ -668,6 +670,8 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                     + Agregar reemplazo
                   </button>
                 </div>
+                </>
+                )}
               </div>
             );
           })}
