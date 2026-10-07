@@ -317,9 +317,11 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
           />
           Confirmo mi firma para este turno
         </label>
-      </Section>
 
-      <Section title="Empleados afectados al turno">
+        <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
+        <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+          Empleados afectados al turno
+        </span>
         <div className="flex flex-col gap-2">
           {empleados.map((e) => (
             <div key={e.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3 sm:flex-row sm:items-end">
@@ -385,6 +387,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
         >
           + Agregar empleado
         </button>
+        </div>
       </Section>
 
       <Section title="Paradas durante el turno">
