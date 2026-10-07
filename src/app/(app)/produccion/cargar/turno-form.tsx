@@ -25,6 +25,7 @@ type Produccion = {
   stockGranelKg: string;
   stockBolsasCantidad: string;
   reemplazos: Reemplazo[];
+  mostrarMas: boolean;
 };
 
 const PARADA_LABELS: Record<string, string> = {
@@ -62,6 +63,7 @@ function emptyProduccion(): Produccion {
     stockGranelKg: "",
     stockBolsasCantidad: "",
     reemplazos: [],
+    mostrarMas: false,
   };
 }
 
@@ -560,6 +562,18 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                   />
                 </div>
 
+                <div className="border-t border-black/10 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => updateProduccion(p.key, { mostrarMas: !p.mostrarMas })}
+                    className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
+                  >
+                    {p.mostrarMas ? "− Ocultar más opciones" : "+ Más opciones"}
+                  </button>
+                </div>
+
+                {p.mostrarMas && (
+                <>
                 <SubGroup title="Resultado del ciclo">
                   <Field label="Kg producción real">
                     <input
@@ -673,6 +687,8 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                     + Agregar reemplazo
                   </button>
                 </div>
+                </>
+                )}
                 </>
                 )}
               </div>
