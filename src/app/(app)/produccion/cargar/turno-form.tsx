@@ -267,12 +267,18 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
             <div key={e.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3 sm:flex-row sm:items-end">
               <div className="flex-1">
                 <Field label="Nombre">
-                  <input
-                    type="text"
+                  <select
                     value={e.nombre}
                     onChange={(ev) => updateEmpleado(e.key, { nombre: ev.target.value })}
                     className={inputClass}
-                  />
+                  >
+                    <option value="">Seleccionar...</option>
+                    {operadores.map((o) => (
+                      <option key={o.id} value={o.nombre}>
+                        {o.nombre}
+                      </option>
+                    ))}
+                  </select>
                 </Field>
               </div>
               <div className="w-full sm:w-32">
