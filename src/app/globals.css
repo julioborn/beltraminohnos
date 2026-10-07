@@ -58,6 +58,21 @@ body:has(#login-page) {
   background: var(--btm-navy);
 }
 
+/* Tailwind's preflight resets <button> to cursor:default, undoing the
+   browser's native hand cursor — every clickable control gets it back here
+   instead of relying on each component to add cursor-pointer by hand. */
+button:not(:disabled),
+select:not(:disabled),
+[role="button"]:not([aria-disabled="true"]) {
+  cursor: pointer;
+}
+
+button:disabled,
+select:disabled,
+[role="button"][aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 /* iOS Safari zooms in on focus when a form field's font-size is under 16px.
    Force 16px on mobile only, so the desktop/tablet type scale is untouched. */
 @media (max-width: 640px) {
