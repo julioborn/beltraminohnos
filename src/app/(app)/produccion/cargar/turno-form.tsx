@@ -85,6 +85,15 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass = "w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy";
 
+function SubGroup({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">{title}</span>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{children}</div>
+    </div>
+  );
+}
+
 export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; operadores: Operador[] }) {
   const [state, formAction, pending] = useActionState(crearTurno, undefined);
   const [formKey, setFormKey] = useState(0);
@@ -451,7 +460,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                <SubGroup title="Datos del producto">
                   <Field label="Kg objetivo">
                     <input
                       type="number"
@@ -498,6 +507,9 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                       className={inputClass}
                     />
                   </Field>
+                </SubGroup>
+
+                <SubGroup title="Resultado del ciclo">
                   <Field label="Kg producción real">
                     <input
                       type="number"
@@ -534,6 +546,9 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                       className={inputClass}
                     />
                   </Field>
+                </SubGroup>
+
+                <SubGroup title="Stock al cierre">
                   <Field label="Stock granel al cierre (kg)">
                     <input
                       type="number"
@@ -552,9 +567,9 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                       className={inputClass}
                     />
                   </Field>
-                </div>
+                </SubGroup>
 
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
                   <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
                     Reemplazos de materia prima
                   </span>
