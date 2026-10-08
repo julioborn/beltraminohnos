@@ -162,6 +162,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
   const [engraseEjePrensaHs, setEngraseEjePrensaHs] = useState("");
   const [observaciones, setObservaciones] = useState("");
 
+  const [mostrarEstadoPlanta, setMostrarEstadoPlanta] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([emptyEmpleado()]);
   const [paradas, setParadas] = useState<Parada[]>([]);
   const [producciones, setProducciones] = useState<Produccion[]>([emptyProduccion()]);
@@ -179,6 +180,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       setEngraseRoloHs("");
       setEngraseEjePrensaHs("");
       setObservaciones("");
+      setMostrarEstadoPlanta(false);
       setEmpleados([emptyEmpleado()]);
       setParadas([]);
       setProducciones([emptyProduccion()]);
@@ -437,32 +439,45 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       </Section>
 
       <Section title="Estado de planta">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Estado de conos y silos">
-            <select value={estadoConosSilos} onChange={(e) => setEstadoConosSilos(e.target.value)} className={inputClass}>
-              <option value="">Sin especificar</option>
-              <option value="BIEN">Bien</option>
-              <option value="GOLPEADOS">Golpeados</option>
-            </select>
-          </Field>
-          <Field label="Estado de limpieza recibido">
-            <select value={estadoLimpieza} onChange={(e) => setEstadoLimpieza(e.target.value)} className={inputClass}>
-              <option value="">Sin especificar</option>
-              <option value="B">Bueno</option>
-              <option value="R">Regular</option>
-              <option value="M">Malo</option>
-            </select>
-          </Field>
-          <Field label="Operador anterior">
-            <input type="text" value={operadorAnterior} onChange={(e) => setOperadorAnterior(e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Engrase rolo (hs)">
-            <input type="text" value={engraseRoloHs} onChange={(e) => setEngraseRoloHs(e.target.value)} className={inputClass} />
-          </Field>
-          <Field label="Engrase eje prensa (hs)">
-            <input type="text" value={engraseEjePrensaHs} onChange={(e) => setEngraseEjePrensaHs(e.target.value)} className={inputClass} />
-          </Field>
-        </div>
+        {mostrarEstadoPlanta ? (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <Field label="Estado de conos y silos">
+              <select value={estadoConosSilos} onChange={(e) => setEstadoConosSilos(e.target.value)} className={inputClass}>
+                <option value="">Sin especificar</option>
+                <option value="BIEN">Bien</option>
+                <option value="GOLPEADOS">Golpeados</option>
+              </select>
+            </Field>
+            <Field label="Estado de limpieza recibido">
+              <select value={estadoLimpieza} onChange={(e) => setEstadoLimpieza(e.target.value)} className={inputClass}>
+                <option value="">Sin especificar</option>
+                <option value="B">Bueno</option>
+                <option value="R">Regular</option>
+                <option value="M">Malo</option>
+              </select>
+            </Field>
+            <Field label="Operador anterior">
+              <input type="text" value={operadorAnterior} onChange={(e) => setOperadorAnterior(e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Engrase rolo (hs)">
+              <input type="text" value={engraseRoloHs} onChange={(e) => setEngraseRoloHs(e.target.value)} className={inputClass} />
+            </Field>
+            <Field label="Engrase eje prensa (hs)">
+              <input type="text" value={engraseEjePrensaHs} onChange={(e) => setEngraseEjePrensaHs(e.target.value)} className={inputClass} />
+            </Field>
+          </div>
+        ) : (
+          <p className="text-sm text-btm-black/50">Sin estado cargado.</p>
+        )}
+        {!mostrarEstadoPlanta && (
+          <button
+            type="button"
+            onClick={() => setMostrarEstadoPlanta(true)}
+            className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          >
+            + Agregar estado
+          </button>
+        )}
       </Section>
 
       <Section title="Observaciones">
