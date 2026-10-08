@@ -7,7 +7,7 @@ import { FormulaCombobox } from "./formula-combobox";
 type Formula = { id: string; codigo: string; nombre: string; set_total_kg: number };
 type Operador = { id: string; nombre: string };
 
-type Empleado = { key: string; nombre: string; horaIngreso: string; horaSalida: string; firmaConfirmada: boolean };
+type Empleado = { key: string; nombre: string; horaIngreso: string; horaSalida: string };
 type Parada = { key: string; tipo: string; detalle: string; minutos: string };
 type Reemplazo = { key: string; reemplazo: string; motivo: string; autorizo: string };
 type Produccion = {
@@ -36,7 +36,7 @@ const PARADA_LABELS: Record<string, string> = {
 };
 
 function emptyEmpleado(): Empleado {
-  return { key: crypto.randomUUID(), nombre: "", horaIngreso: "", horaSalida: "", firmaConfirmada: false };
+  return { key: crypto.randomUUID(), nombre: "", horaIngreso: "", horaSalida: "" };
 }
 
 function emptyParada(): Parada {
@@ -241,7 +241,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
         nombre: e.nombre,
         hora_ingreso: e.horaIngreso || null,
         hora_salida: e.horaSalida || null,
-        firma_confirmada: e.firmaConfirmada,
       })),
   );
 
@@ -355,15 +354,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                   />
                 </Field>
               </div>
-              <label className="flex shrink-0 cursor-pointer items-center gap-1.5 pb-2 text-xs font-semibold">
-                <input
-                  type="checkbox"
-                  checked={e.firmaConfirmada}
-                  onChange={(ev) => updateEmpleado(e.key, { firmaConfirmada: ev.target.checked })}
-                  className="h-4 w-4 cursor-pointer accent-btm-navy"
-                />
-                Firma
-              </label>
               <button
                 type="button"
                 onClick={() => removeEmpleado(e.key)}
