@@ -425,7 +425,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
         <button
           type="button"
           onClick={() => setParadas((prev) => [...prev, emptyParada()])}
-          className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
         >
           + Agregar
         </button>
@@ -466,7 +466,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
           <button
             type="button"
             onClick={() => setMostrarEstadoPlanta(true)}
-            className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
           >
             + Agregar
           </button>
@@ -487,7 +487,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
             <button
               type="button"
               onClick={() => setMostrarObservaciones(true)}
-              className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+              className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
               + Agregar
             </button>
