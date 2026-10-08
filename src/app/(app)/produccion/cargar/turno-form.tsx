@@ -163,6 +163,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
   const [observaciones, setObservaciones] = useState("");
 
   const [mostrarEstadoPlanta, setMostrarEstadoPlanta] = useState(false);
+  const [mostrarObservaciones, setMostrarObservaciones] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([emptyEmpleado()]);
   const [paradas, setParadas] = useState<Parada[]>([]);
   const [producciones, setProducciones] = useState<Produccion[]>([emptyProduccion()]);
@@ -181,6 +182,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       setEngraseEjePrensaHs("");
       setObservaciones("");
       setMostrarEstadoPlanta(false);
+      setMostrarObservaciones(false);
       setEmpleados([emptyEmpleado()]);
       setParadas([]);
       setProducciones([emptyProduccion()]);
@@ -481,12 +483,25 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       </Section>
 
       <Section title="Observaciones">
-        <textarea
-          rows={2}
-          value={observaciones}
-          onChange={(e) => setObservaciones(e.target.value)}
-          className={inputClass}
-        />
+        {mostrarObservaciones ? (
+          <textarea
+            rows={2}
+            value={observaciones}
+            onChange={(e) => setObservaciones(e.target.value)}
+            className={inputClass}
+          />
+        ) : (
+          <>
+            <p className="text-sm text-btm-black/50">Sin observaciones cargadas.</p>
+            <button
+              type="button"
+              onClick={() => setMostrarObservaciones(true)}
+              className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            >
+              + Agregar observaciones
+            </button>
+          </>
+        )}
       </Section>
 
       <Section title="Productos elaborados en el turno">
