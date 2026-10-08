@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth/role";
-import { getFormulas, getOperadoresFabrica, getTurnosRecientesDeCuenta } from "@/lib/data/produccion";
+import { getOperadoresFabrica, getTurnosRecientesDeCuenta } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
 import { TurnoForm } from "./turno-form";
 
@@ -9,8 +9,7 @@ export default async function CargarProduccionPage() {
   const user = await getAuthUser();
   if (!user) redirect("/inicio");
 
-  const [formulas, operadores, turnosRecientes] = await Promise.all([
-    getFormulas(),
+  const [operadores, turnosRecientes] = await Promise.all([
     getOperadoresFabrica(),
     getTurnosRecientesDeCuenta(user.id),
   ]);
@@ -21,10 +20,10 @@ export default async function CargarProduccionPage() {
         <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
           Producción diaria
         </h1>
-        <p className="text-sm text-btm-black/60">Cargá los datos del turno y los productos elaborados.</p>
+        <p className="text-sm text-btm-black/60">Cargá los datos del turno para empezar a agregar productos.</p>
       </div>
 
-      <TurnoForm formulas={formulas} operadores={operadores} />
+      <TurnoForm operadores={operadores} />
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">

@@ -1,30 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useState } from "react";
 import { crearTurno } from "@/lib/actions/produccion";
-import { FormulaCombobox } from "./formula-combobox";
-import { CiclosGrid } from "./ciclos-grid";
 
-type Formula = { id: string; codigo: string; nombre: string; set_total_kg: number };
 type Operador = { id: string; nombre: string };
 
 type Empleado = { key: string; nombre: string; horaIngreso: string; horaSalida: string };
 type Parada = { key: string; tipo: string; detalle: string; minutos: string };
-type Reemplazo = { key: string; reemplazo: string; motivo: string; autorizo: string };
-type Produccion = {
-  key: string;
-  formulaId: string;
-  kgObjetivo: string;
-  tipoEnvase: string;
-  ciclosCompletados: string;
-  granelKg: string;
-  bolsasCantidad: string;
-  rotuloBolsas: string;
-  stockGranelKg: string;
-  stockBolsasCantidad: string;
-  reemplazos: Reemplazo[];
-  mostrarMas: boolean;
-};
 
 const PARADA_LABELS: Record<string, string> = {
   ROTURA: "Rotura",
@@ -33,33 +15,16 @@ const PARADA_LABELS: Record<string, string> = {
   OTROS: "Otros",
 };
 
+function horaActual() {
+  return new Date().toTimeString().slice(0, 5);
+}
+
 function emptyEmpleado(): Empleado {
   return { key: crypto.randomUUID(), nombre: "", horaIngreso: "", horaSalida: "" };
 }
 
 function emptyParada(): Parada {
   return { key: crypto.randomUUID(), tipo: "ROTURA", detalle: "", minutos: "" };
-}
-
-function emptyReemplazo(): Reemplazo {
-  return { key: crypto.randomUUID(), reemplazo: "", motivo: "", autorizo: "" };
-}
-
-function emptyProduccion(): Produccion {
-  return {
-    key: crypto.randomUUID(),
-    formulaId: "",
-    kgObjetivo: "",
-    tipoEnvase: "BOLSA",
-    ciclosCompletados: "",
-    granelKg: "",
-    bolsasCantidad: "",
-    rotuloBolsas: "",
-    stockGranelKg: "",
-    stockBolsasCantidad: "",
-    reemplazos: [],
-    mostrarMas: false,
-  };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -82,25 +47,13 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass = "w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy";
 
-function SubGroup({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">{title}</span>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">{children}</div>
-    </div>
-  );
-}
-
-export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; operadores: Operador[] }) {
+export function TurnoForm({ operadores }: { operadores: Operador[] }) {
   const [state, formAction, pending] = useActionState(crearTurno, undefined);
-  const [formKey, setFormKey] = useState(0);
-  const [success, setSuccess] = useState(false);
-  const wasPending = useRef(false);
 
   const [operadorId, setOperadorId] = useState("");
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
-  const [horaIngreso, setHoraIngreso] = useState("");
-  const [horaSalida, setHoraSalida] = useState("");
+  const [horaIngreso, setHoraIngreso] = useState(horaActual);
+  const [horaSalida, setHoraSalida] = useState(horaActual);
   const [estadoConosSilos, setEstadoConosSilos] = useState("");
   const [estadoLimpieza, setEstadoLimpieza] = useState("");
   const [operadorAnterior, setOperadorAnterior] = useState("");
@@ -112,32 +65,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
   const [mostrarObservaciones, setMostrarObservaciones] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([emptyEmpleado()]);
   const [paradas, setParadas] = useState<Parada[]>([]);
-  const [producciones, setProducciones] = useState<Produccion[]>([emptyProduccion()]);
-
-  useEffect(() => {
-    if (wasPending.current && !pending && !state?.error) {
-      setFormKey((k) => k + 1);
-      setOperadorId("");
-      setFecha(new Date().toISOString().slice(0, 10));
-      setHoraIngreso("");
-      setHoraSalida("");
-      setEstadoConosSilos("");
-      setEstadoLimpieza("");
-      setOperadorAnterior("");
-      setEngraseRoloHs("");
-      setEngraseEjePrensaHs("");
-      setObservaciones("");
-      setMostrarEstadoPlanta(false);
-      setMostrarObservaciones(false);
-      setEmpleados([emptyEmpleado()]);
-      setParadas([]);
-      setProducciones([emptyProduccion()]);
-      setSuccess(true);
-      const t = setTimeout(() => setSuccess(false), 5000);
-      return () => clearTimeout(t);
-    }
-    wasPending.current = pending;
-  }, [pending, state]);
 
   function updateEmpleado(key: string, patch: Partial<Empleado>) {
     setEmpleados((prev) => prev.map((e) => (e.key === key ? { ...e, ...patch } : e)));
@@ -151,33 +78,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
   }
   function removeParada(key: string) {
     setParadas((prev) => prev.filter((p) => p.key !== key));
-  }
-
-  function updateProduccion(key: string, patch: Partial<Produccion>) {
-    setProducciones((prev) => prev.map((p) => (p.key === key ? { ...p, ...patch } : p)));
-  }
-  function removeProduccion(key: string) {
-    setProducciones((prev) => (prev.length > 1 ? prev.filter((p) => p.key !== key) : prev));
-  }
-
-  function addReemplazo(prodKey: string) {
-    setProducciones((prev) =>
-      prev.map((p) => (p.key === prodKey ? { ...p, reemplazos: [...p.reemplazos, emptyReemplazo()] } : p)),
-    );
-  }
-  function updateReemplazo(prodKey: string, reKey: string, patch: Partial<Reemplazo>) {
-    setProducciones((prev) =>
-      prev.map((p) =>
-        p.key === prodKey
-          ? { ...p, reemplazos: p.reemplazos.map((r) => (r.key === reKey ? { ...r, ...patch } : r)) }
-          : p,
-      ),
-    );
-  }
-  function removeReemplazo(prodKey: string, reKey: string) {
-    setProducciones((prev) =>
-      prev.map((p) => (p.key === prodKey ? { ...p, reemplazos: p.reemplazos.filter((r) => r.key !== reKey) } : p)),
-    );
   }
 
   const empleadosPayload = JSON.stringify(
@@ -194,33 +94,8 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
     paradas.map((p) => ({ tipo: p.tipo, detalle: p.detalle || null, minutos: p.minutos ? Number(p.minutos) : null })),
   );
 
-  const produccionesPayload = JSON.stringify(
-    producciones
-      .filter((p) => p.formulaId)
-      .map((p) => ({
-        formula_id: p.formulaId,
-        kg_objetivo: p.kgObjetivo ? Number(p.kgObjetivo) : null,
-        tipo_envase: p.tipoEnvase || null,
-        ciclos_completados: p.ciclosCompletados ? Number(p.ciclosCompletados) : 0,
-        // El total real producido es lo que marca la grilla de ciclos (cada
-        // casillero = 1.000kg), no un campo aparte — así no se tipea dos
-        // veces el mismo dato.
-        kg_producido_real: p.ciclosCompletados ? Number(p.ciclosCompletados) * 1000 : null,
-        granel_kg: p.granelKg ? Number(p.granelKg) : null,
-        bolsas_cantidad: p.bolsasCantidad ? Number(p.bolsasCantidad) : null,
-        rotulo_bolsas: p.rotuloBolsas || null,
-        stock_granel_kg: p.stockGranelKg ? Number(p.stockGranelKg) : null,
-        stock_bolsas_cantidad: p.stockBolsasCantidad ? Number(p.stockBolsasCantidad) : null,
-        reemplazos: p.reemplazos
-          .filter((r) => r.reemplazo || r.motivo || r.autorizo)
-          .map((r) => ({ reemplazo: r.reemplazo || null, motivo: r.motivo || null, autorizo: r.autorizo || null })),
-      })),
-  );
-
-  const hayProduccionValida = producciones.some((p) => p.formulaId);
-
   return (
-    <form key={formKey} action={formAction} className="flex flex-col gap-4">
+    <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="operador_id" value={operadorId} />
       <input type="hidden" name="fecha" value={fecha} />
       <input type="hidden" name="hora_ingreso" value={horaIngreso} />
@@ -233,7 +108,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       <input type="hidden" name="observaciones" value={observaciones} />
       <input type="hidden" name="empleados" value={empleadosPayload} />
       <input type="hidden" name="paradas" value={paradasPayload} />
-      <input type="hidden" name="producciones" value={produccionesPayload} />
 
       <Section title="Datos del turno">
         <Field label="Operador">
@@ -448,215 +322,18 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
         )}
       </Section>
 
-      <Section title="Productos elaborados en el turno">
-        <div className="flex flex-col gap-3">
-          {producciones.map((p) => {
-            const formula = formulas.find((f) => f.id === p.formulaId);
-            return (
-              <div key={p.key} className="flex flex-col gap-3 rounded-md border border-black/10 p-3">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex-1">
-                    <Field label="Fórmula">
-                      <FormulaCombobox
-                        formulas={formulas}
-                        value={p.formulaId}
-                        onChange={(id) => updateProduccion(p.key, { formulaId: id })}
-                      />
-                    </Field>
-                    {formula && (
-                      <p className="mt-1 text-xs text-btm-black/50">Set total: {formula.set_total_kg} kg</p>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => removeProduccion(p.key)}
-                    className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
-                  >
-                    Quitar
-                  </button>
-                </div>
-
-                {formula && (
-                <>
-                <SubGroup title="Detalle">
-                  <Field label="Kg. Ciclos">
-                    <input
-                      type="number"
-                      min="0"
-                      value={p.kgObjetivo}
-                      onChange={(e) => updateProduccion(p.key, { kgObjetivo: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label="Envase">
-                    <select
-                      value={p.tipoEnvase}
-                      onChange={(e) => updateProduccion(p.key, { tipoEnvase: e.target.value })}
-                      className={inputClass}
-                    >
-                      <option value="BOLSA">Bolsa</option>
-                      <option value="GRANEL">Granel</option>
-                      <option value="BIG_BAG">Big bag</option>
-                    </select>
-                  </Field>
-                </SubGroup>
-
-                <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
-                  <CiclosGrid
-                    value={p.ciclosCompletados}
-                    onChange={(v) => updateProduccion(p.key, { ciclosCompletados: v })}
-                  />
-                </div>
-
-                <SubGroup title="Kilogramos producción">
-                  <Field label="Granel (kg)">
-                    <input
-                      type="number"
-                      min="0"
-                      value={p.granelKg}
-                      onChange={(e) => updateProduccion(p.key, { granelKg: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label="Bolsas (cantidad)">
-                    <input
-                      type="number"
-                      min="0"
-                      value={p.bolsasCantidad}
-                      onChange={(e) => updateProduccion(p.key, { bolsasCantidad: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label="Rótulo bolsas realizadas">
-                    <input
-                      type="text"
-                      value={p.rotuloBolsas}
-                      onChange={(e) => updateProduccion(p.key, { rotuloBolsas: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                </SubGroup>
-
-                <div className="border-t border-black/10 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => updateProduccion(p.key, { mostrarMas: !p.mostrarMas })}
-                    className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
-                  >
-                    {p.mostrarMas ? "− Ocultar más opciones" : "+ Más opciones"}
-                  </button>
-                </div>
-
-                {p.mostrarMas && (
-                <>
-                <SubGroup title="Stock al cierre">
-                  <Field label="Stock granel al cierre (kg)">
-                    <input
-                      type="number"
-                      min="0"
-                      value={p.stockGranelKg}
-                      onChange={(e) => updateProduccion(p.key, { stockGranelKg: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label="Stock bolsas al cierre">
-                    <input
-                      type="number"
-                      min="0"
-                      value={p.stockBolsasCantidad}
-                      onChange={(e) => updateProduccion(p.key, { stockBolsasCantidad: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                </SubGroup>
-
-                <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    Reemplazos de materia prima
-                  </span>
-                  {p.reemplazos.map((r) => (
-                    <div key={r.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-2 sm:flex-row sm:items-end">
-                      <div className="flex-1">
-                        <Field label="Reemplazo">
-                          <input
-                            type="text"
-                            value={r.reemplazo}
-                            onChange={(e) => updateReemplazo(p.key, r.key, { reemplazo: e.target.value })}
-                            className={inputClass}
-                          />
-                        </Field>
-                      </div>
-                      <div className="flex-1">
-                        <Field label="Motivo">
-                          <input
-                            type="text"
-                            value={r.motivo}
-                            onChange={(e) => updateReemplazo(p.key, r.key, { motivo: e.target.value })}
-                            className={inputClass}
-                          />
-                        </Field>
-                      </div>
-                      <div className="flex-1">
-                        <Field label="Autorizó">
-                          <input
-                            type="text"
-                            value={r.autorizo}
-                            onChange={(e) => updateReemplazo(p.key, r.key, { autorizo: e.target.value })}
-                            className={inputClass}
-                          />
-                        </Field>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeReemplazo(p.key, r.key)}
-                        className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
-                      >
-                        Quitar
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => addReemplazo(p.key)}
-                    className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-                  >
-                    + Agregar reemplazo
-                  </button>
-                </div>
-                </>
-                )}
-                </>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        <button
-          type="button"
-          onClick={() => setProducciones((prev) => [...prev, emptyProduccion()])}
-          className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-        >
-          + Agregar producto
-        </button>
-      </Section>
-
       {state?.error && (
         <p role="alert" className="text-sm font-medium text-btm-red">
           {state.error}
         </p>
       )}
-      {success && (
-        <p className="rounded-lg border border-btm-entregado bg-btm-entregado-bg px-4 py-3 text-sm font-semibold text-green-950">
-          Turno guardado correctamente.
-        </p>
-      )}
 
       <button
         type="submit"
-        disabled={pending || !hayProduccionValida || !operadorId}
+        disabled={pending || !operadorId}
         className="self-start rounded-full bg-btm-navy px-8 py-3 font-display text-sm font-bold uppercase tracking-wide text-white transition-colors hover:bg-btm-red disabled:cursor-not-allowed disabled:opacity-60"
       >
-        {pending ? "Guardando..." : "Guardar turno"}
+        {pending ? "Creando..." : "Crear turno y cargar productos"}
       </button>
     </form>
   );

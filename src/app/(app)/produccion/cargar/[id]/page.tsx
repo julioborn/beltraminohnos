@@ -91,7 +91,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
       {editable && (
         <section className="flex flex-col gap-3">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-            Agregar otro producto a este turno
+            {turno.producciones.length === 0 ? "Agregar producto a este turno" : "Agregar otro producto a este turno"}
           </h2>
           <AgregarProductoForm turnoId={turno.id} formulas={formulas} />
         </section>

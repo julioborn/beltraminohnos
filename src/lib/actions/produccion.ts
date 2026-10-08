@@ -19,21 +19,6 @@ const TIPOS_ENVASE: PackagingType[] = ["GRANEL", "BOLSA", "BIG_BAG"];
 type ParsedEmpleado = { nombre: string; hora_ingreso: string | null; hora_salida: string | null; firma_confirmada: boolean };
 type ParsedParada = { tipo: ParadaTipo; detalle: string | null; minutos: number | null };
 type ParsedReemplazo = { reemplazo: string | null; motivo: string | null; autorizo: string | null };
-type ParsedProduccion = {
-  formula_id: string | null;
-  kg_objetivo: number | null;
-  tipo_envase: PackagingType | null;
-  partida: string | null;
-  tipo_alimento: string | null;
-  ciclos_completados: number;
-  kg_producido_real: number | null;
-  granel_kg: number | null;
-  bolsas_cantidad: number | null;
-  rotulo_bolsas: string | null;
-  stock_granel_kg: number | null;
-  stock_bolsas_cantidad: number | null;
-  reemplazos: ParsedReemplazo[];
-};
 
 function parseJsonArray(formData: FormData, key: string): Record<string, unknown>[] {
   try {
@@ -114,32 +99,6 @@ export async function crearTurno(_prevState: CrearTurnoState, formData: FormData
     }))
     .filter((p): p is ParsedParada => p.tipo !== null);
 
-  const producciones: ParsedProduccion[] = parseJsonArray(formData, "producciones")
-    .map((p) => ({
-      formula_id: str(p.formula_id),
-      kg_objetivo: num(p.kg_objetivo),
-      tipo_envase: TIPOS_ENVASE.includes(p.tipo_envase as PackagingType) ? (p.tipo_envase as PackagingType) : null,
-      partida: str(p.partida),
-      tipo_alimento: str(p.tipo_alimento),
-      ciclos_completados: num(p.ciclos_completados) ?? 0,
-      kg_producido_real: num(p.kg_producido_real),
-      granel_kg: num(p.granel_kg),
-      bolsas_cantidad: num(p.bolsas_cantidad),
-      rotulo_bolsas: str(p.rotulo_bolsas),
-      stock_granel_kg: num(p.stock_granel_kg),
-      stock_bolsas_cantidad: num(p.stock_bolsas_cantidad),
-      reemplazos: Array.isArray(p.reemplazos)
-        ? (p.reemplazos as Record<string, unknown>[])
-            .map((r) => ({ reemplazo: str(r.reemplazo), motivo: str(r.motivo), autorizo: str(r.autorizo) }))
-            .filter((r) => r.reemplazo || r.motivo || r.autorizo)
-        : [],
-    }))
-    .filter((p) => p.formula_id);
-
-  if (producciones.length === 0) {
-    return { error: "Agregá al menos un producto elaborado en el turno." };
-  }
-
   const { data: turno, error: turnoError } = await supabase
     .from("turnos")
     .insert({
@@ -177,29 +136,9 @@ export async function crearTurno(_prevState: CrearTurnoState, formData: FormData
     if (error) return { error: `No se pudieron guardar las paradas: ${error.message}` };
   }
 
-  for (const p of producciones) {
-    const { reemplazos, ...produccionFields } = p;
-    const { data: produccion, error: produccionError } = await supabase
-      .from("producciones")
-      .insert({ turno_id: turno.id, created_by: user.id, ...produccionFields })
-      .select("id")
-      .single();
-
-    if (produccionError || !produccion) {
-      return { error: `No se pudo guardar un producto del turno: ${produccionError?.message ?? "error desconocido"}` };
-    }
-
-    if (reemplazos.length > 0) {
-      const { error } = await supabase.from("produccion_reemplazos").insert(
-        reemplazos.map((r) => ({ produccion_id: produccion.id, ...r })),
-      );
-      if (error) return { error: `No se pudieron guardar los reemplazos: ${error.message}` };
-    }
-  }
-
   revalidatePath("/produccion");
   revalidatePath("/produccion/cargar");
-  return undefined;
+  redirect(`/produccion/cargar/${turno.id}`);
 }
 
 function hoyISO() {
