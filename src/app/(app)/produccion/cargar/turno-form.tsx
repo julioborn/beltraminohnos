@@ -384,6 +384,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
         </div>
       </Section>
 
+      <div className="grid grid-cols-1 items-start gap-4 sm:grid-cols-3">
       <Section title="Paradas durante el turno">
         <div className="flex flex-col gap-2">
           {paradas.map((p) => (
@@ -503,6 +504,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
           </>
         )}
       </Section>
+      </div>
 
       <Section title="Productos elaborados en el turno">
         <div className="flex flex-col gap-3">
