@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth/role";
 import { getFormulas, getOperadoresFabrica, getTurnosRecientesDeCuenta } from "@/lib/data/produccion";
@@ -13,6 +14,8 @@ export default async function CargarProduccionPage() {
     getOperadoresFabrica(),
     getTurnosRecientesDeCuenta(user.id),
   ]);
+
+  const hoy = new Date().toISOString().slice(0, 10);
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 pb-28 sm:px-6">
@@ -39,7 +42,17 @@ export default async function CargarProduccionPage() {
               <div key={t.id} className="flex flex-col gap-1 p-3 text-sm">
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-btm-navy">{t.numero}</span>
-                  <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
+                    {t.fecha === hoy && (
+                      <Link
+                        href={`/produccion/cargar/${t.id}`}
+                        className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
+                      >
+                        Continuar cargando →
+                      </Link>
+                    )}
+                  </div>
                 </div>
                 <span className="text-btm-black/70">
                   {t.operador?.nombre ?? "—"} · {t.producciones.length} producto{t.producciones.length === 1 ? "" : "s"} ·{" "}

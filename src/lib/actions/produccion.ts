@@ -199,3 +199,113 @@ export async function crearTurno(_prevState: CrearTurnoState, formData: FormData
   revalidatePath("/produccion/cargar");
   return undefined;
 }
+
+function hoyISO() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+export type ActualizarCiclosState = { error: string } | undefined;
+
+// Un turno solo se puede seguir cargando el mismo día — una vez que pasa la
+// fecha queda cerrado, para no reabrir producción de días anteriores.
+export async function actualizarCiclosProduccion(
+  _prevState: ActualizarCiclosState,
+  formData: FormData,
+): Promise<ActualizarCiclosState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const produccionId = str(formData.get("produccion_id"));
+  if (!produccionId) return { error: "Producción inválida." };
+
+  const ciclos = num(formData.get("ciclos_completados")) ?? 0;
+
+  const { data: produccion } = await supabase
+    .from("producciones")
+    .select("id, turno:turnos(fecha)")
+    .eq("id", produccionId)
+    .maybeSingle();
+  if (!produccion) return { error: "La producción no existe." };
+  if (produccion.turno?.fecha !== hoyISO()) {
+    return { error: "Ese turno ya no es de hoy, no se puede editar." };
+  }
+
+  const { error } = await supabase
+    .from("producciones")
+    .update({ ciclos_completados: ciclos, kg_producido_real: ciclos > 0 ? ciclos * 1000 : null })
+    .eq("id", produccionId);
+  if (error) return { error: `No se pudo actualizar: ${error.message}` };
+
+  revalidatePath("/produccion");
+  revalidatePath("/produccion/cargar");
+  return undefined;
+}
+
+export type AgregarProduccionState = { error: string } | undefined;
+
+export async function agregarProduccionATurno(
+  _prevState: AgregarProduccionState,
+  formData: FormData,
+): Promise<AgregarProduccionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const turnoId = str(formData.get("turno_id"));
+  if (!turnoId) return { error: "Turno inválido." };
+
+  const { data: turno } = await supabase.from("turnos").select("id, fecha").eq("id", turnoId).maybeSingle();
+  if (!turno) return { error: "El turno no existe." };
+  if (turno.fecha !== hoyISO()) {
+    return { error: "Ese turno ya no es de hoy, no se puede editar." };
+  }
+
+  const formulaId = str(formData.get("formula_id"));
+  if (!formulaId) return { error: "Seleccioná la fórmula." };
+
+  const tipoEnvaseRaw = str(formData.get("tipo_envase"));
+  const ciclosCompletados = num(formData.get("ciclos_completados")) ?? 0;
+
+  const { data: produccion, error: produccionError } = await supabase
+    .from("producciones")
+    .insert({
+      turno_id: turnoId,
+      formula_id: formulaId,
+      kg_objetivo: num(formData.get("kg_objetivo")),
+      tipo_envase: TIPOS_ENVASE.includes(tipoEnvaseRaw as PackagingType) ? (tipoEnvaseRaw as PackagingType) : null,
+      ciclos_completados: ciclosCompletados,
+      kg_producido_real: ciclosCompletados > 0 ? ciclosCompletados * 1000 : null,
+      granel_kg: num(formData.get("granel_kg")),
+      bolsas_cantidad: num(formData.get("bolsas_cantidad")),
+      rotulo_bolsas: str(formData.get("rotulo_bolsas")),
+      stock_granel_kg: num(formData.get("stock_granel_kg")),
+      stock_bolsas_cantidad: num(formData.get("stock_bolsas_cantidad")),
+      created_by: user.id,
+    })
+    .select("id")
+    .single();
+
+  if (produccionError || !produccion) {
+    return { error: `No se pudo guardar el producto: ${produccionError?.message ?? "error desconocido"}` };
+  }
+
+  const reemplazos: ParsedReemplazo[] = parseJsonArray(formData, "reemplazos")
+    .map((r) => ({ reemplazo: str(r.reemplazo), motivo: str(r.motivo), autorizo: str(r.autorizo) }))
+    .filter((r) => r.reemplazo || r.motivo || r.autorizo);
+
+  if (reemplazos.length > 0) {
+    const { error } = await supabase.from("produccion_reemplazos").insert(
+      reemplazos.map((r) => ({ produccion_id: produccion.id, ...r })),
+    );
+    if (error) return { error: `No se pudieron guardar los reemplazos: ${error.message}` };
+  }
+
+  revalidatePath("/produccion");
+  revalidatePath("/produccion/cargar");
+  return undefined;
+}
