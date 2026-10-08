@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth/role";
 import { getTurnoDetalle, getFormulas } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
-import { TurnoDetalleView, ProduccionDetalleCard } from "../../turno-detalle-view";
+import { TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../../turno-detalle-view";
 import { EditarCiclosForm } from "../editar-ciclos-form";
 import { AgregarProductoForm } from "../agregar-producto-form";
 
@@ -44,7 +44,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
         </p>
       )}
 
-      <TurnoDetalleView turno={turno} />
+      <TurnoDatosView turno={turno} />
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
@@ -70,6 +70,8 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
           </div>
         )}
       </section>
+
+      <TurnoRestoView turno={turno} />
 
       {esHoy && (
         <section className="flex flex-col gap-3">

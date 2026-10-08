@@ -35,10 +35,8 @@ export function Item({ label, value }: { label: string; value: React.ReactNode }
   );
 }
 
-// Todo lo del turno en sí (no los productos) — usado tanto en el detalle de
-// admin como en "Continuar cargando" del operador, para que ambas vistas
-// muestren siempre la misma información completa.
-export function TurnoDetalleView({ turno }: { turno: Turno }) {
+// Datos del turno + Empleados — va antes de "Productos de este turno".
+export function TurnoDatosView({ turno }: { turno: Turno }) {
   return (
     <>
       <Section title="Datos del turno">
@@ -65,7 +63,15 @@ export function TurnoDetalleView({ turno }: { turno: Turno }) {
           </div>
         )}
       </Section>
+    </>
+  );
+}
 
+// Paradas + Estado de planta + Observaciones — va después de "Productos de
+// este turno".
+export function TurnoRestoView({ turno }: { turno: Turno }) {
+  return (
+    <>
       <Section title="Paradas durante el turno">
         {turno.turno_paradas.length === 0 ? (
           <p className="text-sm text-btm-black/50">Sin paradas cargadas.</p>
@@ -118,6 +124,33 @@ export function ProduccionDetalleCard({ p, ciclosSlot }: { p: ProduccionRow; cic
         <span className="text-xs text-btm-black/50">{p.numero}</span>
       </div>
       {p.formula && <p className="text-xs text-btm-black/50">Set total: {p.formula.set_total_kg} kg</p>}
+
+      {p.formula && p.formula.formula_ingredientes.length > 0 && (
+        <details className="rounded-md border border-black/10">
+          <summary className="cursor-pointer px-3 py-2 text-xs font-semibold uppercase tracking-wide text-btm-navy">
+            Ver receta ({p.formula.formula_ingredientes.length} insumos)
+          </summary>
+          <div className="flex flex-col divide-y divide-black/5 border-t border-black/10">
+            {p.formula.formula_ingredientes.map((ing) => {
+              const factor = p.kg_producido_real != null && p.formula!.set_total_kg ? p.kg_producido_real / p.formula!.set_total_kg : null;
+              const consumido = factor != null ? ing.set_kg * factor : null;
+              return (
+                <div key={ing.id} className="flex items-center justify-between gap-2 px-3 py-1.5 text-xs">
+                  <span className="text-btm-black/70">{ing.producto}</span>
+                  <span className="flex gap-2 text-btm-black/50">
+                    <span>Set: {ing.set_kg} kg</span>
+                    {consumido != null && (
+                      <span className="font-semibold text-btm-navy">
+                        Consumido: {consumido.toLocaleString("es-AR", { maximumFractionDigits: 2 })} kg
+                      </span>
+                    )}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </details>
+      )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Item label="Kg. Ciclos" value={p.kg_objetivo} />

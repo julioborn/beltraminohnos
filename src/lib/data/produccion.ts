@@ -37,7 +37,7 @@ const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confir
   turno_paradas(id, tipo, detalle, minutos),
   producciones(id, numero, kg_objetivo, kg_producido_real, tipo_envase, partida, tipo_alimento,
     ciclos_completados, granel_kg, bolsas_cantidad, rotulo_bolsas, stock_granel_kg, stock_bolsas_cantidad,
-    formula:formulas(id, codigo, nombre, set_total_kg),
+    formula:formulas(id, codigo, nombre, set_total_kg, formula_ingredientes(id, plataforma, item, producto, set_kg)),
     produccion_reemplazos(id, reemplazo, motivo, autorizo))`;
 
 export async function getTurnos(filters: ProduccionFilters = {}) {

@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { canViewProduccion } from "@/lib/auth/role";
 import { getTurnoDetalle } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
-import { TurnoDetalleView, ProduccionDetalleCard } from "../turno-detalle-view";
+import { TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../turno-detalle-view";
 
 export default async function TurnoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await canViewProduccion())) {
@@ -34,11 +34,11 @@ export default async function TurnoDetallePage({ params }: { params: Promise<{ i
         </div>
       </div>
 
-      <TurnoDetalleView turno={turno} />
+      <TurnoDatosView turno={turno} />
 
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-          Productos elaborados en el turno
+          Productos de este turno
         </h2>
         {turno.producciones.length === 0 ? (
           <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
@@ -52,6 +52,8 @@ export default async function TurnoDetallePage({ params }: { params: Promise<{ i
           </div>
         )}
       </section>
+
+      <TurnoRestoView turno={turno} />
     </div>
   );
 }
