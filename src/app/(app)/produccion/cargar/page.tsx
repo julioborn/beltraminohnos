@@ -15,8 +15,6 @@ export default async function CargarProduccionPage() {
     getTurnosRecientesDeCuenta(user.id),
   ]);
 
-  const hoy = new Date().toISOString().slice(0, 10);
-
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 pb-28 sm:px-6">
       <div>
@@ -39,24 +37,20 @@ export default async function CargarProduccionPage() {
         ) : (
           <div className="flex flex-col divide-y divide-black/10 rounded-lg border border-black/10 bg-white">
             {turnosRecientes.map((t) => (
-              <div key={t.id} className="flex flex-col gap-1 p-3 text-sm">
+              <Link
+                key={t.id}
+                href={`/produccion/cargar/${t.id}`}
+                className="flex flex-col gap-1 p-3 text-sm hover:bg-black/[.02]"
+              >
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-btm-navy">{t.numero}</span>
-                  <div className="flex items-center gap-3">
-                    <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
-                    <Link
-                      href={`/produccion/cargar/${t.id}`}
-                      className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
-                    >
-                      {t.fecha === hoy ? "Continuar cargando →" : "Ver detalle →"}
-                    </Link>
-                  </div>
+                  <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
                 </div>
                 <span className="text-btm-black/70">
                   {t.operador?.nombre ?? "—"} · {t.producciones.length} producto{t.producciones.length === 1 ? "" : "s"} ·{" "}
                   {t.producciones.map((p) => p.formula?.nombre).filter(Boolean).join(", ") || "—"}
                 </span>
-              </div>
+              </Link>
             ))}
           </div>
         )}
