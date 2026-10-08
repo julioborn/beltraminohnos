@@ -4,6 +4,7 @@ import { canViewProduccion } from "@/lib/auth/role";
 import { getTurnoDetalle } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
 import { TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../turno-detalle-view";
+import { EliminarTurnoButton } from "../eliminar-turno-button";
 
 export default async function TurnoDetallePage({ params }: { params: Promise<{ id: string }> }) {
   if (!(await canViewProduccion())) {
@@ -54,6 +55,10 @@ export default async function TurnoDetallePage({ params }: { params: Promise<{ i
       </section>
 
       <TurnoRestoView turno={turno} />
+
+      <div className="border-t border-black/10 pt-4">
+        <EliminarTurnoButton turnoId={turno.id} />
+      </div>
     </div>
   );
 }

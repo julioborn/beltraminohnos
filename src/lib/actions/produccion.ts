@@ -1,7 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { canViewProduccion } from "@/lib/auth/role";
 import type { Database } from "@/lib/supabase/database.types";
 
 type ParadaTipo = Database["public"]["Enums"]["parada_tipo"];
@@ -308,4 +310,24 @@ export async function agregarProduccionATurno(
   revalidatePath("/produccion");
   revalidatePath("/produccion/cargar");
   return undefined;
+}
+
+// Borra el turno completo (empleados, paradas, producciones y sus
+// reemplazos caen en cascada). Mismo criterio de acceso que ver el panel de
+// Producción — no se restringe más.
+export async function eliminarTurno(formData: FormData) {
+  if (!(await canViewProduccion())) {
+    throw new Error("No autorizado.");
+  }
+
+  const turnoId = str(formData.get("turno_id"));
+  if (!turnoId) throw new Error("Turno inválido.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("turnos").delete().eq("id", turnoId);
+  if (error) throw new Error(`No se pudo borrar el turno: ${error.message}`);
+
+  revalidatePath("/produccion");
+  revalidatePath("/produccion/cargar");
+  redirect("/produccion");
 }
