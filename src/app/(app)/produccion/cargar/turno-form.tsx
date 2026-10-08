@@ -15,10 +15,7 @@ type Produccion = {
   formulaId: string;
   kgObjetivo: string;
   tipoEnvase: string;
-  partida: string;
-  tipoAlimento: string;
   ciclosCompletados: string;
-  kgProducidoReal: string;
   granelKg: string;
   bolsasCantidad: string;
   rotuloBolsas: string;
@@ -53,10 +50,7 @@ function emptyProduccion(): Produccion {
     formulaId: "",
     kgObjetivo: "",
     tipoEnvase: "BOLSA",
-    partida: "",
-    tipoAlimento: "",
     ciclosCompletados: "",
-    kgProducidoReal: "",
     granelKg: "",
     bolsasCantidad: "",
     rotuloBolsas: "",
@@ -255,10 +249,11 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
         formula_id: p.formulaId,
         kg_objetivo: p.kgObjetivo ? Number(p.kgObjetivo) : null,
         tipo_envase: p.tipoEnvase || null,
-        partida: p.partida || null,
-        tipo_alimento: p.tipoAlimento || null,
         ciclos_completados: p.ciclosCompletados ? Number(p.ciclosCompletados) : 0,
-        kg_producido_real: p.kgProducidoReal ? Number(p.kgProducidoReal) : null,
+        // El total real producido es lo que marca la grilla de ciclos (cada
+        // casillero = 1.000kg), no un campo aparte — así no se tipea dos
+        // veces el mismo dato.
+        kg_producido_real: p.ciclosCompletados ? Number(p.ciclosCompletados) * 1000 : null,
         granel_kg: p.granelKg ? Number(p.granelKg) : null,
         bolsas_cantidad: p.bolsasCantidad ? Number(p.bolsasCantidad) : null,
         rotulo_bolsas: p.rotuloBolsas || null,
@@ -449,13 +444,20 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
               </select>
             </Field>
             <Field label="Operador anterior">
-              <input type="text" value={operadorAnterior} onChange={(e) => setOperadorAnterior(e.target.value)} className={inputClass} />
+              <select value={operadorAnterior} onChange={(e) => setOperadorAnterior(e.target.value)} className={inputClass}>
+                <option value="">Seleccionar...</option>
+                {operadores.map((o) => (
+                  <option key={o.id} value={o.nombre}>
+                    {o.nombre}
+                  </option>
+                ))}
+              </select>
             </Field>
-            <Field label="Engrase rolo (hs)">
-              <input type="text" value={engraseRoloHs} onChange={(e) => setEngraseRoloHs(e.target.value)} className={inputClass} />
+            <Field label="Engrase rolo">
+              <input type="time" value={engraseRoloHs} onChange={(e) => setEngraseRoloHs(e.target.value)} className={inputClass} />
             </Field>
-            <Field label="Engrase eje prensa (hs)">
-              <input type="text" value={engraseEjePrensaHs} onChange={(e) => setEngraseEjePrensaHs(e.target.value)} className={inputClass} />
+            <Field label="Engrase eje prensa">
+              <input type="time" value={engraseEjePrensaHs} onChange={(e) => setEngraseEjePrensaHs(e.target.value)} className={inputClass} />
             </Field>
           </div>
         ) : (
@@ -524,8 +526,8 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
 
                 {formula && (
                 <>
-                <SubGroup title="Datos del producto">
-                  <Field label="Kg objetivo">
+                <SubGroup title="Detalle">
+                  <Field label="Kg. Ciclos">
                     <input
                       type="number"
                       min="0"
@@ -545,22 +547,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                       <option value="BIG_BAG">Big bag</option>
                     </select>
                   </Field>
-                  <Field label="Partida">
-                    <input
-                      type="text"
-                      value={p.partida}
-                      onChange={(e) => updateProduccion(p.key, { partida: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
-                  <Field label="Tipo de alimento">
-                    <input
-                      type="text"
-                      value={p.tipoAlimento}
-                      onChange={(e) => updateProduccion(p.key, { tipoAlimento: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
                 </SubGroup>
 
                 <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
@@ -570,29 +556,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                   />
                 </div>
 
-                <div className="border-t border-black/10 pt-3">
-                  <button
-                    type="button"
-                    onClick={() => updateProduccion(p.key, { mostrarMas: !p.mostrarMas })}
-                    className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
-                  >
-                    {p.mostrarMas ? "− Ocultar más opciones" : "+ Más opciones"}
-                  </button>
-                </div>
-
-                {p.mostrarMas && (
-                <>
-                <SubGroup title="Resultado del ciclo">
-                  <Field label="Kg producción real">
-                    <input
-                      type="number"
-                      min="0"
-                      step="0.01"
-                      value={p.kgProducidoReal}
-                      onChange={(e) => updateProduccion(p.key, { kgProducidoReal: e.target.value })}
-                      className={inputClass}
-                    />
-                  </Field>
+                <SubGroup title="Kilogramos producción">
                   <Field label="Granel (kg)">
                     <input
                       type="number"
@@ -611,7 +575,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                       className={inputClass}
                     />
                   </Field>
-                  <Field label="Rótulo bolsas">
+                  <Field label="Rótulo bolsas realizadas">
                     <input
                       type="text"
                       value={p.rotuloBolsas}
@@ -621,6 +585,18 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
                   </Field>
                 </SubGroup>
 
+                <div className="border-t border-black/10 pt-3">
+                  <button
+                    type="button"
+                    onClick={() => updateProduccion(p.key, { mostrarMas: !p.mostrarMas })}
+                    className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
+                  >
+                    {p.mostrarMas ? "− Ocultar más opciones" : "+ Más opciones"}
+                  </button>
+                </div>
+
+                {p.mostrarMas && (
+                <>
                 <SubGroup title="Stock al cierre">
                   <Field label="Stock granel al cierre (kg)">
                     <input
