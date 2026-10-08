@@ -87,6 +87,37 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputClass = "w-full rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy";
 
+// Tarjeta chica que solo dispara la apertura del bloque real, que se
+// despliega abajo a todo el ancho — evita que formularios de varios campos
+// queden apretados dentro de una columna angosta.
+function TriggerCard({
+  title,
+  summary,
+  open,
+  onOpen,
+}: {
+  title: string;
+  summary: string;
+  open: boolean;
+  onOpen: () => void;
+}) {
+  return (
+    <section className="btm-card flex flex-col gap-4 p-4 sm:p-5">
+      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
+      <p className="text-sm text-btm-black/50">{summary}</p>
+      {!open && (
+        <button
+          type="button"
+          onClick={onOpen}
+          className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+        >
+          + Agregar
+        </button>
+      )}
+    </section>
+  );
+}
+
 function SubGroup({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
@@ -162,6 +193,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
   const [engraseEjePrensaHs, setEngraseEjePrensaHs] = useState("");
   const [observaciones, setObservaciones] = useState("");
 
+  const [mostrarParadas, setMostrarParadas] = useState(false);
   const [mostrarEstadoPlanta, setMostrarEstadoPlanta] = useState(false);
   const [mostrarObservaciones, setMostrarObservaciones] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([emptyEmpleado()]);
@@ -181,6 +213,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       setEngraseRoloHs("");
       setEngraseEjePrensaHs("");
       setObservaciones("");
+      setMostrarParadas(false);
       setMostrarEstadoPlanta(false);
       setMostrarObservaciones(false);
       setEmpleados([emptyEmpleado()]);
@@ -375,64 +408,88 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       </Section>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-      <Section title="Paradas durante el turno">
-        <div className="flex flex-col gap-2">
-          {paradas.map((p) => (
-            <div key={p.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3 sm:flex-row sm:items-end">
-              <div className="w-full sm:w-48">
-                <Field label="Tipo">
-                  <select value={p.tipo} onChange={(ev) => updateParada(p.key, { tipo: ev.target.value })} className={inputClass}>
-                    {Object.entries(PARADA_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-              <div className="flex-1">
-                <Field label="Detalle">
-                  <input
-                    type="text"
-                    value={p.detalle}
-                    onChange={(ev) => updateParada(p.key, { detalle: ev.target.value })}
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-              <div className="w-full sm:w-28">
-                <Field label="Minutos">
-                  <input
-                    type="number"
-                    min="0"
-                    value={p.minutos}
-                    onChange={(ev) => updateParada(p.key, { minutos: ev.target.value })}
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-              <button
-                type="button"
-                onClick={() => removeParada(p.key)}
-                className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
-              >
-                Quitar
-              </button>
-            </div>
-          ))}
-          {paradas.length === 0 && <p className="text-sm text-btm-black/50">Sin paradas cargadas.</p>}
-        </div>
-        <button
-          type="button"
-          onClick={() => setParadas((prev) => [...prev, emptyParada()])}
-          className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-        >
-          + Agregar
-        </button>
-      </Section>
+        <TriggerCard
+          title="Paradas durante el turno"
+          summary={paradas.length === 0 ? "Sin paradas cargadas." : `${paradas.length} parada${paradas.length === 1 ? "" : "s"} cargada${paradas.length === 1 ? "" : "s"}.`}
+          open={mostrarParadas}
+          onOpen={() => {
+            setMostrarParadas(true);
+            if (paradas.length === 0) setParadas([emptyParada()]);
+          }}
+        />
+        <TriggerCard
+          title="Estado de planta"
+          summary="Sin estado cargado."
+          open={mostrarEstadoPlanta}
+          onOpen={() => setMostrarEstadoPlanta(true)}
+        />
+        <TriggerCard
+          title="Observaciones"
+          summary="Sin observaciones cargadas."
+          open={mostrarObservaciones}
+          onOpen={() => setMostrarObservaciones(true)}
+        />
+      </div>
 
-      <Section title="Estado de planta">
-        {mostrarEstadoPlanta ? (
+      {mostrarParadas && (
+        <Section title="Paradas durante el turno">
+          <div className="flex flex-col gap-2">
+            {paradas.map((p) => (
+              <div key={p.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3 sm:flex-row sm:items-end">
+                <div className="w-full sm:w-48">
+                  <Field label="Tipo">
+                    <select value={p.tipo} onChange={(ev) => updateParada(p.key, { tipo: ev.target.value })} className={inputClass}>
+                      {Object.entries(PARADA_LABELS).map(([value, label]) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+                </div>
+                <div className="flex-1">
+                  <Field label="Detalle">
+                    <input
+                      type="text"
+                      value={p.detalle}
+                      onChange={(ev) => updateParada(p.key, { detalle: ev.target.value })}
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+                <div className="w-full sm:w-28">
+                  <Field label="Minutos">
+                    <input
+                      type="number"
+                      min="0"
+                      value={p.minutos}
+                      onChange={(ev) => updateParada(p.key, { minutos: ev.target.value })}
+                      className={inputClass}
+                    />
+                  </Field>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => removeParada(p.key)}
+                  className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
+                >
+                  Quitar
+                </button>
+              </div>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={() => setParadas((prev) => [...prev, emptyParada()])}
+            className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          >
+            + Agregar parada
+          </button>
+        </Section>
+      )}
+
+      {mostrarEstadoPlanta && (
+        <Section title="Estado de planta">
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
             <Field label="Estado de conos y silos">
               <select value={estadoConosSilos} onChange={(e) => setEstadoConosSilos(e.target.value)} className={inputClass}>
@@ -459,42 +516,19 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
               <input type="text" value={engraseEjePrensaHs} onChange={(e) => setEngraseEjePrensaHs(e.target.value)} className={inputClass} />
             </Field>
           </div>
-        ) : (
-          <p className="text-sm text-btm-black/50">Sin estado cargado.</p>
-        )}
-        {!mostrarEstadoPlanta && (
-          <button
-            type="button"
-            onClick={() => setMostrarEstadoPlanta(true)}
-            className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            + Agregar
-          </button>
-        )}
-      </Section>
+        </Section>
+      )}
 
-      <Section title="Observaciones">
-        {mostrarObservaciones ? (
+      {mostrarObservaciones && (
+        <Section title="Observaciones">
           <textarea
             rows={2}
             value={observaciones}
             onChange={(e) => setObservaciones(e.target.value)}
             className={inputClass}
           />
-        ) : (
-          <>
-            <p className="text-sm text-btm-black/50">Sin observaciones cargadas.</p>
-            <button
-              type="button"
-              onClick={() => setMostrarObservaciones(true)}
-              className="mt-auto self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-            >
-              + Agregar
-            </button>
-          </>
-        )}
-      </Section>
-      </div>
+        </Section>
+      )}
 
       <Section title="Productos elaborados en el turno">
         <div className="flex flex-col gap-3">
