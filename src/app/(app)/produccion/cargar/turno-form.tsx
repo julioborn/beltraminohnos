@@ -427,7 +427,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
           onClick={() => setParadas((prev) => [...prev, emptyParada()])}
           className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
         >
-          + Agregar parada
+          + Agregar
         </button>
       </Section>
 
@@ -468,7 +468,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
             onClick={() => setMostrarEstadoPlanta(true)}
             className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
           >
-            + Agregar estado
+            + Agregar
           </button>
         )}
       </Section>
@@ -489,7 +489,7 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
               onClick={() => setMostrarObservaciones(true)}
               className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
             >
-              + Agregar observaciones
+              + Agregar
             </button>
           </>
         )}
