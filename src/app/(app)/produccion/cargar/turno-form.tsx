@@ -155,7 +155,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [horaIngreso, setHoraIngreso] = useState("");
   const [horaSalida, setHoraSalida] = useState("");
-  const [firmaConfirmada, setFirmaConfirmada] = useState(false);
   const [estadoConosSilos, setEstadoConosSilos] = useState("");
   const [estadoLimpieza, setEstadoLimpieza] = useState("");
   const [operadorAnterior, setOperadorAnterior] = useState("");
@@ -174,7 +173,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       setFecha(new Date().toISOString().slice(0, 10));
       setHoraIngreso("");
       setHoraSalida("");
-      setFirmaConfirmada(false);
       setEstadoConosSilos("");
       setEstadoLimpieza("");
       setOperadorAnterior("");
@@ -277,7 +275,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
       <input type="hidden" name="fecha" value={fecha} />
       <input type="hidden" name="hora_ingreso" value={horaIngreso} />
       <input type="hidden" name="hora_salida" value={horaSalida} />
-      <input type="hidden" name="firma_confirmada" value={firmaConfirmada ? "on" : ""} />
       <input type="hidden" name="estado_conos_silos" value={estadoConosSilos} />
       <input type="hidden" name="estado_limpieza" value={estadoLimpieza} />
       <input type="hidden" name="operador_anterior" value={operadorAnterior} />
@@ -310,15 +307,6 @@ export function TurnoForm({ formulas, operadores }: { formulas: Formula[]; opera
             <input type="time" value={horaSalida} onChange={(e) => setHoraSalida(e.target.value)} className={inputClass} />
           </Field>
         </div>
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={firmaConfirmada}
-            onChange={(e) => setFirmaConfirmada(e.target.checked)}
-            className="h-4 w-4 cursor-pointer accent-btm-navy"
-          />
-          Confirmo mi firma para este turno
-        </label>
 
         <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
         <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
