@@ -9,10 +9,17 @@ export default async function CargarProduccionPage() {
   const user = await getAuthUser();
   if (!user) redirect("/inicio");
 
-  const [operadores, turnosRecientes] = await Promise.all([
-    getOperadoresFabrica(),
-    getTurnosRecientesDeCuenta(user.id),
-  ]);
+  const turnosRecientes = await getTurnosRecientesDeCuenta(user.id);
+
+  // Si ya hay un turno abierto (de hoy, sin finalizar), no se puede crear
+  // otro — se sigue cargando productos en ese, directo.
+  const hoy = new Date().toISOString().slice(0, 10);
+  const turnoAbierto = turnosRecientes.find((t) => t.fecha === hoy && !t.finalizado);
+  if (turnoAbierto) {
+    redirect(`/produccion/cargar/${turnoAbierto.id}`);
+  }
+
+  const operadores = await getOperadoresFabrica();
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 pb-28 sm:px-6">
