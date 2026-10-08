@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth/role";
 import { getTurnoDetalle, getFormulas } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
+import { TurnoDetalleView, ProduccionDetalleCard } from "../../turno-detalle-view";
 import { EditarCiclosForm } from "../editar-ciclos-form";
 import { AgregarProductoForm } from "../agregar-producto-form";
 
@@ -43,6 +44,8 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
         </p>
       )}
 
+      <TurnoDetalleView turno={turno} />
+
       <section className="flex flex-col gap-3">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
           Productos de este turno
@@ -54,22 +57,15 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
         ) : (
           <div className="flex flex-col gap-3">
             {turno.producciones.map((p) => (
-              <div key={p.id} className="btm-card flex flex-col gap-3 p-4 sm:p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-display text-sm font-bold text-btm-navy">
-                    {p.formula ? `${p.formula.codigo} · ${p.formula.nombre}` : "—"}
-                  </span>
-                  <span className="text-xs text-btm-black/50">{p.numero}</span>
-                </div>
-                {esHoy ? (
-                  <EditarCiclosForm produccionId={p.id} ciclosIniciales={p.ciclos_completados ?? 0} />
-                ) : (
-                  <p className="text-sm text-btm-black/70">
-                    Ciclos completados: {p.ciclos_completados ?? 0}/80 ·{" "}
-                    {((p.ciclos_completados ?? 0) * 1000).toLocaleString("es-AR")} kg
-                  </p>
-                )}
-              </div>
+              <ProduccionDetalleCard
+                key={p.id}
+                p={p}
+                ciclosSlot={
+                  esHoy ? (
+                    <EditarCiclosForm produccionId={p.id} ciclosIniciales={p.ciclos_completados ?? 0} />
+                  ) : undefined
+                }
+              />
             ))}
           </div>
         )}

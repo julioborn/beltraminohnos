@@ -44,14 +44,12 @@ export default async function CargarProduccionPage() {
                   <span className="font-semibold text-btm-navy">{t.numero}</span>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
-                    {t.fecha === hoy && (
-                      <Link
-                        href={`/produccion/cargar/${t.id}`}
-                        className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
-                      >
-                        Continuar cargando →
-                      </Link>
-                    )}
+                    <Link
+                      href={`/produccion/cargar/${t.id}`}
+                      className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
+                    >
+                      {t.fecha === hoy ? "Continuar cargando →" : "Ver detalle →"}
+                    </Link>
                   </div>
                 </div>
                 <span className="text-btm-black/70">
