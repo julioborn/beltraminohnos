@@ -227,10 +227,13 @@ export async function actualizarCiclosProduccion(
 
   const { data: produccion } = await supabase
     .from("producciones")
-    .select("id, turno:turnos(fecha)")
+    .select("id, turno:turnos(fecha, finalizado)")
     .eq("id", produccionId)
     .maybeSingle();
   if (!produccion) return { error: "La producción no existe." };
+  if (produccion.turno?.finalizado) {
+    return { error: "Este turno ya fue finalizado, no se puede editar." };
+  }
   if (produccion.turno?.fecha !== hoyISO()) {
     return { error: "Ese turno ya no es de hoy, no se puede editar." };
   }
@@ -261,8 +264,11 @@ export async function agregarProduccionATurno(
   const turnoId = str(formData.get("turno_id"));
   if (!turnoId) return { error: "Turno inválido." };
 
-  const { data: turno } = await supabase.from("turnos").select("id, fecha").eq("id", turnoId).maybeSingle();
+  const { data: turno } = await supabase.from("turnos").select("id, fecha, finalizado").eq("id", turnoId).maybeSingle();
   if (!turno) return { error: "El turno no existe." };
+  if (turno.finalizado) {
+    return { error: "Este turno ya fue finalizado, no se puede editar." };
+  }
   if (turno.fecha !== hoyISO()) {
     return { error: "Ese turno ya no es de hoy, no se puede editar." };
   }
@@ -310,6 +316,28 @@ export async function agregarProduccionATurno(
   revalidatePath("/produccion");
   revalidatePath("/produccion/cargar");
   return undefined;
+}
+
+// El dueño quiere que el operador cierre el turno a mano cuando termina
+// (un turno real no siempre coincide con el corte de medianoche que usa el
+// chequeo de fecha): una vez finalizado, queda bloqueado para siempre.
+export async function finalizarTurno(formData: FormData) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("No autenticado.");
+
+  const turnoId = str(formData.get("turno_id"));
+  if (!turnoId) throw new Error("Turno inválido.");
+
+  const { error } = await supabase.from("turnos").update({ finalizado: true }).eq("id", turnoId);
+  if (error) throw new Error(`No se pudo finalizar el turno: ${error.message}`);
+
+  revalidatePath("/produccion");
+  revalidatePath("/produccion/cargar");
+  revalidatePath(`/produccion/cargar/${turnoId}`);
+  revalidatePath(`/produccion/${turnoId}`);
 }
 
 // Borra el turno completo (empleados, paradas, producciones y sus

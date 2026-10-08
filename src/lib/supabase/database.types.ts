@@ -1014,6 +1014,7 @@ export type Database = {
             | null
           estado_limpieza: Database["public"]["Enums"]["estado_limpieza"] | null
           fecha: string
+          finalizado: boolean
           firma_confirmada: boolean
           hora_ingreso: string | null
           hora_salida: string | null
@@ -1035,6 +1036,7 @@ export type Database = {
             | Database["public"]["Enums"]["estado_limpieza"]
             | null
           fecha?: string
+          finalizado?: boolean
           firma_confirmada?: boolean
           hora_ingreso?: string | null
           hora_salida?: string | null
@@ -1056,6 +1058,7 @@ export type Database = {
             | Database["public"]["Enums"]["estado_limpieza"]
             | null
           fecha?: string
+          finalizado?: boolean
           firma_confirmada?: boolean
           hora_ingreso?: string | null
           hora_salida?: string | null

@@ -6,6 +6,7 @@ import { formatFecha } from "@/lib/format";
 import { TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../../turno-detalle-view";
 import { EditarCiclosForm } from "../editar-ciclos-form";
 import { AgregarProductoForm } from "../agregar-producto-form";
+import { FinalizarTurnoButton } from "../finalizar-turno-button";
 
 export default async function ContinuarTurnoPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -17,6 +18,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
 
   const hoy = new Date().toISOString().slice(0, 10);
   const esHoy = turno.fecha === hoy;
+  const editable = esHoy && !turno.finalizado;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 pb-28 sm:px-6">
@@ -31,17 +33,30 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
           Producción diaria
         </Link>
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
-            {turno.numero}
-          </h1>
+          <div className="flex items-center gap-2">
+            <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">
+              {turno.numero}
+            </h1>
+            {turno.finalizado && (
+              <span className="rounded-full bg-btm-navy/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-btm-navy">
+                Finalizado
+              </span>
+            )}
+          </div>
           <span className="text-sm text-btm-black/60">{formatFecha(turno.fecha)} · {turno.operador?.nombre ?? "—"}</span>
         </div>
       </div>
 
-      {!esHoy && (
-        <p className="rounded-lg border border-btm-red/30 bg-btm-red/5 px-4 py-3 text-sm text-btm-red">
-          Este turno ya no es de hoy, quedó cerrado — no se puede seguir cargando.
+      {turno.finalizado ? (
+        <p className="rounded-lg border border-btm-navy/30 bg-btm-navy/5 px-4 py-3 text-sm text-btm-navy">
+          Este turno fue finalizado — quedó guardado y no se puede seguir editando.
         </p>
+      ) : (
+        !esHoy && (
+          <p className="rounded-lg border border-btm-red/30 bg-btm-red/5 px-4 py-3 text-sm text-btm-red">
+            Este turno ya no es de hoy, quedó cerrado — no se puede seguir cargando.
+          </p>
+        )
       )}
 
       <TurnoDatosView turno={turno} />
@@ -61,7 +76,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
                 key={p.id}
                 p={p}
                 ciclosSlot={
-                  esHoy ? (
+                  editable ? (
                     <EditarCiclosForm produccionId={p.id} ciclosIniciales={p.ciclos_completados ?? 0} />
                   ) : undefined
                 }
@@ -73,13 +88,19 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
 
       <TurnoRestoView turno={turno} />
 
-      {esHoy && (
+      {editable && (
         <section className="flex flex-col gap-3">
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
             Agregar otro producto a este turno
           </h2>
           <AgregarProductoForm turnoId={turno.id} formulas={formulas} />
         </section>
+      )}
+
+      {editable && (
+        <div className="border-t border-black/10 pt-4">
+          <FinalizarTurnoButton turnoId={turno.id} />
+        </div>
       )}
     </div>
   );

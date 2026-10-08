@@ -111,7 +111,14 @@ export default async function ProduccionPage({
             {turnos.map((t) => (
               <div key={t.id} className="btm-card flex flex-col gap-2 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <span className="font-display text-sm font-bold text-btm-navy">{t.numero}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-display text-sm font-bold text-btm-navy">{t.numero}</span>
+                    {t.finalizado && (
+                      <span className="rounded-full bg-btm-navy/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-btm-navy">
+                        Finalizado
+                      </span>
+                    )}
+                  </span>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
                     <Link

@@ -29,7 +29,7 @@ export async function getOperadoresFabrica() {
   return data ?? [];
 }
 
-const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confirmada,
+const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confirmada, finalizado,
   estado_conos_silos, estado_limpieza, operador_anterior, engrase_rolo_hs, engrase_eje_prensa_hs,
   observaciones, created_at,
   operador:operadores_fabrica(id, nombre),

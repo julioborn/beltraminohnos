@@ -43,7 +43,14 @@ export default async function CargarProduccionPage() {
                 className="flex flex-col gap-1 p-3 text-sm hover:bg-black/[.02]"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="font-semibold text-btm-navy">{t.numero}</span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="font-semibold text-btm-navy">{t.numero}</span>
+                    {t.finalizado && (
+                      <span className="rounded-full bg-btm-navy/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-btm-navy">
+                        Finalizado
+                      </span>
+                    )}
+                  </span>
                   <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
                 </div>
                 <span className="text-btm-black/70">
