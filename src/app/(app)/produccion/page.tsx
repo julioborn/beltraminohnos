@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { getAuthUser, getProfileRole, hasFullAccess } from "@/lib/auth/role";
+import { canViewProduccion } from "@/lib/auth/role";
 import { getTurnos, getConsumoMateriaPrima, type ProduccionFilters } from "@/lib/data/produccion";
-import { createClient } from "@/lib/supabase/server";
 import { formatFecha } from "@/lib/format";
 import { ScrollFade } from "@/components/scroll-fade";
 
@@ -11,17 +10,7 @@ export default async function ProduccionPage({
 }: {
   searchParams: Promise<ProduccionFilters>;
 }) {
-  const role = await getProfileRole();
-  const user = await getAuthUser();
-
-  let veProduccion = false;
-  if (user && !hasFullAccess(role) && role !== "produccion") {
-    const supabase = await createClient();
-    const { data: profile } = await supabase.from("profiles").select("ve_produccion").eq("id", user.id).single();
-    veProduccion = profile?.ve_produccion ?? false;
-  }
-
-  if (!hasFullAccess(role) && role !== "produccion" && !veProduccion) {
+  if (!(await canViewProduccion())) {
     redirect("/inicio");
   }
 
@@ -123,7 +112,15 @@ export default async function ProduccionPage({
               <div key={t.id} className="btm-card flex flex-col gap-2 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="font-display text-sm font-bold text-btm-navy">{t.numero}</span>
-                  <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-btm-black/50">{formatFecha(t.fecha)}</span>
+                    <Link
+                      href={`/produccion/${t.id}`}
+                      className="text-xs font-semibold uppercase tracking-wide text-btm-navy hover:underline"
+                    >
+                      Ver detalle →
+                    </Link>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 text-xs text-btm-black/70">
                   <span>Operador: {t.operador?.nombre ?? "—"}</span>

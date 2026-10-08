@@ -29,3 +29,19 @@ export async function getProfileRole(): Promise<ProfileRole | null> {
 export function hasFullAccess(role: ProfileRole | null): boolean {
   return role === "admin";
 }
+
+// Quién puede ver el panel de admin de Producción: los admins de siempre, el
+// rol restringido "produccion" (ej. Pablo Althaus), o cualquier otro rol al
+// que se le haya habilitado el flag ve_produccion (ej. Roberto Favatier,
+// que sigue siendo "empleado" para todo lo demás).
+export async function canViewProduccion(): Promise<boolean> {
+  const role = await getProfileRole();
+  if (hasFullAccess(role) || role === "produccion") return true;
+
+  const user = await getAuthUser();
+  if (!user) return false;
+
+  const supabase = await createClient();
+  const { data: profile } = await supabase.from("profiles").select("ve_produccion").eq("id", user.id).single();
+  return profile?.ve_produccion ?? false;
+}
