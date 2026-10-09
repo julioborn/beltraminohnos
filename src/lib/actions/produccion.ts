@@ -170,6 +170,93 @@ export async function actualizarCiclosProduccion(
   return undefined;
 }
 
+export type ActualizarEmbolsadoState = { error: string } | undefined;
+
+// Solo aplica a modalidad Bolsa: cuánto de lo producido ya se embolsó
+// realmente. Lo que no se embolsa en este turno queda pendiente — se
+// resuelve con registrarContinuacionEmbolsado en un turno posterior.
+export async function actualizarEmbolsado(
+  _prevState: ActualizarEmbolsadoState,
+  formData: FormData,
+): Promise<ActualizarEmbolsadoState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const produccionId = str(formData.get("produccion_id"));
+  if (!produccionId) return { error: "Producción inválida." };
+
+  const { data: produccion } = await supabase
+    .from("producciones")
+    .select("id, turno_id")
+    .eq("id", produccionId)
+    .maybeSingle();
+  if (!produccion) return { error: "La producción no existe." };
+
+  const editableError = await turnoEditableError(supabase, produccion.turno_id);
+  if (editableError) return { error: editableError };
+
+  const { error } = await supabase
+    .from("producciones")
+    .update({ kg_embolsado: num(formData.get("kg_embolsado")) })
+    .eq("id", produccionId);
+  if (error) return { error: `No se pudo actualizar: ${error.message}` };
+
+  revalidateTurnoPaths(produccion.turno_id);
+  return undefined;
+}
+
+export type RegistrarContinuacionEmbolsadoState = { error: string } | undefined;
+
+// El producto quedó pendiente de embolsar en un turno ya finalizado — en
+// vez de reabrir ese turno, se crea un nuevo registro dentro del turno
+// actual que "continúa" al original (continua_produccion_id), para que
+// quede la correlación entre los turnos que fueron cerrando el producto.
+export async function registrarContinuacionEmbolsado(
+  _prevState: RegistrarContinuacionEmbolsadoState,
+  formData: FormData,
+): Promise<RegistrarContinuacionEmbolsadoState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const turnoId = str(formData.get("turno_id"));
+  if (!turnoId) return { error: "Turno inválido." };
+
+  const editableError = await turnoEditableError(supabase, turnoId);
+  if (editableError) return { error: editableError };
+
+  const origenId = str(formData.get("produccion_origen_id"));
+  if (!origenId) return { error: "Producto de origen inválido." };
+
+  const kgEmbolsado = num(formData.get("kg_embolsado"));
+  if (!kgEmbolsado || kgEmbolsado <= 0) return { error: "Ingresá los kg embolsados." };
+
+  const { data: origen } = await supabase
+    .from("producciones")
+    .select("id, formula_id")
+    .eq("id", origenId)
+    .maybeSingle();
+  if (!origen) return { error: "El producto de origen no existe." };
+
+  const { error } = await supabase.from("producciones").insert({
+    turno_id: turnoId,
+    formula_id: origen.formula_id,
+    tipo_envase: "BOLSA",
+    kg_embolsado: kgEmbolsado,
+    continua_produccion_id: origenId,
+    created_by: user.id,
+  });
+  if (error) return { error: `No se pudo registrar: ${error.message}` };
+
+  revalidateTurnoPaths(turnoId);
+  return undefined;
+}
+
 export type AgregarProduccionState = { error: string } | undefined;
 
 export async function agregarProduccionATurno(
@@ -212,6 +299,7 @@ export async function agregarProduccionATurno(
       granel_kg: num(formData.get("granel_kg")),
       bolsas_cantidad: num(formData.get("bolsas_cantidad")),
       rotulo_bolsas: str(formData.get("rotulo_bolsas")),
+      kg_embolsado: num(formData.get("kg_embolsado")),
       stock_granel_kg: num(formData.get("stock_granel_kg")),
       stock_bolsas_cantidad: num(formData.get("stock_bolsas_cantidad")),
       created_by: user.id,

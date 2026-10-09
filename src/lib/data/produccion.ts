@@ -37,6 +37,7 @@ const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confir
   turno_paradas(id, tipo, detalle, minutos),
   producciones(id, numero, kg_objetivo, kg_producido_real, tipo_envase, partida, tipo_alimento,
     ciclos_completados, granel_kg, bolsas_cantidad, rotulo_bolsas, stock_granel_kg, stock_bolsas_cantidad,
+    kg_embolsado, continua_produccion_id,
     formula:formulas(id, codigo, nombre, set_total_kg, formula_ingredientes(id, plataforma, item, producto, set_kg)),
     produccion_reemplazos(id, reemplazo, motivo, autorizo))`;
 
@@ -135,4 +136,69 @@ export async function getConsumoMateriaPrima(filters: Pick<ProduccionFilters, "d
     .sort((a, b) => b.kgConsumidos - a.kgConsumidos);
 
   return { insumos, totalKgProducido };
+}
+
+export type PendienteEmbolsar = {
+  produccionId: string;
+  formulaCodigo: string;
+  formulaNombre: string;
+  turnoNumero: string;
+  turnoFecha: string;
+  pendienteKg: number;
+};
+
+// Cuando un producto en modalidad Bolsa no se termina de embolsar en el
+// mismo turno, lo que queda sin embolsar se "arrastra": cada continuación
+// (continua_produccion_id) suma a lo ya embolsado del original, sin tocar el
+// turno viejo (que puede estar finalizado). El pendiente real de un
+// producto es lo producido menos todo lo embolsado en toda la cadena.
+export async function getPendientesEmbolsar(excludeTurnoId?: string): Promise<PendienteEmbolsar[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("producciones")
+    .select(
+      `id, turno_id, kg_producido_real, kg_embolsado, continua_produccion_id,
+       formula:formulas(codigo, nombre),
+       turno:turnos(numero, fecha)`,
+    )
+    .eq("tipo_envase", "BOLSA");
+
+  const rows = data ?? [];
+  if (rows.length === 0) return [];
+
+  const childrenByParent = new Map<string, typeof rows>();
+  for (const r of rows) {
+    if (r.continua_produccion_id) {
+      const list = childrenByParent.get(r.continua_produccion_id) ?? [];
+      list.push(r);
+      childrenByParent.set(r.continua_produccion_id, list);
+    }
+  }
+
+  const roots = rows.filter((r) => !r.continua_produccion_id && r.kg_producido_real != null);
+
+  const pendientes: PendienteEmbolsar[] = [];
+  for (const root of roots) {
+    if (!root.formula || !root.turno) continue;
+    let totalEmbolsado = root.kg_embolsado ?? 0;
+    const stack = [...(childrenByParent.get(root.id) ?? [])];
+    while (stack.length > 0) {
+      const node = stack.pop()!;
+      totalEmbolsado += node.kg_embolsado ?? 0;
+      for (const child of childrenByParent.get(node.id) ?? []) stack.push(child);
+    }
+    const pendienteKg = (root.kg_producido_real ?? 0) - totalEmbolsado;
+    if (pendienteKg > 0.01 && root.turno_id !== excludeTurnoId) {
+      pendientes.push({
+        produccionId: root.id,
+        formulaCodigo: root.formula.codigo,
+        formulaNombre: root.formula.nombre,
+        turnoNumero: root.turno.numero,
+        turnoFecha: root.turno.fecha,
+        pendienteKg,
+      });
+    }
+  }
+
+  return pendientes.sort((a, b) => a.turnoFecha.localeCompare(b.turnoFecha));
 }

@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth/role";
-import { getTurnoDetalle, getFormulas, getOperadoresFabrica } from "@/lib/data/produccion";
+import { getTurnoDetalle, getFormulas, getOperadoresFabrica, getPendientesEmbolsar } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
 import { Section, TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../../turno-detalle-view";
 import { EditarCiclosForm } from "../editar-ciclos-form";
+import { EditarEmbolsadoForm } from "../editar-embolsado-form";
 import { AgregarProductoForm } from "../agregar-producto-form";
 import { FinalizarTurnoButton } from "../finalizar-turno-button";
 import { ParadasEditor } from "../paradas-editor";
 import { EstadoPlantaEditor } from "../estado-planta-editor";
 import { ObservacionesEditor } from "../observaciones-editor";
+import { PendientesEmbolsar } from "../pendientes-embolsar";
 
 export default async function ContinuarTurnoPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
@@ -26,6 +28,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
   const hoy = new Date().toISOString().slice(0, 10);
   const esHoy = turno.fecha === hoy;
   const editable = esHoy && !turno.finalizado;
+  const pendientesEmbolsar = editable ? await getPendientesEmbolsar(turno.id) : [];
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 px-4 py-6 pb-28 sm:px-6">
@@ -87,11 +90,18 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
                     <EditarCiclosForm produccionId={p.id} ciclosIniciales={p.ciclos_completados ?? 0} />
                   ) : undefined
                 }
+                embolsadoSlot={
+                  editable ? (
+                    <EditarEmbolsadoForm produccionId={p.id} kgEmbolsadoInicial={p.kg_embolsado ?? null} />
+                  ) : undefined
+                }
               />
             ))}
           </div>
         )}
       </section>
+
+      {editable && <PendientesEmbolsar turnoId={turno.id} pendientes={pendientesEmbolsar} />}
 
       {editable ? (
         <>

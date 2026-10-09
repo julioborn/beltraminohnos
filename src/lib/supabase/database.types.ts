@@ -514,11 +514,13 @@ export type Database = {
         Row: {
           bolsas_cantidad: number | null
           ciclos_completados: number
+          continua_produccion_id: string | null
           created_at: string
           created_by: string | null
           formula_id: string | null
           granel_kg: number | null
           id: string
+          kg_embolsado: number | null
           kg_objetivo: number | null
           kg_producido_real: number | null
           numero: string
@@ -534,11 +536,13 @@ export type Database = {
         Insert: {
           bolsas_cantidad?: number | null
           ciclos_completados?: number
+          continua_produccion_id?: string | null
           created_at?: string
           created_by?: string | null
           formula_id?: string | null
           granel_kg?: number | null
           id?: string
+          kg_embolsado?: number | null
           kg_objetivo?: number | null
           kg_producido_real?: number | null
           numero?: string
@@ -554,11 +558,13 @@ export type Database = {
         Update: {
           bolsas_cantidad?: number | null
           ciclos_completados?: number
+          continua_produccion_id?: string | null
           created_at?: string
           created_by?: string | null
           formula_id?: string | null
           granel_kg?: number | null
           id?: string
+          kg_embolsado?: number | null
           kg_objetivo?: number | null
           kg_producido_real?: number | null
           numero?: string
@@ -572,6 +578,13 @@ export type Database = {
           turno_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "producciones_continua_produccion_id_fkey"
+            columns: ["continua_produccion_id"]
+            isOneToOne: false
+            referencedRelation: "producciones"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "producciones_created_by_fkey"
             columns: ["created_by"]

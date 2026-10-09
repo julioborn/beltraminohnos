@@ -114,7 +114,35 @@ export function TurnoRestoView({ turno }: { turno: Turno }) {
 // Card de un producto con todos sus datos. `ciclosSlot` reemplaza la fila de
 // "Ciclos completados" — el detalle de admin le pasa el texto fijo, y
 // "Continuar cargando" le pasa la grilla editable en su lugar.
-export function ProduccionDetalleCard({ p, ciclosSlot }: { p: ProduccionRow; ciclosSlot?: React.ReactNode }) {
+export function ProduccionDetalleCard({
+  p,
+  ciclosSlot,
+  embolsadoSlot,
+}: {
+  p: ProduccionRow;
+  ciclosSlot?: React.ReactNode;
+  embolsadoSlot?: React.ReactNode;
+}) {
+  if (p.continua_produccion_id) {
+    return (
+      <div className="btm-card flex flex-col gap-2 p-4 sm:p-5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <span className="font-display text-sm font-bold text-btm-navy">
+            {p.formula ? `${p.formula.codigo} · ${p.formula.nombre}` : "—"}
+          </span>
+          <span className="text-xs text-btm-black/50">{p.numero}</span>
+        </div>
+        <span className="w-fit rounded-full bg-btm-navy/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-btm-navy">
+          Continuación de embolsado
+        </span>
+        <Item
+          label="Kg embolsados en este turno"
+          value={p.kg_embolsado != null ? p.kg_embolsado.toLocaleString("es-AR") : null}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="btm-card flex flex-col gap-3 p-4 sm:p-5">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -167,6 +195,14 @@ export function ProduccionDetalleCard({ p, ciclosSlot }: { p: ProduccionRow; cic
         <Item label="Bolsas (cantidad)" value={p.bolsas_cantidad} />
         <Item label="Rótulo bolsas" value={p.rotulo_bolsas} />
       </div>
+
+      {p.tipo_envase === "BOLSA" && p.kg_producido_real != null && (
+        <div className="border-t border-black/10 pt-3">
+          {embolsadoSlot ?? (
+            <Item label="Kg embolsados" value={p.kg_embolsado != null ? p.kg_embolsado.toLocaleString("es-AR") : null} />
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Item label="Stock granel al cierre" value={p.stock_granel_kg} />
