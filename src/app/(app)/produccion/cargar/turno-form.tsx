@@ -6,14 +6,6 @@ import { crearTurno } from "@/lib/actions/produccion";
 type Operador = { id: string; nombre: string };
 
 type Empleado = { key: string; nombre: string; horaIngreso: string; horaSalida: string };
-type Parada = { key: string; tipo: string; detalle: string; minutos: string };
-
-const PARADA_LABELS: Record<string, string> = {
-  ROTURA: "Rotura",
-  CORTE_LUZ: "Corte de luz",
-  FALTA_MATERIA_PRIMA: "Falta de materia prima",
-  OTROS: "Otros",
-};
 
 function horaActual() {
   return new Date().toTimeString().slice(0, 5);
@@ -21,10 +13,6 @@ function horaActual() {
 
 function emptyEmpleado(): Empleado {
   return { key: crypto.randomUUID(), nombre: "", horaIngreso: "", horaSalida: "" };
-}
-
-function emptyParada(): Parada {
-  return { key: crypto.randomUUID(), tipo: "ROTURA", detalle: "", minutos: "" };
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
@@ -54,30 +42,13 @@ export function TurnoForm({ operadores }: { operadores: Operador[] }) {
   const [fecha, setFecha] = useState(() => new Date().toISOString().slice(0, 10));
   const [horaIngreso, setHoraIngreso] = useState(horaActual);
   const [horaSalida, setHoraSalida] = useState(horaActual);
-  const [estadoConosSilos, setEstadoConosSilos] = useState("");
-  const [estadoLimpieza, setEstadoLimpieza] = useState("");
-  const [operadorAnterior, setOperadorAnterior] = useState("");
-  const [engraseRoloHs, setEngraseRoloHs] = useState("");
-  const [engraseEjePrensaHs, setEngraseEjePrensaHs] = useState("");
-  const [observaciones, setObservaciones] = useState("");
-
-  const [mostrarEstadoPlanta, setMostrarEstadoPlanta] = useState(false);
-  const [mostrarObservaciones, setMostrarObservaciones] = useState(false);
   const [empleados, setEmpleados] = useState<Empleado[]>([emptyEmpleado()]);
-  const [paradas, setParadas] = useState<Parada[]>([]);
 
   function updateEmpleado(key: string, patch: Partial<Empleado>) {
     setEmpleados((prev) => prev.map((e) => (e.key === key ? { ...e, ...patch } : e)));
   }
   function removeEmpleado(key: string) {
     setEmpleados((prev) => (prev.length > 1 ? prev.filter((e) => e.key !== key) : prev));
-  }
-
-  function updateParada(key: string, patch: Partial<Parada>) {
-    setParadas((prev) => prev.map((p) => (p.key === key ? { ...p, ...patch } : p)));
-  }
-  function removeParada(key: string) {
-    setParadas((prev) => prev.filter((p) => p.key !== key));
   }
 
   const empleadosPayload = JSON.stringify(
@@ -90,24 +61,13 @@ export function TurnoForm({ operadores }: { operadores: Operador[] }) {
       })),
   );
 
-  const paradasPayload = JSON.stringify(
-    paradas.map((p) => ({ tipo: p.tipo, detalle: p.detalle || null, minutos: p.minutos ? Number(p.minutos) : null })),
-  );
-
   return (
     <form action={formAction} className="flex flex-col gap-4">
       <input type="hidden" name="operador_id" value={operadorId} />
       <input type="hidden" name="fecha" value={fecha} />
       <input type="hidden" name="hora_ingreso" value={horaIngreso} />
       <input type="hidden" name="hora_salida" value={horaSalida} />
-      <input type="hidden" name="estado_conos_silos" value={estadoConosSilos} />
-      <input type="hidden" name="estado_limpieza" value={estadoLimpieza} />
-      <input type="hidden" name="operador_anterior" value={operadorAnterior} />
-      <input type="hidden" name="engrase_rolo_hs" value={engraseRoloHs} />
-      <input type="hidden" name="engrase_eje_prensa_hs" value={engraseEjePrensaHs} />
-      <input type="hidden" name="observaciones" value={observaciones} />
       <input type="hidden" name="empleados" value={empleadosPayload} />
-      <input type="hidden" name="paradas" value={paradasPayload} />
 
       <Section title="Datos del turno">
         <Field label="Operador">
@@ -193,133 +153,6 @@ export function TurnoForm({ operadores }: { operadores: Operador[] }) {
           + Agregar empleado
         </button>
         </div>
-      </Section>
-
-      <Section title="Paradas durante el turno">
-        <div className="flex flex-col gap-2">
-          {paradas.map((p) => (
-            <div key={p.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-3 sm:flex-row sm:items-end">
-              <div className="w-full sm:w-48">
-                <Field label="Tipo">
-                  <select value={p.tipo} onChange={(ev) => updateParada(p.key, { tipo: ev.target.value })} className={inputClass}>
-                    {Object.entries(PARADA_LABELS).map(([value, label]) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </select>
-                </Field>
-              </div>
-              <div className="flex-1">
-                <Field label="Detalle">
-                  <input
-                    type="text"
-                    value={p.detalle}
-                    onChange={(ev) => updateParada(p.key, { detalle: ev.target.value })}
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-              <div className="w-full sm:w-28">
-                <Field label="Minutos">
-                  <input
-                    type="number"
-                    min="0"
-                    value={p.minutos}
-                    onChange={(ev) => updateParada(p.key, { minutos: ev.target.value })}
-                    className={inputClass}
-                  />
-                </Field>
-              </div>
-              <button
-                type="button"
-                onClick={() => removeParada(p.key)}
-                className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
-              >
-                Quitar
-              </button>
-            </div>
-          ))}
-          {paradas.length === 0 && <p className="text-sm text-btm-black/50">Sin paradas cargadas.</p>}
-        </div>
-        <button
-          type="button"
-          onClick={() => setParadas((prev) => [...prev, emptyParada()])}
-          className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-        >
-          + Agregar parada
-        </button>
-      </Section>
-
-      <Section title="Estado de planta">
-        {mostrarEstadoPlanta ? (
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label="Estado de conos y silos">
-              <select value={estadoConosSilos} onChange={(e) => setEstadoConosSilos(e.target.value)} className={inputClass}>
-                <option value="">Sin especificar</option>
-                <option value="BIEN">Bien</option>
-                <option value="GOLPEADOS">Golpeados</option>
-              </select>
-            </Field>
-            <Field label="Estado de limpieza recibido">
-              <select value={estadoLimpieza} onChange={(e) => setEstadoLimpieza(e.target.value)} className={inputClass}>
-                <option value="">Sin especificar</option>
-                <option value="B">Bueno</option>
-                <option value="R">Regular</option>
-                <option value="M">Malo</option>
-              </select>
-            </Field>
-            <Field label="Operador anterior">
-              <select value={operadorAnterior} onChange={(e) => setOperadorAnterior(e.target.value)} className={inputClass}>
-                <option value="">Seleccionar...</option>
-                {operadores.map((o) => (
-                  <option key={o.id} value={o.nombre}>
-                    {o.nombre}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field label="Engrase rolo">
-              <input type="time" value={engraseRoloHs} onChange={(e) => setEngraseRoloHs(e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="Engrase eje prensa">
-              <input type="time" value={engraseEjePrensaHs} onChange={(e) => setEngraseEjePrensaHs(e.target.value)} className={inputClass} />
-            </Field>
-          </div>
-        ) : (
-          <p className="text-sm text-btm-black/50">Sin estado cargado.</p>
-        )}
-        {!mostrarEstadoPlanta && (
-          <button
-            type="button"
-            onClick={() => setMostrarEstadoPlanta(true)}
-            className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-          >
-            + Agregar estado
-          </button>
-        )}
-      </Section>
-
-      <Section title="Observaciones">
-        {mostrarObservaciones ? (
-          <textarea
-            rows={2}
-            value={observaciones}
-            onChange={(e) => setObservaciones(e.target.value)}
-            className={inputClass}
-          />
-        ) : (
-          <>
-            <p className="text-sm text-btm-black/50">Sin observaciones cargadas.</p>
-            <button
-              type="button"
-              onClick={() => setMostrarObservaciones(true)}
-              className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-            >
-              + Agregar observaciones
-            </button>
-          </>
-        )}
       </Section>
 
       {state?.error && (

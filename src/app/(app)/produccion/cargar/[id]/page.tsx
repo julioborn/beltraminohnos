@@ -1,19 +1,26 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getAuthUser } from "@/lib/auth/role";
-import { getTurnoDetalle, getFormulas } from "@/lib/data/produccion";
+import { getTurnoDetalle, getFormulas, getOperadoresFabrica } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
-import { TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../../turno-detalle-view";
+import { Section, TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../../turno-detalle-view";
 import { EditarCiclosForm } from "../editar-ciclos-form";
 import { AgregarProductoForm } from "../agregar-producto-form";
 import { FinalizarTurnoButton } from "../finalizar-turno-button";
+import { ParadasEditor } from "../paradas-editor";
+import { EstadoPlantaEditor } from "../estado-planta-editor";
+import { ObservacionesEditor } from "../observaciones-editor";
 
 export default async function ContinuarTurnoPage({ params }: { params: Promise<{ id: string }> }) {
   const user = await getAuthUser();
   if (!user) redirect("/inicio");
 
   const { id } = await params;
-  const [turno, formulas] = await Promise.all([getTurnoDetalle(id), getFormulas()]);
+  const [turno, formulas, operadores] = await Promise.all([
+    getTurnoDetalle(id),
+    getFormulas(),
+    getOperadoresFabrica(),
+  ]);
   if (!turno) notFound();
 
   const hoy = new Date().toISOString().slice(0, 10);
@@ -86,7 +93,21 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
         )}
       </section>
 
-      <TurnoRestoView turno={turno} />
+      {editable ? (
+        <>
+          <Section title="Paradas durante el turno">
+            <ParadasEditor turnoId={turno.id} paradas={turno.turno_paradas} />
+          </Section>
+          <Section title="Estado de planta">
+            <EstadoPlantaEditor turnoId={turno.id} estado={turno} operadores={operadores} />
+          </Section>
+          <Section title="Observaciones">
+            <ObservacionesEditor turnoId={turno.id} observaciones={turno.observaciones} />
+          </Section>
+        </>
+      ) : (
+        <TurnoRestoView turno={turno} />
+      )}
 
       {editable && (
         <section className="flex flex-col gap-3">
