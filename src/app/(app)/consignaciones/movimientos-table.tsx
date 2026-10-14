@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { actualizarMovimientoSucursal } from "@/lib/actions/consignaciones";
-import { formatArs, formatFecha } from "@/lib/format";
+import { formatArs, formatFecha, formatUsd } from "@/lib/format";
 import { ScrollFade } from "@/components/scroll-fade";
 import type { getSucursalMovimientos } from "@/lib/data/consignaciones";
 import type { Database } from "@/lib/supabase/database.types";
@@ -23,7 +23,7 @@ export function MovimientosTable({ movimientos, products }: { movimientos: Movim
   return (
     <ScrollFade>
       <div className="overflow-x-auto rounded-lg border border-black/10">
-        <table className="w-full min-w-[960px] text-sm">
+        <table className="w-full min-w-[1140px] text-sm">
           <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
             <tr>
               <th className="px-3 py-2.5">Fecha</th>
@@ -31,6 +31,8 @@ export function MovimientosTable({ movimientos, products }: { movimientos: Movim
               <th className="px-3 py-2.5">Producto</th>
               <th className="px-3 py-2.5">Tipo</th>
               <th className="px-3 py-2.5 text-right">Bolsas</th>
+              <th className="px-3 py-2.5 text-right">Precio USD</th>
+              <th className="px-3 py-2.5 text-right">Tipo de cambio</th>
               <th className="px-3 py-2.5 text-right">Monto</th>
               <th className="px-3 py-2.5">Cliente</th>
               <th className="px-3 py-2.5">CUIT</th>
@@ -49,6 +51,12 @@ export function MovimientosTable({ movimientos, products }: { movimientos: Movim
                   <td className="px-3 py-2.5">{m.product?.name ?? "—"}</td>
                   <td className="px-3 py-2.5">{TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
                   <td className="px-3 py-2.5 text-right">{m.cantidad_bolsas}</td>
+                  <td className="px-3 py-2.5 text-right">{m.precio_usd != null ? formatUsd(m.precio_usd) : "—"}</td>
+                  <td className="px-3 py-2.5 text-right">
+                    {m.tipo_cambio != null
+                      ? m.tipo_cambio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : "—"}
+                  </td>
                   <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
                   <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
                   <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
@@ -153,6 +161,14 @@ function MovimientoEditRow({
           onChange={(e) => setCantidadBolsas(e.target.value)}
           className="w-20 rounded-md border border-black/15 px-2 py-1.5 text-right text-sm"
         />
+      </td>
+      <td className="px-3 py-2.5 text-right text-xs text-btm-black/50">
+        {movimiento.precio_usd != null ? formatUsd(movimiento.precio_usd) : "—"}
+      </td>
+      <td className="px-3 py-2.5 text-right text-xs text-btm-black/50">
+        {movimiento.tipo_cambio != null
+          ? movimiento.tipo_cambio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+          : "—"}
       </td>
       <td className="px-3 py-2.5 text-right text-xs text-btm-black/50">
         {tipo !== "INGRESO_STOCK" ? "se recalcula" : "—"}
