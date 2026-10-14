@@ -59,6 +59,7 @@ export default async function ConsignacionesPage({
     ]);
 
   const hasFilter = Boolean(params.desde || params.hasta || params.sucursal || params.tipo || params.estado);
+  const hasSucursalFilter = Boolean(params.sucursal);
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();
 
   const totalVentas = saldos.reduce((sum, s) => sum + s.totalVentas, 0);
@@ -154,12 +155,14 @@ export default async function ConsignacionesPage({
 
       {tab === "pendientes-sucursal" && (
         <section className="flex flex-col gap-3">
+          <SucursalFilterForm tab="pendientes-sucursal" sucursales={sucursales} selected={params.sucursal} hasFilter={hasSucursalFilter} />
           <PendientesPorProducto groups={gruposPorProducto} />
         </section>
       )}
 
       {tab === "pendientes-cliente" && (
         <section className="flex flex-col gap-3">
+          <SucursalFilterForm tab="pendientes-cliente" sucursales={sucursales} selected={params.sucursal} hasFilter={hasSucursalFilter} />
           <PendientesPorCliente groups={gruposPorCliente} />
         </section>
       )}
@@ -329,6 +332,55 @@ function groupPorCliente(rows: MovimientoRow[]): PendienteSucursalCliente[] {
     map.set(key, group);
   }
   return Array.from(map.values()).sort((a, b) => b.montoArs - a.montoArs);
+}
+
+function SucursalFilterForm({
+  tab,
+  sucursales,
+  selected,
+  hasFilter,
+}: {
+  tab: Tab;
+  sucursales: { id: string; name: string }[];
+  selected?: string;
+  hasFilter: boolean;
+}) {
+  return (
+    <form method="get" className="flex flex-wrap items-end gap-3 rounded-lg border border-black/10 p-4">
+      <input type="hidden" name="tab" value={tab} />
+      <div className="flex flex-col gap-1">
+        <label htmlFor="sucursal" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+          Sucursal
+        </label>
+        <select
+          id="sucursal"
+          name="sucursal"
+          defaultValue={selected ?? ""}
+          className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm"
+        >
+          <option value="">Todas</option>
+          {sucursales.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.name}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="flex gap-2">
+        <button type="submit" className="rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red">
+          Filtrar
+        </button>
+        {hasFilter && (
+          <Link
+            href={`/consignaciones?tab=${tab}`}
+            className="flex items-center justify-center rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+          >
+            Limpiar
+          </Link>
+        )}
+      </div>
+    </form>
+  );
 }
 
 function Kpi({ label, value }: { label: string; value: string }) {
