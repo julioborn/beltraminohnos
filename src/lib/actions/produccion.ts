@@ -208,6 +208,54 @@ export async function actualizarEmbolsado(
   return undefined;
 }
 
+export type ActualizarDetalleProduccionState = { error: string } | undefined;
+
+// El envase y lo que se va produciendo (granel, bolsas, rótulo, stock al
+// cierre) se completan durante el turno, no todo de una — tiene que poder
+// editarse después de creado el producto, igual que ciclos y embolsado.
+export async function actualizarDetalleProduccion(
+  _prevState: ActualizarDetalleProduccionState,
+  formData: FormData,
+): Promise<ActualizarDetalleProduccionState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const produccionId = str(formData.get("produccion_id"));
+  if (!produccionId) return { error: "Producción inválida." };
+
+  const { data: produccion } = await supabase
+    .from("producciones")
+    .select("id, turno_id")
+    .eq("id", produccionId)
+    .maybeSingle();
+  if (!produccion) return { error: "La producción no existe." };
+
+  const editableError = await turnoEditableError(supabase, produccion.turno_id);
+  if (editableError) return { error: editableError };
+
+  const tipoEnvaseRaw = str(formData.get("tipo_envase"));
+  const tipoEnvase = TIPOS_ENVASE.includes(tipoEnvaseRaw as PackagingType) ? (tipoEnvaseRaw as PackagingType) : null;
+
+  const { error } = await supabase
+    .from("producciones")
+    .update({
+      tipo_envase: tipoEnvase,
+      granel_kg: num(formData.get("granel_kg")),
+      bolsas_cantidad: num(formData.get("bolsas_cantidad")),
+      rotulo_bolsas: str(formData.get("rotulo_bolsas")),
+      stock_granel_kg: num(formData.get("stock_granel_kg")),
+      stock_bolsas_cantidad: num(formData.get("stock_bolsas_cantidad")),
+    })
+    .eq("id", produccionId);
+  if (error) return { error: `No se pudo actualizar: ${error.message}` };
+
+  revalidateTurnoPaths(produccion.turno_id);
+  return undefined;
+}
+
 export type RegistrarContinuacionEmbolsadoState = { error: string } | undefined;
 
 // El producto quedó pendiente de embolsar en un turno ya finalizado — en

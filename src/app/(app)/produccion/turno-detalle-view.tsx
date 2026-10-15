@@ -118,10 +118,12 @@ export function ProduccionDetalleCard({
   p,
   ciclosSlot,
   embolsadoSlot,
+  detalleSlot,
 }: {
   p: ProduccionRow;
   ciclosSlot?: React.ReactNode;
   embolsadoSlot?: React.ReactNode;
+  detalleSlot?: React.ReactNode;
 }) {
   if (p.continua_produccion_id) {
     return (
@@ -182,7 +184,7 @@ export function ProduccionDetalleCard({
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
         <Item label="Kg. Ciclos" value={p.kg_objetivo} />
-        <Item label="Envase" value={p.tipo_envase ? ENVASE_LABELS[p.tipo_envase] : null} />
+        {!detalleSlot && <Item label="Envase" value={p.tipo_envase ? ENVASE_LABELS[p.tipo_envase] : null} />}
         <Item label="Kg producido" value={p.kg_producido_real != null ? p.kg_producido_real.toLocaleString("es-AR") : null} />
       </div>
 
@@ -190,11 +192,13 @@ export function ProduccionDetalleCard({
         <Item label="Ciclos completados" value={p.ciclos_completados != null ? `${p.ciclos_completados}/80` : null} />
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Item label="Granel (kg)" value={p.granel_kg} />
-        <Item label="Bolsas (cantidad)" value={p.bolsas_cantidad} />
-        <Item label="Rótulo bolsas" value={p.rotulo_bolsas} />
-      </div>
+      {detalleSlot ?? (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <Item label="Granel (kg)" value={p.granel_kg} />
+          <Item label="Bolsas (cantidad)" value={p.bolsas_cantidad} />
+          <Item label="Rótulo bolsas" value={p.rotulo_bolsas} />
+        </div>
+      )}
 
       {p.tipo_envase === "BOLSA" && p.kg_producido_real != null && (
         <div className="border-t border-black/10 pt-3">
@@ -204,10 +208,12 @@ export function ProduccionDetalleCard({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <Item label="Stock granel al cierre" value={p.stock_granel_kg} />
-        <Item label="Stock bolsas al cierre" value={p.stock_bolsas_cantidad} />
-      </div>
+      {!detalleSlot && (
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+          <Item label="Stock granel al cierre" value={p.stock_granel_kg} />
+          <Item label="Stock bolsas al cierre" value={p.stock_bolsas_cantidad} />
+        </div>
+      )}
 
       {p.produccion_reemplazos.length > 0 && (
         <div className="flex flex-col gap-2 border-t border-black/10 pt-3">

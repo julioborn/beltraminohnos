@@ -6,6 +6,7 @@ import { formatFecha } from "@/lib/format";
 import { Section, TurnoDatosView, TurnoRestoView, ProduccionDetalleCard } from "../../turno-detalle-view";
 import { EditarCiclosForm } from "../editar-ciclos-form";
 import { EditarEmbolsadoForm } from "../editar-embolsado-form";
+import { EditarDetalleProduccionForm } from "../editar-detalle-produccion-form";
 import { AgregarProductoForm } from "../agregar-producto-form";
 import { FinalizarTurnoButton } from "../finalizar-turno-button";
 import { ParadasEditor } from "../paradas-editor";
@@ -93,6 +94,21 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
                 embolsadoSlot={
                   editable ? (
                     <EditarEmbolsadoForm produccionId={p.id} kgEmbolsadoInicial={p.kg_embolsado ?? null} />
+                  ) : undefined
+                }
+                detalleSlot={
+                  editable ? (
+                    <EditarDetalleProduccionForm
+                      produccionId={p.id}
+                      inicial={{
+                        tipoEnvase: p.tipo_envase,
+                        granelKg: p.granel_kg,
+                        bolsasCantidad: p.bolsas_cantidad,
+                        rotuloBolsas: p.rotulo_bolsas,
+                        stockGranelKg: p.stock_granel_kg,
+                        stockBolsasCantidad: p.stock_bolsas_cantidad,
+                      }}
+                    />
                   ) : undefined
                 }
               />
