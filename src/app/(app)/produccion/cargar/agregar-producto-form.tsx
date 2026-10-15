@@ -45,7 +45,7 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
   const [granelKg, setGranelKg] = useState("");
   const [bolsasCantidad, setBolsasCantidad] = useState("");
   const [rotuloBolsas, setRotuloBolsas] = useState("");
-  const [kgEmbolsado, setKgEmbolsado] = useState("");
+  const [bolsasEmbolsadas, setBolsasEmbolsadas] = useState("");
   const [stockGranelKg, setStockGranelKg] = useState("");
   const [stockBolsasCantidad, setStockBolsasCantidad] = useState("");
   const [reemplazos, setReemplazos] = useState<Reemplazo[]>([]);
@@ -61,7 +61,7 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
       setGranelKg("");
       setBolsasCantidad("");
       setRotuloBolsas("");
-      setKgEmbolsado("");
+      setBolsasEmbolsadas("");
       setStockGranelKg("");
       setStockBolsasCantidad("");
       setReemplazos([]);
@@ -90,7 +90,7 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
       <input type="hidden" name="granel_kg" value={granelKg} />
       <input type="hidden" name="bolsas_cantidad" value={bolsasCantidad} />
       <input type="hidden" name="rotulo_bolsas" value={rotuloBolsas} />
-      <input type="hidden" name="kg_embolsado" value={kgEmbolsado} />
+      <input type="hidden" name="bolsas_embolsadas" value={bolsasEmbolsadas} />
       <input type="hidden" name="stock_granel_kg" value={stockGranelKg} />
       <input type="hidden" name="stock_bolsas_cantidad" value={stockBolsasCantidad} />
       <input type="hidden" name="reemplazos" value={reemplazosPayload} />
@@ -130,8 +130,14 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
               <input type="text" value={rotuloBolsas} onChange={(e) => setRotuloBolsas(e.target.value)} className={inputClass} />
             </Field>
             {tipoEnvase === "BOLSA" && (
-              <Field label="Kg embolsados">
-                <input type="number" min="0" value={kgEmbolsado} onChange={(e) => setKgEmbolsado(e.target.value)} className={inputClass} />
+              <Field label="Bolsas embolsadas">
+                <input
+                  type="number"
+                  min="0"
+                  value={bolsasEmbolsadas}
+                  onChange={(e) => setBolsasEmbolsadas(e.target.value)}
+                  className={inputClass}
+                />
               </Field>
             )}
           </SubGroup>

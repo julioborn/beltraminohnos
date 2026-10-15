@@ -200,7 +200,7 @@ export async function actualizarEmbolsado(
 
   const { error } = await supabase
     .from("producciones")
-    .update({ kg_embolsado: num(formData.get("kg_embolsado")) })
+    .update({ bolsas_embolsadas: num(formData.get("bolsas_embolsadas")) })
     .eq("id", produccionId);
   if (error) return { error: `No se pudo actualizar: ${error.message}` };
 
@@ -281,8 +281,8 @@ export async function registrarContinuacionEmbolsado(
   const origenId = str(formData.get("produccion_origen_id"));
   if (!origenId) return { error: "Producto de origen inválido." };
 
-  const kgEmbolsado = num(formData.get("kg_embolsado"));
-  if (!kgEmbolsado || kgEmbolsado <= 0) return { error: "Ingresá los kg embolsados." };
+  const bolsasEmbolsadas = num(formData.get("bolsas_embolsadas"));
+  if (!bolsasEmbolsadas || bolsasEmbolsadas <= 0) return { error: "Ingresá las bolsas embolsadas." };
 
   const { data: origen } = await supabase
     .from("producciones")
@@ -295,7 +295,7 @@ export async function registrarContinuacionEmbolsado(
     turno_id: turnoId,
     formula_id: origen.formula_id,
     tipo_envase: "BOLSA",
-    kg_embolsado: kgEmbolsado,
+    bolsas_embolsadas: bolsasEmbolsadas,
     continua_produccion_id: origenId,
     created_by: user.id,
   });
@@ -347,7 +347,7 @@ export async function agregarProduccionATurno(
       granel_kg: num(formData.get("granel_kg")),
       bolsas_cantidad: num(formData.get("bolsas_cantidad")),
       rotulo_bolsas: str(formData.get("rotulo_bolsas")),
-      kg_embolsado: num(formData.get("kg_embolsado")),
+      bolsas_embolsadas: num(formData.get("bolsas_embolsadas")),
       stock_granel_kg: num(formData.get("stock_granel_kg")),
       stock_bolsas_cantidad: num(formData.get("stock_bolsas_cantidad")),
       created_by: user.id,

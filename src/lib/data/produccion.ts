@@ -37,7 +37,7 @@ const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confir
   turno_paradas(id, tipo, detalle, minutos),
   producciones(id, numero, kg_objetivo, kg_producido_real, tipo_envase, partida, tipo_alimento,
     ciclos_completados, granel_kg, bolsas_cantidad, rotulo_bolsas, stock_granel_kg, stock_bolsas_cantidad,
-    kg_embolsado, continua_produccion_id,
+    bolsas_embolsadas, continua_produccion_id,
     formula:formulas(id, codigo, nombre, set_total_kg, formula_ingredientes(id, plataforma, item, producto, set_kg)),
     produccion_reemplazos(id, reemplazo, motivo, autorizo))`;
 
@@ -138,28 +138,39 @@ export async function getConsumoMateriaPrima(filters: Pick<ProduccionFilters, "d
   return { insumos, totalKgProducido };
 }
 
+// Peso estándar de bolsa, confirmado por el dueño: 30kg para la mayoría,
+// 25kg para las fórmulas de equinos (se distinguen por nombre — todas
+// arrancan con "EQUINO"). Si cargan "Bolsas (cantidad)" a mano, eso manda
+// por sobre esta estimación.
+function kgPorBolsaEstimado(formulaNombre: string): number {
+  return formulaNombre.toUpperCase().includes("EQUINO") ? 25 : 30;
+}
+
 export type PendienteEmbolsar = {
   produccionId: string;
   formulaCodigo: string;
   formulaNombre: string;
   turnoNumero: string;
   turnoFecha: string;
-  producidoKg: number;
-  embolsadoKg: number;
-  pendienteKg: number;
+  bolsasTotales: number;
+  bolsasTotalesEsEstimado: boolean;
+  bolsasEmbolsadas: number;
+  bolsasPendientes: number;
 };
 
 // Cuando un producto en modalidad Bolsa no se termina de embolsar en el
 // mismo turno, lo que queda sin embolsar se "arrastra": cada continuación
 // (continua_produccion_id) suma a lo ya embolsado del original, sin tocar el
-// turno viejo (que puede estar finalizado). El pendiente real de un
-// producto es lo producido menos todo lo embolsado en toda la cadena.
+// turno viejo (que puede estar finalizado). El pendiente se mide en bolsas
+// (no en kg) porque así es como lo cuentan en planta — si no cargaron
+// "Bolsas (cantidad)" a mano, se estima dividiendo los kg producidos por el
+// peso estándar de bolsa.
 export async function getPendientesEmbolsar(excludeTurnoId?: string): Promise<PendienteEmbolsar[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("producciones")
     .select(
-      `id, turno_id, kg_producido_real, kg_embolsado, continua_produccion_id,
+      `id, turno_id, kg_producido_real, bolsas_cantidad, bolsas_embolsadas, continua_produccion_id,
        formula:formulas(codigo, nombre),
        turno:turnos(numero, fecha)`,
     )
@@ -182,25 +193,28 @@ export async function getPendientesEmbolsar(excludeTurnoId?: string): Promise<Pe
   const pendientes: PendienteEmbolsar[] = [];
   for (const root of roots) {
     if (!root.formula || !root.turno) continue;
-    let totalEmbolsado = root.kg_embolsado ?? 0;
+    let totalEmbolsadas = root.bolsas_embolsadas ?? 0;
     const stack = [...(childrenByParent.get(root.id) ?? [])];
     while (stack.length > 0) {
       const node = stack.pop()!;
-      totalEmbolsado += node.kg_embolsado ?? 0;
+      totalEmbolsadas += node.bolsas_embolsadas ?? 0;
       for (const child of childrenByParent.get(node.id) ?? []) stack.push(child);
     }
-    const producidoKg = root.kg_producido_real ?? 0;
-    const pendienteKg = producidoKg - totalEmbolsado;
-    if (pendienteKg > 0.01 && root.turno_id !== excludeTurnoId) {
+    const bolsasTotalesEsEstimado = root.bolsas_cantidad == null;
+    const bolsasTotales =
+      root.bolsas_cantidad ?? Math.round((root.kg_producido_real ?? 0) / kgPorBolsaEstimado(root.formula.nombre));
+    const bolsasPendientes = bolsasTotales - totalEmbolsadas;
+    if (bolsasPendientes > 0 && root.turno_id !== excludeTurnoId) {
       pendientes.push({
         produccionId: root.id,
         formulaCodigo: root.formula.codigo,
         formulaNombre: root.formula.nombre,
         turnoNumero: root.turno.numero,
         turnoFecha: root.turno.fecha,
-        producidoKg,
-        embolsadoKg: totalEmbolsado,
-        pendienteKg,
+        bolsasTotales,
+        bolsasTotalesEsEstimado,
+        bolsasEmbolsadas: totalEmbolsadas,
+        bolsasPendientes,
       });
     }
   }

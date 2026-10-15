@@ -138,8 +138,8 @@ export function ProduccionDetalleCard({
           Continuación de embolsado
         </span>
         <Item
-          label="Kg embolsados en este turno"
-          value={p.kg_embolsado != null ? p.kg_embolsado.toLocaleString("es-AR") : null}
+          label="Bolsas embolsadas en este turno"
+          value={p.bolsas_embolsadas != null ? p.bolsas_embolsadas.toLocaleString("es-AR") : null}
         />
       </div>
     );
@@ -203,7 +203,7 @@ export function ProduccionDetalleCard({
       {p.tipo_envase === "BOLSA" && p.kg_producido_real != null && (
         <div className="border-t border-black/10 pt-3">
           {embolsadoSlot ?? (
-            <Item label="Kg embolsados" value={p.kg_embolsado != null ? p.kg_embolsado.toLocaleString("es-AR") : null} />
+            <Item label="Bolsas embolsadas" value={p.bolsas_embolsadas != null ? p.bolsas_embolsadas.toLocaleString("es-AR") : null} />
           )}
         </div>
       )}

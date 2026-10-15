@@ -93,7 +93,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
                 }
                 embolsadoSlot={
                   editable ? (
-                    <EditarEmbolsadoForm produccionId={p.id} kgEmbolsadoInicial={p.kg_embolsado ?? null} />
+                    <EditarEmbolsadoForm produccionId={p.id} bolsasEmbolsadasInicial={p.bolsas_embolsadas ?? null} />
                   ) : undefined
                 }
                 detalleSlot={

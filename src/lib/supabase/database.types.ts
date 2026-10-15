@@ -520,7 +520,7 @@ export type Database = {
           formula_id: string | null
           granel_kg: number | null
           id: string
-          kg_embolsado: number | null
+          bolsas_embolsadas: number | null
           kg_objetivo: number | null
           kg_producido_real: number | null
           numero: string
@@ -542,7 +542,7 @@ export type Database = {
           formula_id?: string | null
           granel_kg?: number | null
           id?: string
-          kg_embolsado?: number | null
+          bolsas_embolsadas?: number | null
           kg_objetivo?: number | null
           kg_producido_real?: number | null
           numero?: string
@@ -564,7 +564,7 @@ export type Database = {
           formula_id?: string | null
           granel_kg?: number | null
           id?: string
-          kg_embolsado?: number | null
+          bolsas_embolsadas?: number | null
           kg_objetivo?: number | null
           kg_producido_real?: number | null
           numero?: string
