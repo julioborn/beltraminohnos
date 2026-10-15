@@ -144,6 +144,8 @@ export type PendienteEmbolsar = {
   formulaNombre: string;
   turnoNumero: string;
   turnoFecha: string;
+  producidoKg: number;
+  embolsadoKg: number;
   pendienteKg: number;
 };
 
@@ -187,7 +189,8 @@ export async function getPendientesEmbolsar(excludeTurnoId?: string): Promise<Pe
       totalEmbolsado += node.kg_embolsado ?? 0;
       for (const child of childrenByParent.get(node.id) ?? []) stack.push(child);
     }
-    const pendienteKg = (root.kg_producido_real ?? 0) - totalEmbolsado;
+    const producidoKg = root.kg_producido_real ?? 0;
+    const pendienteKg = producidoKg - totalEmbolsado;
     if (pendienteKg > 0.01 && root.turno_id !== excludeTurnoId) {
       pendientes.push({
         produccionId: root.id,
@@ -195,6 +198,8 @@ export async function getPendientesEmbolsar(excludeTurnoId?: string): Promise<Pe
         formulaNombre: root.formula.nombre,
         turnoNumero: root.turno.numero,
         turnoFecha: root.turno.fecha,
+        producidoKg,
+        embolsadoKg: totalEmbolsado,
         pendienteKg,
       });
     }

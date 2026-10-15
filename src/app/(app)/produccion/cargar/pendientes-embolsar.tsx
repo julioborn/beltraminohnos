@@ -10,6 +10,8 @@ type Pendiente = {
   formulaNombre: string;
   turnoNumero: string;
   turnoFecha: string;
+  producidoKg: number;
+  embolsadoKg: number;
   pendienteKg: number;
 };
 
@@ -37,9 +39,20 @@ function PendienteRow({ turnoId, pendiente }: { turnoId: string; pendiente: Pend
           Del turno {pendiente.turnoNumero} ({formatFecha(pendiente.turnoFecha)})
         </span>
       </div>
-      <p className="text-sm text-btm-black/70">
-        Pendiente de embolsar: <span className="font-semibold text-btm-navy">{pendiente.pendienteKg.toLocaleString("es-AR")} kg</span>
-      </p>
+      <div className="grid grid-cols-3 gap-3 text-sm">
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">Producido</span>
+          <span className="text-btm-black">{pendiente.producidoKg.toLocaleString("es-AR")} kg</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">Embolsado</span>
+          <span className="text-btm-black">{pendiente.embolsadoKg.toLocaleString("es-AR")} kg</span>
+        </div>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">Pendiente</span>
+          <span className="font-semibold text-btm-navy">{pendiente.pendienteKg.toLocaleString("es-AR")} kg</span>
+        </div>
+      </div>
       <form action={formAction} className="flex items-end gap-2">
         <input type="hidden" name="turno_id" value={turnoId} />
         <input type="hidden" name="produccion_origen_id" value={pendiente.produccionId} />
