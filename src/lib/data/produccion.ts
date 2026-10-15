@@ -43,7 +43,11 @@ const TURNO_SELECT = `id, numero, fecha, hora_ingreso, hora_salida, firma_confir
 
 export async function getTurnos(filters: ProduccionFilters = {}) {
   const supabase = await createClient();
-  let query = supabase.from("turnos").select(TURNO_SELECT).order("fecha", { ascending: false });
+  let query = supabase
+    .from("turnos")
+    .select(TURNO_SELECT)
+    .order("fecha", { ascending: false })
+    .order("created_at", { ascending: false });
 
   if (filters.desde) query = query.gte("fecha", filters.desde);
   if (filters.hasta) query = query.lte("fecha", filters.hasta);
@@ -69,6 +73,7 @@ export async function getTurnosRecientesDeCuenta(createdBy: string) {
     .select(TURNO_SELECT)
     .eq("created_by", createdBy)
     .order("fecha", { ascending: false })
+    .order("created_at", { ascending: false })
     .limit(30);
   return data ?? [];
 }
