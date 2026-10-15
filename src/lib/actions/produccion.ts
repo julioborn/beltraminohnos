@@ -210,9 +210,10 @@ export async function actualizarEmbolsado(
 
 export type ActualizarDetalleProduccionState = { error: string } | undefined;
 
-// El envase y lo que se va produciendo (granel, bolsas, rótulo, stock al
-// cierre) se completan durante el turno, no todo de una — tiene que poder
-// editarse después de creado el producto, igual que ciclos y embolsado.
+// El envase se puede corregir después de creado el producto, igual que
+// ciclos y embolsado. Granel/Bolsas/Stock al cierre se sacaron del
+// formulario por redundantes con kg producido y bolsas embolsadas — no se
+// tocan acá para no borrar valores históricos ya cargados.
 export async function actualizarDetalleProduccion(
   _prevState: ActualizarDetalleProduccionState,
   formData: FormData,
@@ -243,11 +244,7 @@ export async function actualizarDetalleProduccion(
     .from("producciones")
     .update({
       tipo_envase: tipoEnvase,
-      granel_kg: num(formData.get("granel_kg")),
-      bolsas_cantidad: num(formData.get("bolsas_cantidad")),
       rotulo_bolsas: str(formData.get("rotulo_bolsas")),
-      stock_granel_kg: num(formData.get("stock_granel_kg")),
-      stock_bolsas_cantidad: num(formData.get("stock_bolsas_cantidad")),
     })
     .eq("id", produccionId);
   if (error) return { error: `No se pudo actualizar: ${error.message}` };
@@ -344,12 +341,8 @@ export async function agregarProduccionATurno(
       tipo_envase: TIPOS_ENVASE.includes(tipoEnvaseRaw as PackagingType) ? (tipoEnvaseRaw as PackagingType) : null,
       ciclos_completados: ciclosCompletados,
       kg_producido_real: ciclosCompletados > 0 ? ciclosCompletados * 1000 : null,
-      granel_kg: num(formData.get("granel_kg")),
-      bolsas_cantidad: num(formData.get("bolsas_cantidad")),
       rotulo_bolsas: str(formData.get("rotulo_bolsas")),
       bolsas_embolsadas: num(formData.get("bolsas_embolsadas")),
-      stock_granel_kg: num(formData.get("stock_granel_kg")),
-      stock_bolsas_cantidad: num(formData.get("stock_bolsas_cantidad")),
       created_by: user.id,
     })
     .select("id")

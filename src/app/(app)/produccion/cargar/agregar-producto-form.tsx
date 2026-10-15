@@ -42,12 +42,8 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
   const [kgObjetivo, setKgObjetivo] = useState("");
   const [tipoEnvase, setTipoEnvase] = useState("BOLSA");
   const [ciclosCompletados, setCiclosCompletados] = useState("");
-  const [granelKg, setGranelKg] = useState("");
-  const [bolsasCantidad, setBolsasCantidad] = useState("");
   const [rotuloBolsas, setRotuloBolsas] = useState("");
   const [bolsasEmbolsadas, setBolsasEmbolsadas] = useState("");
-  const [stockGranelKg, setStockGranelKg] = useState("");
-  const [stockBolsasCantidad, setStockBolsasCantidad] = useState("");
   const [reemplazos, setReemplazos] = useState<Reemplazo[]>([]);
   const [mostrarMas, setMostrarMas] = useState(false);
 
@@ -58,12 +54,8 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
       setKgObjetivo("");
       setTipoEnvase("BOLSA");
       setCiclosCompletados("");
-      setGranelKg("");
-      setBolsasCantidad("");
       setRotuloBolsas("");
       setBolsasEmbolsadas("");
-      setStockGranelKg("");
-      setStockBolsasCantidad("");
       setReemplazos([]);
       setMostrarMas(false);
       setSuccess(true);
@@ -87,12 +79,8 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
       <input type="hidden" name="kg_objetivo" value={kgObjetivo} />
       <input type="hidden" name="tipo_envase" value={tipoEnvase} />
       <input type="hidden" name="ciclos_completados" value={ciclosCompletados} />
-      <input type="hidden" name="granel_kg" value={granelKg} />
-      <input type="hidden" name="bolsas_cantidad" value={bolsasCantidad} />
       <input type="hidden" name="rotulo_bolsas" value={rotuloBolsas} />
       <input type="hidden" name="bolsas_embolsadas" value={bolsasEmbolsadas} />
-      <input type="hidden" name="stock_granel_kg" value={stockGranelKg} />
-      <input type="hidden" name="stock_bolsas_cantidad" value={stockBolsasCantidad} />
       <input type="hidden" name="reemplazos" value={reemplazosPayload} />
 
       <Field label="Fórmula">
@@ -119,17 +107,11 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
             <CiclosGrid value={ciclosCompletados} onChange={setCiclosCompletados} />
           </div>
 
-          <SubGroup title="Kilogramos producción">
-            <Field label="Granel (kg)">
-              <input type="number" min="0" value={granelKg} onChange={(e) => setGranelKg(e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="Bolsas (cantidad)">
-              <input type="number" min="0" value={bolsasCantidad} onChange={(e) => setBolsasCantidad(e.target.value)} className={inputClass} />
-            </Field>
-            <Field label="Rótulo bolsas realizadas">
-              <input type="text" value={rotuloBolsas} onChange={(e) => setRotuloBolsas(e.target.value)} className={inputClass} />
-            </Field>
-            {tipoEnvase === "BOLSA" && (
+          {tipoEnvase === "BOLSA" && (
+            <SubGroup title="Bolsa">
+              <Field label="Rótulo bolsas">
+                <input type="text" value={rotuloBolsas} onChange={(e) => setRotuloBolsas(e.target.value)} className={inputClass} />
+              </Field>
               <Field label="Bolsas embolsadas">
                 <input
                   type="number"
@@ -139,8 +121,8 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
                   className={inputClass}
                 />
               </Field>
-            )}
-          </SubGroup>
+            </SubGroup>
+          )}
 
           <div className="border-t border-black/10 pt-3">
             <button
@@ -153,76 +135,65 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
           </div>
 
           {mostrarMas && (
-            <>
-              <SubGroup title="Stock al cierre">
-                <Field label="Stock granel al cierre (kg)">
-                  <input type="number" min="0" value={stockGranelKg} onChange={(e) => setStockGranelKg(e.target.value)} className={inputClass} />
-                </Field>
-                <Field label="Stock bolsas al cierre">
-                  <input type="number" min="0" value={stockBolsasCantidad} onChange={(e) => setStockBolsasCantidad(e.target.value)} className={inputClass} />
-                </Field>
-              </SubGroup>
-
-              <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
-                <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                  Reemplazos de materia prima
-                </span>
-                {reemplazos.map((r) => (
-                  <div key={r.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-2 sm:flex-row sm:items-end">
-                    <div className="flex-1">
-                      <Field label="Reemplazo">
-                        <input
-                          type="text"
-                          value={r.reemplazo}
-                          onChange={(e) =>
-                            setReemplazos((prev) => prev.map((x) => (x.key === r.key ? { ...x, reemplazo: e.target.value } : x)))
-                          }
-                          className={inputClass}
-                        />
-                      </Field>
-                    </div>
-                    <div className="flex-1">
-                      <Field label="Motivo">
-                        <input
-                          type="text"
-                          value={r.motivo}
-                          onChange={(e) =>
-                            setReemplazos((prev) => prev.map((x) => (x.key === r.key ? { ...x, motivo: e.target.value } : x)))
-                          }
-                          className={inputClass}
-                        />
-                      </Field>
-                    </div>
-                    <div className="flex-1">
-                      <Field label="Autorizó">
-                        <input
-                          type="text"
-                          value={r.autorizo}
-                          onChange={(e) =>
-                            setReemplazos((prev) => prev.map((x) => (x.key === r.key ? { ...x, autorizo: e.target.value } : x)))
-                          }
-                          className={inputClass}
-                        />
-                      </Field>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => setReemplazos((prev) => prev.filter((x) => x.key !== r.key))}
-                      className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
-                    >
-                      Quitar
-                    </button>
+            <div className="flex flex-col gap-2 border-t border-black/10 pt-3">
+              <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                Reemplazos de materia prima
+              </span>
+              {reemplazos.map((r) => (
+                <div key={r.key} className="flex flex-col gap-2 rounded-md border border-black/10 p-2 sm:flex-row sm:items-end">
+                  <div className="flex-1">
+                    <Field label="Reemplazo">
+                      <input
+                        type="text"
+                        value={r.reemplazo}
+                        onChange={(e) =>
+                          setReemplazos((prev) => prev.map((x) => (x.key === r.key ? { ...x, reemplazo: e.target.value } : x)))
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
                   </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => setReemplazos((prev) => [...prev, emptyReemplazo()])}
-                  className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-                >
-                  + Agregar reemplazo
-                </button>
-              </div>
-            </>
+                  <div className="flex-1">
+                    <Field label="Motivo">
+                      <input
+                        type="text"
+                        value={r.motivo}
+                        onChange={(e) =>
+                          setReemplazos((prev) => prev.map((x) => (x.key === r.key ? { ...x, motivo: e.target.value } : x)))
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
+                  <div className="flex-1">
+                    <Field label="Autorizó">
+                      <input
+                        type="text"
+                        value={r.autorizo}
+                        onChange={(e) =>
+                          setReemplazos((prev) => prev.map((x) => (x.key === r.key ? { ...x, autorizo: e.target.value } : x)))
+                        }
+                        className={inputClass}
+                      />
+                    </Field>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setReemplazos((prev) => prev.filter((x) => x.key !== r.key))}
+                    className="shrink-0 rounded-md px-2 py-1.5 text-xs font-semibold text-btm-red hover:bg-btm-red/10"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              ))}
+              <button
+                type="button"
+                onClick={() => setReemplazos((prev) => [...prev, emptyReemplazo()])}
+                className="self-start rounded-full border border-btm-navy px-3 py-1 text-xs font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+              >
+                + Agregar reemplazo
+              </button>
+            </div>
           )}
         </>
       )}
