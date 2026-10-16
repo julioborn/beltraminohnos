@@ -102,6 +102,7 @@ export default async function ContinuarTurnoPage({ params }: { params: Promise<{
                       produccionId={p.id}
                       inicial={{
                         tipoEnvase: p.tipo_envase,
+                        partida: p.partida,
                         rotuloBolsas: p.rotulo_bolsas,
                       }}
                     />

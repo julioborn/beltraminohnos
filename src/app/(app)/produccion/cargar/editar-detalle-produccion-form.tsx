@@ -16,25 +16,30 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 type Inicial = {
   tipoEnvase: string | null;
+  partida: string | null;
   rotuloBolsas: string | null;
 };
 
 export function EditarDetalleProduccionForm({ produccionId, inicial }: { produccionId: string; inicial: Inicial }) {
   const [state, formAction, pending] = useActionState(actualizarDetalleProduccion, undefined);
   const [tipoEnvase, setTipoEnvase] = useState(inicial.tipoEnvase ?? "BOLSA");
+  const [partida, setPartida] = useState(inicial.partida ?? "");
   const [rotuloBolsas, setRotuloBolsas] = useState(inicial.rotuloBolsas ?? "");
 
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <input type="hidden" name="produccion_id" value={produccionId} />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Field label="Envase">
           <select value={tipoEnvase} onChange={(e) => setTipoEnvase(e.target.value)} name="tipo_envase" className={inputClass}>
             <option value="BOLSA">Bolsa</option>
             <option value="GRANEL">Granel</option>
             <option value="BIG_BAG">Big bag</option>
           </select>
+        </Field>
+        <Field label="Partida">
+          <input type="text" name="partida" value={partida} onChange={(e) => setPartida(e.target.value)} className={inputClass} />
         </Field>
         {tipoEnvase === "BOLSA" && (
           <Field label="Rótulo bolsas">

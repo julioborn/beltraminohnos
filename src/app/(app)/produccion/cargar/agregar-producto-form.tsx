@@ -41,6 +41,7 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
   const [formulaId, setFormulaId] = useState("");
   const [kgObjetivo, setKgObjetivo] = useState("");
   const [tipoEnvase, setTipoEnvase] = useState("BOLSA");
+  const [partida, setPartida] = useState("");
   const [ciclosCompletados, setCiclosCompletados] = useState("");
   const [rotuloBolsas, setRotuloBolsas] = useState("");
   const [bolsasEmbolsadas, setBolsasEmbolsadas] = useState("");
@@ -53,6 +54,7 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
       setFormulaId("");
       setKgObjetivo("");
       setTipoEnvase("BOLSA");
+      setPartida("");
       setCiclosCompletados("");
       setRotuloBolsas("");
       setBolsasEmbolsadas("");
@@ -78,6 +80,7 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
       <input type="hidden" name="formula_id" value={formulaId} />
       <input type="hidden" name="kg_objetivo" value={kgObjetivo} />
       <input type="hidden" name="tipo_envase" value={tipoEnvase} />
+      <input type="hidden" name="partida" value={partida} />
       <input type="hidden" name="ciclos_completados" value={ciclosCompletados} />
       <input type="hidden" name="rotulo_bolsas" value={rotuloBolsas} />
       <input type="hidden" name="bolsas_embolsadas" value={bolsasEmbolsadas} />
@@ -100,6 +103,9 @@ export function AgregarProductoForm({ turnoId, formulas }: { turnoId: string; fo
                 <option value="GRANEL">Granel</option>
                 <option value="BIG_BAG">Big bag</option>
               </select>
+            </Field>
+            <Field label="Partida">
+              <input type="text" value={partida} onChange={(e) => setPartida(e.target.value)} className={inputClass} />
             </Field>
           </SubGroup>
 

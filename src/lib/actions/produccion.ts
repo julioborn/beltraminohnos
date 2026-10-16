@@ -244,6 +244,7 @@ export async function actualizarDetalleProduccion(
     .from("producciones")
     .update({
       tipo_envase: tipoEnvase,
+      partida: str(formData.get("partida")),
       rotulo_bolsas: str(formData.get("rotulo_bolsas")),
     })
     .eq("id", produccionId);
@@ -339,6 +340,7 @@ export async function agregarProduccionATurno(
       formula_id: formulaId,
       kg_objetivo: num(formData.get("kg_objetivo")),
       tipo_envase: TIPOS_ENVASE.includes(tipoEnvaseRaw as PackagingType) ? (tipoEnvaseRaw as PackagingType) : null,
+      partida: str(formData.get("partida")),
       ciclos_completados: ciclosCompletados,
       kg_producido_real: ciclosCompletados > 0 ? ciclosCompletados * 1000 : null,
       rotulo_bolsas: str(formData.get("rotulo_bolsas")),

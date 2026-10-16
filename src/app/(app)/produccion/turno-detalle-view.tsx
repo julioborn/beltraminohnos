@@ -182,9 +182,10 @@ export function ProduccionDetalleCard({
         </details>
       )}
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Item label="Kg. Ciclos" value={p.kg_objetivo} />
         {!detalleSlot && <Item label="Envase" value={p.tipo_envase ? ENVASE_LABELS[p.tipo_envase] : null} />}
+        {!detalleSlot && <Item label="Partida" value={p.partida} />}
         <Item label="Kg producido" value={p.kg_producido_real != null ? p.kg_producido_real.toLocaleString("es-AR") : null} />
       </div>
 
