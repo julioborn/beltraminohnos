@@ -134,7 +134,7 @@ export default async function ProduccionPage({
                   {t.hora_ingreso && <span>· Ingreso {t.hora_ingreso.slice(0, 5)}</span>}
                   {t.hora_salida && <span>· Salida {t.hora_salida.slice(0, 5)}</span>}
                 </div>
-                <ScrollFade>
+                <ScrollFade fadeFrom="from-white">
                   <div className="overflow-x-auto rounded-md border border-black/10">
                     <table className="w-full min-w-[520px] text-xs">
                       <thead className="bg-black/[.03] text-left font-semibold uppercase tracking-wide text-btm-black/60">

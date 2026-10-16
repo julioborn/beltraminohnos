@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getSucursales, getResumenSucursal } from "@/lib/data/consignaciones";
-import { ScrollFade } from "@/components/scroll-fade";
+import { EmpresaSelect } from "./empresa-select";
 
 export default async function ConsignacionesResumenPage({
   searchParams,
@@ -36,28 +36,9 @@ export default async function ConsignacionesResumenPage({
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
       <Header />
 
-      <form method="get" className="flex flex-wrap items-end gap-3 rounded-lg border border-black/10 p-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="sucursal" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-            Empresa
-          </label>
-          <select
-            id="sucursal"
-            name="sucursal"
-            defaultValue={sucursalId}
-            className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm"
-          >
-            {sucursales.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <button type="submit" className="rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red">
-          Ver
-        </button>
-      </form>
+      <div className="flex flex-wrap items-end gap-3 rounded-lg border border-black/10 p-4">
+        <EmpresaSelect sucursales={sucursales} selected={sucursalId} />
+      </div>
 
       <section className="flex flex-col gap-3">
         {resumen.length === 0 ? (
@@ -65,32 +46,30 @@ export default async function ConsignacionesResumenPage({
             {sucursal.name} no tiene movimientos cargados todavía.
           </p>
         ) : (
-          <ScrollFade>
-            <div className="overflow-x-auto rounded-lg border border-black/10">
-              <table className="w-full min-w-[640px] text-sm">
-                <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                  <tr>
-                    <th className="px-3 py-2.5">{sucursal.name}</th>
-                    <th className="px-3 py-2.5 text-right">Stock inicio</th>
-                    <th className="px-3 py-2.5 text-right">Vtas sucursal pendientes</th>
-                    <th className="px-3 py-2.5 text-right">Vtas directas pendientes</th>
-                    <th className="px-3 py-2.5 text-right">Stock físico</th>
+          <div className="overflow-x-auto rounded-lg border border-black/10">
+            <table className="w-full min-w-[640px] text-sm">
+              <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                <tr>
+                  <th className="px-3 py-2.5">{sucursal.name}</th>
+                  <th className="px-3 py-2.5 text-right">Stock inicio</th>
+                  <th className="px-3 py-2.5 text-right">Vtas sucursal pendientes</th>
+                  <th className="px-3 py-2.5 text-right">Vtas directas pendientes</th>
+                  <th className="px-3 py-2.5 text-right">Stock físico</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5">
+                {resumen.map((r) => (
+                  <tr key={r.productId}>
+                    <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.productName}</td>
+                    <td className="px-3 py-2.5 text-right">{r.stockInicio.toLocaleString("es-AR")}</td>
+                    <td className="px-3 py-2.5 text-right">{r.ventasSucursalPendientes.toLocaleString("es-AR")}</td>
+                    <td className="px-3 py-2.5 text-right">{r.ventasDirectasPendientes.toLocaleString("es-AR")}</td>
+                    <td className="px-3 py-2.5 text-right">{r.stockFisico.toLocaleString("es-AR")}</td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5">
-                  {resumen.map((r) => (
-                    <tr key={r.productId}>
-                      <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.productName}</td>
-                      <td className="px-3 py-2.5 text-right">{r.stockInicio.toLocaleString("es-AR")}</td>
-                      <td className="px-3 py-2.5 text-right">{r.ventasSucursalPendientes.toLocaleString("es-AR")}</td>
-                      <td className="px-3 py-2.5 text-right">{r.ventasDirectasPendientes.toLocaleString("es-AR")}</td>
-                      <td className="px-3 py-2.5 text-right">{r.stockFisico.toLocaleString("es-AR")}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ScrollFade>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </div>
