@@ -203,6 +203,58 @@ export async function getStockFisicoSucursal(sucursalId: string): Promise<StockF
     .sort((a, b) => a.productName.localeCompare(b.productName));
 }
 
+export type ResumenProducto = {
+  productId: string;
+  productName: string;
+  stockInicio: number;
+  ventasSucursalPendientes: number;
+  ventasDirectasPendientes: number;
+  stockFisico: number;
+};
+
+// "Stock inicio" reconstruye lo que se consignó en total a la sucursal: lo
+// que todavía tiene físico, más lo que ya vendió pero no facturó (sucursal
+// o directo a cliente) — así la contadora puede chequear de un vistazo que
+// no se esté perdiendo nada entre lo entregado y lo pendiente de facturar.
+export async function getResumenSucursal(sucursalId: string): Promise<ResumenProducto[]> {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("sucursal_movimientos")
+    .select("tipo_movimiento, cantidad_bolsas, estado_facturacion, product:products(id, name)")
+    .eq("sucursal_id", sucursalId);
+
+  const map = new Map<string, ResumenProducto>();
+  for (const m of data ?? []) {
+    if (!m.product) continue;
+    const row = map.get(m.product.id) ?? {
+      productId: m.product.id,
+      productName: m.product.name,
+      stockInicio: 0,
+      ventasSucursalPendientes: 0,
+      ventasDirectasPendientes: 0,
+      stockFisico: 0,
+    };
+
+    row.stockFisico += m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+
+    if (m.estado_facturacion === "PENDIENTE") {
+      if (m.tipo_movimiento === "VENTA") row.ventasSucursalPendientes += m.cantidad_bolsas;
+      else if (m.tipo_movimiento === "DIRECTA_CLIENTE") row.ventasDirectasPendientes += m.cantidad_bolsas;
+    }
+
+    map.set(m.product.id, row);
+  }
+
+  const rows = Array.from(map.values());
+  for (const r of rows) {
+    r.stockInicio = r.stockFisico + r.ventasSucursalPendientes + r.ventasDirectasPendientes;
+  }
+
+  return rows
+    .filter((r) => r.stockInicio !== 0 || r.ventasSucursalPendientes !== 0 || r.ventasDirectasPendientes !== 0)
+    .sort((a, b) => a.productName.localeCompare(b.productName));
+}
+
 export type VentaPorProducto = { productName: string; bolsas: number; montoArs: number };
 
 export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "desde" | "hasta">): Promise<VentaPorProducto[]> {
