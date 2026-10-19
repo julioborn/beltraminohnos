@@ -14,6 +14,12 @@ type MovimientoInsert = Database["public"]["Tables"]["sucursal_movimientos"]["In
 const IVA = 1.21;
 const TIPOS_MOVIMIENTO: TipoMovimiento[] = ["INGRESO_STOCK", "VENTA", "DIRECTA_CLIENTE"];
 
+function revalidateConsignaciones() {
+  revalidatePath("/consignaciones");
+  revalidatePath("/consignaciones/panel");
+  revalidatePath("/consignaciones/mi-sucursal");
+}
+
 type ParsedItem = { product_id: string; cantidad_bolsas: number };
 
 export type CrearMovimientoState = { error: string } | undefined;
@@ -173,8 +179,7 @@ export async function crearMovimientosSucursal(
   const { error } = await supabase.from("sucursal_movimientos").insert(inserts);
   if (error) return { error: `No se pudo guardar el movimiento: ${error.message}` };
 
-  revalidatePath("/consignaciones");
-  revalidatePath("/consignaciones/mi-sucursal");
+  revalidateConsignaciones();
   return undefined;
 }
 
@@ -292,8 +297,7 @@ export async function actualizarMovimientoSucursal(
   const { error } = await supabase.from("sucursal_movimientos").update(update).eq("id", id);
   if (error) return { error: `No se pudo actualizar el movimiento: ${error.message}` };
 
-  revalidatePath("/consignaciones");
-  revalidatePath("/consignaciones/mi-sucursal");
+  revalidateConsignaciones();
   return undefined;
 }
 
@@ -311,5 +315,24 @@ export async function marcarMovimientosFacturados(ids: string[]) {
     .in("id", ids);
   if (error) throw new Error(`No se pudo marcar como facturado: ${error.message}`);
 
-  revalidatePath("/consignaciones");
+  revalidateConsignaciones();
+}
+
+// Solo contable/admin pueden borrar un movimiento ya cargado — por ejemplo
+// si se cargó dos veces por error, o con el producto equivocado y es más
+// simple rehacerlo que corregirlo.
+export async function eliminarMovimientoSucursal(formData: FormData) {
+  const role = await getProfileRole();
+  if (role !== "admin" && role !== "contable") {
+    throw new Error("No autorizado.");
+  }
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) throw new Error("Movimiento inválido.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("sucursal_movimientos").delete().eq("id", id);
+  if (error) throw new Error(`No se pudo borrar el movimiento: ${error.message}`);
+
+  revalidateConsignaciones();
 }
