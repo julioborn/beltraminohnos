@@ -1,10 +1,15 @@
 import Link from "next/link";
 import { getOrdersPendingSummary } from "@/lib/data/orders";
 import { getActiveProducts } from "@/lib/data/master-data";
+import { getProductStockBalances } from "@/lib/data/stock";
 import { PendingByDayReport } from "./pending-by-day-report";
 
 export default async function ProductosPendientesPage() {
-  const [products, orders] = await Promise.all([getActiveProducts(), getOrdersPendingSummary()]);
+  const [products, orders, stockBalances] = await Promise.all([
+    getActiveProducts(),
+    getOrdersPendingSummary(),
+    getProductStockBalances(),
+  ]);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -28,7 +33,7 @@ export default async function ProductosPendientesPage() {
         </div>
       </div>
 
-      <PendingByDayReport products={products} orders={orders} />
+      <PendingByDayReport products={products} orders={orders} stockBalances={stockBalances} />
     </div>
   );
 }

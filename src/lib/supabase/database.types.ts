@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.5"
+    PostgrestVersion: "14.15"
   }
   public: {
     Tables: {
@@ -513,6 +513,7 @@ export type Database = {
       producciones: {
         Row: {
           bolsas_cantidad: number | null
+          bolsas_embolsadas: number | null
           ciclos_completados: number
           continua_produccion_id: string | null
           created_at: string
@@ -520,7 +521,6 @@ export type Database = {
           formula_id: string | null
           granel_kg: number | null
           id: string
-          bolsas_embolsadas: number | null
           kg_objetivo: number | null
           kg_producido_real: number | null
           numero: string
@@ -535,6 +535,7 @@ export type Database = {
         }
         Insert: {
           bolsas_cantidad?: number | null
+          bolsas_embolsadas?: number | null
           ciclos_completados?: number
           continua_produccion_id?: string | null
           created_at?: string
@@ -542,7 +543,6 @@ export type Database = {
           formula_id?: string | null
           granel_kg?: number | null
           id?: string
-          bolsas_embolsadas?: number | null
           kg_objetivo?: number | null
           kg_producido_real?: number | null
           numero?: string
@@ -557,6 +557,7 @@ export type Database = {
         }
         Update: {
           bolsas_cantidad?: number | null
+          bolsas_embolsadas?: number | null
           ciclos_completados?: number
           continua_produccion_id?: string | null
           created_at?: string
@@ -564,7 +565,6 @@ export type Database = {
           formula_id?: string | null
           granel_kg?: number | null
           id?: string
-          bolsas_embolsadas?: number | null
           kg_objetivo?: number | null
           kg_producido_real?: number | null
           numero?: string
@@ -611,6 +611,61 @@ export type Database = {
             columns: ["turno_id"]
             isOneToOne: false
             referencedRelation: "turnos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      product_stock_movements: {
+        Row: {
+          cantidad: number
+          created_at: string
+          created_by: string | null
+          id: string
+          nota: string | null
+          order_item_id: string | null
+          product_id: string
+          tipo: string
+        }
+        Insert: {
+          cantidad: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nota?: string | null
+          order_item_id?: string | null
+          product_id: string
+          tipo: string
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          nota?: string | null
+          order_item_id?: string | null
+          product_id?: string
+          tipo?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_stock_movements_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_stock_movements_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "product_stock_movements_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
             referencedColumns: ["id"]
           },
         ]

@@ -12,6 +12,8 @@ import {
   type PendingDayRow,
 } from "@/lib/reports/pending-by-day";
 import { formatFecha, formatDiaEntrega, formatUsd } from "@/lib/format";
+import { StockDepositoSection } from "./stock-deposito-section";
+import type { ProductStockBalance } from "@/lib/data/stock";
 
 const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("es-AR", { weekday: "long" });
 
@@ -45,9 +47,11 @@ function defaultDateRange(orders: PendingDayOrder[]): DateRange {
 export function PendingByDayReport({
   products,
   orders,
+  stockBalances,
 }: {
   products: { id: string; name: string }[];
   orders: PendingDayOrder[];
+  stockBalances: ProductStockBalance[];
 }) {
   const [range, setRange] = useState<DateRange>(() => defaultDateRange(orders));
   const [mode, setMode] = useState<PendingDayMode>("fabricacion");
@@ -142,6 +146,8 @@ export function PendingByDayReport({
         <p className="text-sm text-btm-black/50">No hay notas con fecha de entrega cargada todavía.</p>
       ) : (
         <>
+          {mode === "fabricado" && <StockDepositoSection products={products} balances={stockBalances} />}
+
           <PendingChart rows={visibleRows} modeLabel={PENDING_DAY_MODE_LABELS[mode]} />
 
           <p className="text-xs text-btm-black/50">
