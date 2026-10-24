@@ -230,6 +230,13 @@ export default async function InicioPage() {
     ...(veProduccion ? [PRODUCCION_ADMIN_CARD] : []),
   ];
 
+  const cards = [
+    ...ROW_1.map((item) => ({ ...item, accent: "red" as const })),
+    ...ROW_2.map((item) => ({ ...item, accent: "navy" as const })),
+    ...row3.map((item) => ({ ...item, accent: "navy" as const })),
+    ...row4.map((item) => ({ ...item, accent: "navy" as const })),
+  ];
+
   return (
     <div className="relative flex flex-1 flex-col items-center gap-10 overflow-hidden px-6 pt-8 pb-16 sm:pt-12">
       <BrandTexture opacity={0.05} />
@@ -242,36 +249,14 @@ export default async function InicioPage() {
           className="h-auto w-56 sm:w-64"
           priority
         />
-        <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
-          Pedidos y Logística
-        </p>
       </div>
 
       <div className="relative flex w-full max-w-3xl flex-col gap-4">
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          {ROW_1.map((item) => (
-            <HomeCard key={item.href} {...item} accent="red" />
+        <div className="grid grid-cols-4 gap-2 sm:gap-4">
+          {cards.map((item) => (
+            <HomeCard key={item.href} {...item} />
           ))}
         </div>
-        <div className="grid grid-cols-3 gap-2 sm:gap-4">
-          {ROW_2.map((item) => (
-            <HomeCard key={item.href} {...item} accent="navy" />
-          ))}
-        </div>
-        {row3.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            {row3.map((item) => (
-              <HomeCard key={item.href} {...item} accent="navy" />
-            ))}
-          </div>
-        )}
-        {row4.length > 0 && (
-          <div className="grid grid-cols-3 gap-2 sm:gap-4">
-            {row4.map((item) => (
-              <HomeCard key={item.href} {...item} accent="navy" />
-            ))}
-          </div>
-        )}
       </div>
     </div>
   );
