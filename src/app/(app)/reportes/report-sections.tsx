@@ -196,36 +196,14 @@ const CHART_TOP_N = 10;
 function ReportChart({ title, rows }: { title: string; rows: AggregateRow[] }) {
   if (rows.length === 0) return null;
   const top = rows.slice(0, CHART_TOP_N);
+  const max = Math.max(...top.map((r) => r.total), 1);
 
   return (
-    <section className="flex flex-col gap-5 rounded-lg border border-black/10 p-4 sm:p-5">
+    <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
       <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-      <BarRow label="Toneladas" rows={top} getValue={(r) => r.toneladas} formatValue={formatTn} />
-      <BarRow label="Monto" rows={top} getValue={(r) => r.total} formatValue={formatUsd} />
-    </section>
-  );
-}
-
-function BarRow({
-  label,
-  rows,
-  getValue,
-  formatValue,
-}: {
-  label: string;
-  rows: AggregateRow[];
-  getValue: (r: AggregateRow) => number;
-  formatValue: (v: number) => string;
-}) {
-  const max = Math.max(...rows.map(getValue), 1);
-
-  return (
-    <div className="flex flex-col gap-2">
-      <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">{label}</span>
       <div className="flex flex-col gap-2">
-        {rows.map((row) => {
-          const value = getValue(row);
-          const pct = Math.max((value / max) * 100, value > 0 ? 2 : 0);
+        {top.map((row) => {
+          const pct = Math.max((row.total / max) * 100, row.total > 0 ? 2 : 0);
           return (
             <div key={row.label} className="flex items-center gap-3">
               <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.label}>
@@ -236,16 +214,16 @@ function BarRow({
                   className="h-full rounded-full bg-btm-navy"
                   style={{ width: `${pct}%` }}
                   role="img"
-                  aria-label={`${row.label}: ${formatValue(value)}`}
+                  aria-label={`${row.label}: ${formatUsd(row.total)}, ${formatTn(row.toneladas)}`}
                 />
               </div>
-              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
-                {formatValue(value)}
+              <span className="btm-fig w-40 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                {formatUsd(row.total)} · {formatTn(row.toneladas)}
               </span>
             </div>
           );
         })}
       </div>
-    </div>
+    </section>
   );
 }
