@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "BTM Pedidos y Logística",
+    name: "BTM",
     short_name: "BTM",
     description: "Sistema de gestión de Beltramino Hnos.",
     id: "/",

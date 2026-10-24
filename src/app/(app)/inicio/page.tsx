@@ -251,8 +251,8 @@ export default async function InicioPage() {
         />
       </div>
 
-      <div className="relative flex w-full max-w-3xl flex-col gap-4">
-        <div className="grid grid-cols-4 gap-2 sm:gap-4">
+      <div className="relative flex w-full max-w-5xl flex-col gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 sm:gap-4">
           {cards.map((item) => (
             <HomeCard key={item.href} {...item} />
           ))}

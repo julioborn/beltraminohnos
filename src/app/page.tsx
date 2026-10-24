@@ -36,9 +36,6 @@ export default async function HomePage({
             className="h-auto w-70 sm:w-100"
             priority
           />
-          <p className="font-display text-xs font-bold uppercase tracking-[0.25em] text-btm-navy/60">
-            Pedidos y Logística
-          </p>
         </div>
 
         <LoginForm next={next ?? "/inicio"} />
