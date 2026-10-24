@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { formatUsd } from "@/lib/format";
 import { ClienteIcon, VendedorIcon, ZonaIcon, ProductoIcon } from "@/components/report-icons";
-import type { AggregateRow, ProductAggregateRow } from "@/lib/reports/aggregate";
+import type { AggregateRow } from "@/lib/reports/aggregate";
 
 type SectionKey = "cliente" | "vendedor" | "zona" | "producto";
 
@@ -14,6 +14,10 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
   { key: "producto", label: "Ventas por producto", icon: <ProductoIcon /> },
 ];
 
+function formatTn(value: number) {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
+
 export function ReportSections({
   porCliente,
   porVendedor,
@@ -23,7 +27,7 @@ export function ReportSections({
   porCliente: AggregateRow[];
   porVendedor: AggregateRow[];
   porZona: AggregateRow[];
-  porProducto: ProductAggregateRow[];
+  porProducto: AggregateRow[];
 }) {
   const [open, setOpen] = useState<SectionKey | null>(null);
 
@@ -60,10 +64,15 @@ export function ReportSections({
         })}
       </div>
 
-      {open === "cliente" && <ReportTable title="Ventas por cliente" rows={porCliente} />}
-      {open === "vendedor" && <ReportTable title="Ventas por vendedor" rows={porVendedor} />}
-      {open === "zona" && <ReportTable title="Ventas por zona" rows={porZona} />}
-      {open === "producto" && <ProductTable title="Ventas por producto" rows={porProducto} />}
+      {open === "cliente" && <ReportTable title="Ventas por cliente" nameColumn="Cliente" rows={porCliente} />}
+      {open === "vendedor" && <ReportTable title="Ventas por vendedor" nameColumn="Vendedor" rows={porVendedor} />}
+      {open === "zona" && <ReportTable title="Ventas por zona" nameColumn="Zona" rows={porZona} />}
+      {open === "producto" && (
+        <div className="flex flex-col gap-4">
+          <ProductoChart rows={porProducto} />
+          <ReportTable title="Ventas por producto" nameColumn="Producto" rows={porProducto} />
+        </div>
+      )}
     </div>
   );
 }
@@ -109,7 +118,7 @@ function ReportPager({
   );
 }
 
-function ReportTable({ title, rows }: { title: string; rows: AggregateRow[] }) {
+function ReportTable({ title, nameColumn, rows }: { title: string; nameColumn: string; rows: AggregateRow[] }) {
   const [page, setPage] = useState(1);
   const totalPages = Math.max(1, Math.ceil(rows.length / REPORT_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -122,8 +131,8 @@ function ReportTable({ title, rows }: { title: string; rows: AggregateRow[] }) {
         <table className="w-full text-sm">
           <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
             <tr>
-              <th className="px-3 py-2.5">Nombre</th>
-              <th className="px-3 py-2.5 text-right">Notas</th>
+              <th className="px-3 py-2.5">{nameColumn}</th>
+              <th className="px-3 py-2.5 text-right">Toneladas</th>
               <th className="px-3 py-2.5 text-right">Total</th>
             </tr>
           </thead>
@@ -131,7 +140,7 @@ function ReportTable({ title, rows }: { title: string; rows: AggregateRow[] }) {
             {pageRows.map((row) => (
               <tr key={row.label}>
                 <td className="max-w-0 truncate px-3 py-2 font-medium">{row.label}</td>
-                <td className="px-3 py-2 text-right text-btm-black/70">{row.count}</td>
+                <td className="px-3 py-2 text-right text-btm-black/70">{formatTn(row.toneladas)}</td>
                 <td className="px-3 py-2 text-right font-semibold text-btm-navy">{formatUsd(row.total)}</td>
               </tr>
             ))}
@@ -150,45 +159,63 @@ function ReportTable({ title, rows }: { title: string; rows: AggregateRow[] }) {
   );
 }
 
-function ProductTable({ title, rows }: { title: string; rows: ProductAggregateRow[] }) {
-  const [page, setPage] = useState(1);
-  const totalPages = Math.max(1, Math.ceil(rows.length / REPORT_PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageRows = rows.slice((currentPage - 1) * REPORT_PAGE_SIZE, currentPage * REPORT_PAGE_SIZE);
+const CHART_TOP_N = 10;
+
+function ProductoChart({ rows }: { rows: AggregateRow[] }) {
+  if (rows.length === 0) return null;
+  const top = rows.slice(0, CHART_TOP_N);
 
   return (
-    <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-      <div className="overflow-hidden rounded-lg border border-black/10">
-        <table className="w-full text-sm">
-          <thead className="bg-btm-navy text-left text-xs font-semibold uppercase tracking-wide text-white">
-            <tr>
-              <th className="px-3 py-2.5">Producto</th>
-              <th className="px-3 py-2.5 text-right">Cantidad (tn)</th>
-              <th className="px-3 py-2.5 text-right">Total</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {pageRows.map((row) => (
-              <tr key={row.label}>
-                <td className="max-w-0 truncate px-3 py-2 font-medium">{row.label}</td>
-                <td className="px-3 py-2 text-right text-btm-black/70">
-                  {row.cantidad.toLocaleString("es-AR", { maximumFractionDigits: 2 })}
-                </td>
-                <td className="px-3 py-2 text-right font-semibold text-btm-navy">{formatUsd(row.total)}</td>
-              </tr>
-            ))}
-            {rows.length === 0 && (
-              <tr>
-                <td colSpan={3} className="px-3 py-6 text-center text-btm-black/50">
-                  Sin datos para este período.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-      <ReportPager page={currentPage} totalPages={totalPages} totalRows={rows.length} onPageChange={setPage} />
+    <section className="flex flex-col gap-5 rounded-lg border border-black/10 p-4 sm:p-5">
+      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+        Top {top.length} productos
+      </h2>
+      <BarRow label="Toneladas" rows={top} getValue={(r) => r.toneladas} formatValue={formatTn} />
+      <BarRow label="Monto" rows={top} getValue={(r) => r.total} formatValue={formatUsd} />
     </section>
+  );
+}
+
+function BarRow({
+  label,
+  rows,
+  getValue,
+  formatValue,
+}: {
+  label: string;
+  rows: AggregateRow[];
+  getValue: (r: AggregateRow) => number;
+  formatValue: (v: number) => string;
+}) {
+  const max = Math.max(...rows.map(getValue), 1);
+
+  return (
+    <div className="flex flex-col gap-2">
+      <span className="text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">{label}</span>
+      <div className="flex flex-col gap-2">
+        {rows.map((row) => {
+          const value = getValue(row);
+          const pct = Math.max((value / max) * 100, value > 0 ? 2 : 0);
+          return (
+            <div key={row.label} className="flex items-center gap-3">
+              <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.label}>
+                {row.label}
+              </span>
+              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
+                <div
+                  className="h-full rounded-full bg-btm-navy"
+                  style={{ width: `${pct}%` }}
+                  role="img"
+                  aria-label={`${row.label}: ${formatValue(value)}`}
+                />
+              </div>
+              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                {formatValue(value)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }

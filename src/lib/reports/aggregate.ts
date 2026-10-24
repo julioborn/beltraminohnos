@@ -9,24 +9,33 @@ export type ReportOrder = {
   items: { cantidad: number; precio_unitario: number; product: { name: string } | null }[];
 };
 
-export type AggregateRow = { label: string; count: number; total: number };
-export type ProductAggregateRow = { label: string; cantidad: number; total: number };
+// Toneladas y monto son lo que le importa al dueño — la cantidad de notas
+// no se usa para nada, por eso ningún aggregate la expone.
+export type AggregateRow = { label: string; toneladas: number; total: number };
 export type MonthRow = { label: string; total: number };
 
 function orderTotal(order: ReportOrder) {
   return order.items.reduce((sum, it) => sum + it.cantidad * it.precio_unitario, 0);
 }
 
+function orderToneladas(order: ReportOrder) {
+  return order.items.reduce((sum, it) => sum + it.cantidad, 0);
+}
+
 export function totalFacturado(orders: ReportOrder[]) {
   return orders.reduce((sum, o) => sum + orderTotal(o), 0);
+}
+
+export function totalToneladas(orders: ReportOrder[]) {
+  return orders.reduce((sum, o) => sum + orderToneladas(o), 0);
 }
 
 function aggregateByLabel(orders: ReportOrder[], getLabel: (o: ReportOrder) => string): AggregateRow[] {
   const map = new Map<string, AggregateRow>();
   for (const o of orders) {
     const label = getLabel(o);
-    const row = map.get(label) ?? { label, count: 0, total: 0 };
-    row.count += 1;
+    const row = map.get(label) ?? { label, toneladas: 0, total: 0 };
+    row.toneladas += orderToneladas(o);
     row.total += orderTotal(o);
     map.set(label, row);
   }
@@ -45,13 +54,13 @@ export function aggregateByZona(orders: ReportOrder[]): AggregateRow[] {
   return aggregateByLabel(orders, (o) => o.zona?.name ?? "Sin zona");
 }
 
-export function aggregateByProducto(orders: ReportOrder[]): ProductAggregateRow[] {
-  const map = new Map<string, ProductAggregateRow>();
+export function aggregateByProducto(orders: ReportOrder[]): AggregateRow[] {
+  const map = new Map<string, AggregateRow>();
   for (const o of orders) {
     for (const it of o.items) {
       const label = it.product?.name ?? "—";
-      const row = map.get(label) ?? { label, cantidad: 0, total: 0 };
-      row.cantidad += it.cantidad;
+      const row = map.get(label) ?? { label, toneladas: 0, total: 0 };
+      row.toneladas += it.cantidad;
       row.total += it.cantidad * it.precio_unitario;
       map.set(label, row);
     }

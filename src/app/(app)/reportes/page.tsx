@@ -8,6 +8,7 @@ import {
   aggregateByVendedor,
   aggregateByZona,
   totalFacturado,
+  totalToneladas,
 } from "@/lib/reports/aggregate";
 import { formatUsd } from "@/lib/format";
 import { ReportSections } from "./report-sections";
@@ -27,6 +28,7 @@ export default async function ReportesPage({
   const hasFilter = Boolean(params.desde || params.hasta);
 
   const total = totalFacturado(orders);
+  const toneladas = totalToneladas(orders);
   const porCliente = aggregateByCliente(orders);
   const porVendedor = aggregateByVendedor(orders);
   const porZona = aggregateByZona(orders);
@@ -38,7 +40,7 @@ export default async function ReportesPage({
         <div>
           <h1 className="font-display text-2xl font-extrabold uppercase tracking-tight text-btm-navy">Reportes</h1>
           <p className="text-sm text-btm-black/60">
-            {orders.length} {orders.length === 1 ? "nota" : "notas"} · Total {formatUsd(total)}
+            {toneladas.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn · Total {formatUsd(total)}
           </p>
         </div>
         <a

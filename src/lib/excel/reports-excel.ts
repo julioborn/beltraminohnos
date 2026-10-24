@@ -4,30 +4,26 @@ import {
   aggregateByProducto,
   aggregateByVendedor,
   aggregateByZona,
+  type AggregateRow,
   type ReportOrder,
 } from "@/lib/reports/aggregate";
 import { addBrandHeader } from "./brand-header";
 
 const NAVY = "FF21305D";
 
-function addAggregateSheet(
-  workbook: ExcelJS.Workbook,
-  name: string,
-  nameColumn: string,
-  rows: { label: string; count: number; total: number }[],
-) {
+function addAggregateSheet(workbook: ExcelJS.Workbook, name: string, nameColumn: string, rows: AggregateRow[]) {
   const sheet = workbook.addWorksheet(name);
   addBrandHeader(workbook, sheet);
   sheet.addRow([]);
-  const headerRow = sheet.addRow([nameColumn, "Notas", "Total USD"]);
+  const headerRow = sheet.addRow([nameColumn, "Toneladas", "Total USD"]);
   headerRow.eachCell((cell) => {
     cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
     cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
   });
   for (const row of rows) {
-    sheet.addRow([row.label, row.count, row.total]);
+    sheet.addRow([row.label, row.toneladas, row.total]);
   }
-  sheet.columns = [{ width: 32 }, { width: 12 }, { width: 16 }];
+  sheet.columns = [{ width: 32 }, { width: 14 }, { width: 16 }];
 }
 
 export async function buildReportsWorkbook(orders: ReportOrder[]) {
@@ -36,19 +32,7 @@ export async function buildReportsWorkbook(orders: ReportOrder[]) {
   addAggregateSheet(workbook, "Por cliente", "Cliente", aggregateByCliente(orders));
   addAggregateSheet(workbook, "Por vendedor", "Vendedor", aggregateByVendedor(orders));
   addAggregateSheet(workbook, "Por zona", "Zona", aggregateByZona(orders));
-
-  const productoSheet = workbook.addWorksheet("Por producto");
-  addBrandHeader(workbook, productoSheet);
-  productoSheet.addRow([]);
-  const productoHeader = productoSheet.addRow(["Producto", "Cantidad (tn)", "Total USD"]);
-  productoHeader.eachCell((cell) => {
-    cell.font = { bold: true, color: { argb: "FFFFFFFF" } };
-    cell.fill = { type: "pattern", pattern: "solid", fgColor: { argb: NAVY } };
-  });
-  for (const row of aggregateByProducto(orders)) {
-    productoSheet.addRow([row.label, row.cantidad, row.total]);
-  }
-  productoSheet.columns = [{ width: 32 }, { width: 12 }, { width: 16 }];
+  addAggregateSheet(workbook, "Por producto", "Producto", aggregateByProducto(orders));
 
   return workbook;
 }
