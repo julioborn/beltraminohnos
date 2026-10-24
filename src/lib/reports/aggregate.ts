@@ -68,6 +68,38 @@ export function aggregateByProducto(orders: ReportOrder[]): AggregateRow[] {
   return Array.from(map.values()).sort((a, b) => b.total - a.total);
 }
 
+export type PendingItemOrder = {
+  items: {
+    cantidad: number;
+    precio_unitario: number;
+    estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
+    estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
+    product: { name: string } | null;
+  }[];
+};
+
+// Para las tarjetas de "pendientes de fabricación/entrega" de Estadísticas:
+// agrega por producto solo los ítems que todavía están en PENDIENTE en el
+// campo indicado, no toda la nota (una nota PARCIAL puede tener ítems ya
+// resueltos que no deben contar acá).
+export function aggregatePendingByProducto(
+  orders: PendingItemOrder[],
+  campo: "estado_produccion" | "estado_logistica",
+): AggregateRow[] {
+  const map = new Map<string, AggregateRow>();
+  for (const o of orders) {
+    for (const it of o.items) {
+      if (it[campo] !== "PENDIENTE") continue;
+      const label = it.product?.name ?? "—";
+      const row = map.get(label) ?? { label, toneladas: 0, total: 0 };
+      row.toneladas += it.cantidad;
+      row.total += it.cantidad * it.precio_unitario;
+      map.set(label, row);
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => b.total - a.total);
+}
+
 export function aggregateByMonth(orders: ReportOrder[]): MonthRow[] {
   const map = new Map<string, number>();
   for (const o of orders) {

@@ -1,19 +1,17 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
-import {
-  getOrdersForReports,
-  getOrderNotesPendingProduccion,
-  getOrderNotesPendingEntrega,
-  type ReportFilters,
-} from "@/lib/data/orders";
+import { getOrdersForReports, getOrdersPendingSummary, type ReportFilters } from "@/lib/data/orders";
 import {
   aggregateByMonth,
   aggregateByProducto,
   aggregateByVendedor,
   aggregateByZona,
+  aggregatePendingByProducto,
   estadoCounts,
   totalFacturado,
+  totalToneladas,
+  type AggregateRow,
 } from "@/lib/reports/aggregate";
 import { formatUsd, formatFecha } from "@/lib/format";
 import { TopSections } from "./top-sections";
@@ -28,16 +26,18 @@ export default async function EstadisticasPage({
   }
 
   const params = await searchParams;
-  const [orders, pendientesFabricacion, pendientesEntrega] = await Promise.all([
-    getOrdersForReports(params),
-    getOrderNotesPendingProduccion(),
-    getOrderNotesPendingEntrega(),
-  ]);
+  const [orders, pendingOrders] = await Promise.all([getOrdersForReports(params), getOrdersPendingSummary()]);
   const hasFilter = Boolean(params.desde || params.hasta);
 
   const total = totalFacturado(orders);
   const cantidadNotas = orders.length;
-  const ticketPromedio = cantidadNotas > 0 ? total / cantidadNotas : 0;
+  const toneladasVendidas = totalToneladas(orders);
+  const promedioPorTonelada = toneladasVendidas > 0 ? total / toneladasVendidas : 0;
+
+  const pendientesFabricacionRows = aggregatePendingByProducto(pendingOrders, "estado_produccion");
+  const pendientesEntregaRows = aggregatePendingByProducto(pendingOrders, "estado_logistica");
+  const pendientesFabricacionNotas = notesWithPending(pendingOrders, "estado_produccion");
+  const pendientesEntregaNotas = notesWithPending(pendingOrders, "estado_logistica");
 
   const porMes = aggregateByMonth(orders).slice(-12);
   const porZona = aggregateByZona(orders).slice(0, 6);
@@ -52,8 +52,18 @@ export default async function EstadisticasPage({
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <PendingNotesCard title="Pendientes de fabricación" notes={pendientesFabricacion} emptyLabel="No hay notas pendientes de fabricación." />
-        <PendingNotesCard title="Pendientes de entrega" notes={pendientesEntrega} emptyLabel="No hay notas pendientes de entrega." />
+        <PendingNotesCard
+          title="Pendientes de fabricación"
+          rows={pendientesFabricacionRows}
+          notes={pendientesFabricacionNotas}
+          emptyLabel="No hay nada pendiente de fabricación."
+        />
+        <PendingNotesCard
+          title="Pendientes de entrega"
+          rows={pendientesEntregaRows}
+          notes={pendientesEntregaNotas}
+          emptyLabel="No hay nada pendiente de entrega."
+        />
       </div>
 
       <form method="get" className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:items-end">
@@ -87,7 +97,7 @@ export default async function EstadisticasPage({
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Kpi label="Notas" value={String(cantidadNotas)} />
         <Kpi label="Total facturado" value={formatUsd(total)} />
-        <Kpi label="Ticket promedio" value={formatUsd(ticketPromedio)} />
+        <Kpi label="Promedio por tonelada" value={`${formatUsd(promedioPorTonelada)}/tn`} />
         <Kpi label="Entregado" value={`${percent(logistica.ENTREGADO, cantidadNotas)}%`} />
       </div>
 
@@ -125,6 +135,19 @@ function percent(part: number, total: number) {
   return Math.round((part / total) * 100);
 }
 
+function formatTn(value: number) {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
+
+function notesWithPending(
+  orders: { id: string; numero: string; cliente: string; fecha: string; items: { estado_produccion: string; estado_logistica: string }[] }[],
+  campo: "estado_produccion" | "estado_logistica",
+) {
+  return orders
+    .filter((o) => o.items.some((it) => it[campo] === "PENDIENTE"))
+    .map((o) => ({ id: o.id, numero: o.numero, cliente: o.cliente, fecha: o.fecha }));
+}
+
 function Kpi({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1 rounded-lg border border-black/10 bg-white p-4">
@@ -136,54 +159,96 @@ function Kpi({ label, value }: { label: string; value: string }) {
 
 function PendingNotesCard({
   title,
+  rows,
   notes,
   emptyLabel,
 }: {
   title: string;
+  rows: AggregateRow[];
   notes: { id: string; numero: string; cliente: string; fecha: string }[];
   emptyLabel: string;
 }) {
+  const toneladas = rows.reduce((sum, r) => sum + r.toneladas, 0);
+  const monto = rows.reduce((sum, r) => sum + r.total, 0);
+
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-black/10 bg-white p-4 sm:p-5">
-      <div className="flex items-center justify-between gap-2">
-        <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-        <span className="rounded-full bg-btm-pendiente-bg px-2.5 py-1 text-xs font-bold text-amber-900">
-          {notes.length}
-        </span>
-      </div>
-      {notes.length === 0 ? (
+      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
+      {rows.length === 0 ? (
         <p className="text-sm text-btm-black/50">{emptyLabel}</p>
       ) : (
-        <details className="group">
-          <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy [&::-webkit-details-marker]:hidden">
-            <svg
-              className="h-3.5 w-3.5 transition-transform group-open:rotate-90"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden
-            >
-              <path d="M6 4l6 6-6 6V4z" />
-            </svg>
-            Ver notas
-          </summary>
-          <div className="mt-2 flex max-h-80 flex-col divide-y divide-black/5 overflow-y-auto">
-            {notes.map((n) => (
-              <Link
-                key={n.id}
-                href={`/pedidos/${n.id}`}
-                className="flex items-center justify-between gap-3 py-2 text-sm hover:text-btm-red"
+        <>
+          <p className="text-sm text-btm-black/70">
+            <span className="font-bold text-btm-navy">{formatUsd(monto)}</span> · {formatTn(toneladas)}
+          </p>
+          <PendingProductBars rows={rows} />
+          <details className="group">
+            <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy [&::-webkit-details-marker]:hidden">
+              <svg
+                className="h-3.5 w-3.5 transition-transform group-open:rotate-90"
+                viewBox="0 0 20 20"
+                fill="currentColor"
+                aria-hidden
               >
-                <span className="flex flex-col">
-                  <span className="font-semibold text-btm-navy">{n.numero}</span>
-                  <span className="text-btm-black/70">{n.cliente}</span>
-                </span>
-                <span className="shrink-0 text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
-              </Link>
-            ))}
-          </div>
-        </details>
+                <path d="M6 4l6 6-6 6V4z" />
+              </svg>
+              Ver notas ({notes.length})
+            </summary>
+            <div className="mt-2 flex max-h-80 flex-col divide-y divide-black/5 overflow-y-auto">
+              {notes.map((n) => (
+                <Link
+                  key={n.id}
+                  href={`/pedidos/${n.id}`}
+                  className="flex items-center justify-between gap-3 py-2 text-sm hover:text-btm-red"
+                >
+                  <span className="flex flex-col">
+                    <span className="font-semibold text-btm-navy">{n.numero}</span>
+                    <span className="text-btm-black/70">{n.cliente}</span>
+                  </span>
+                  <span className="shrink-0 text-xs text-btm-black/50">{formatFecha(n.fecha)}</span>
+                </Link>
+              ))}
+            </div>
+          </details>
+        </>
       )}
     </section>
+  );
+}
+
+const PENDING_BARS_TOP_N = 5;
+
+function PendingProductBars({ rows }: { rows: AggregateRow[] }) {
+  const top = rows.slice(0, PENDING_BARS_TOP_N);
+  const max = Math.max(...top.map((r) => r.total), 1);
+
+  return (
+    <div className="flex flex-col gap-2">
+      {top.map((row) => {
+        const pct = Math.max((row.total / max) * 100, row.total > 0 ? 2 : 0);
+        return (
+          <div key={row.label} className="flex items-center gap-2">
+            <span className="w-20 shrink-0 truncate text-xs text-btm-black/70 sm:w-28" title={row.label}>
+              {row.label}
+            </span>
+            <div className="h-3 flex-1 overflow-hidden rounded-full bg-black/[.04]">
+              <div
+                className="h-full rounded-full bg-btm-navy"
+                style={{ width: `${pct}%` }}
+                role="img"
+                aria-label={`${row.label}: ${formatUsd(row.total)}, ${formatTn(row.toneladas)}`}
+              />
+            </div>
+            <span className="btm-fig w-16 shrink-0 text-right text-[11px] font-semibold text-btm-navy sm:w-20">
+              {formatUsd(row.total)}
+            </span>
+            <span className="btm-fig w-12 shrink-0 text-right text-[11px] font-semibold text-btm-navy sm:w-16">
+              {formatTn(row.toneladas)}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 

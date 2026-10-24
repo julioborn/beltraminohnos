@@ -119,28 +119,6 @@ export async function getOrdersPendingSummary() {
   return data ?? [];
 }
 
-export async function getOrderNotesPendingProduccion() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("order_notes")
-    .select("id, numero, cliente, fecha")
-    .in("estado_produccion", ["PENDIENTE", "PARCIAL"])
-    .order("fecha", { ascending: true })
-    .limit(200);
-  return data ?? [];
-}
-
-export async function getOrderNotesPendingEntrega() {
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("order_notes")
-    .select("id, numero, cliente, fecha")
-    .in("estado_logistica", ["PENDIENTE", "PARCIAL"])
-    .order("fecha", { ascending: true })
-    .limit(200);
-  return data ?? [];
-}
-
 export type ReportFilters = { desde?: string; hasta?: string };
 
 export async function getOrdersForReports(filters: ReportFilters) {
