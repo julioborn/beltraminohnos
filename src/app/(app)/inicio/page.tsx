@@ -232,7 +232,7 @@ export default async function InicioPage() {
 
   const cards = [
     ...ROW_1.map((item) => ({ ...item, accent: "red" as const })),
-    ...ROW_2.map((item) => ({ ...item, accent: "navy" as const })),
+    ...ROW_2.map((item) => ({ ...item, accent: item.href === "/productos" ? ("red" as const) : ("navy" as const) })),
     ...row3.map((item) => ({ ...item, accent: "navy" as const })),
     ...row4.map((item) => ({ ...item, accent: "navy" as const })),
   ];
