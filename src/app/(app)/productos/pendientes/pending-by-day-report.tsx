@@ -55,6 +55,7 @@ export function PendingByDayReport({
 }) {
   const [range, setRange] = useState<DateRange>(() => defaultDateRange(orders));
   const [mode, setMode] = useState<PendingDayMode>("fabricacion");
+  const [showDays, setShowDays] = useState(false);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [view, setView] = useState<View>({ type: "matrix" });
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -150,23 +151,33 @@ export function PendingByDayReport({
 
           <PendingChart rows={visibleRows} modeLabel={PENDING_DAY_MODE_LABELS[mode]} />
 
-          <p className="text-xs text-btm-black/50">
-            Tocá el nombre de un producto para ver todas sus notas pendientes, o tocá un día puntual para ver solo las de ese día.
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="text-xs text-btm-black/50">
+              Tocá el nombre de un producto para ver todas sus notas pendientes, o tocá un día puntual para ver solo las de ese día.
+            </p>
+            <button
+              type="button"
+              onClick={() => setShowDays((v) => !v)}
+              className="shrink-0 cursor-pointer rounded-full border border-btm-navy px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+            >
+              {showDays ? "Ocultar días" : "Ver por día"}
+            </button>
+          </div>
           <div ref={scrollRef} className="overflow-x-auto rounded-lg border border-black/10">
             <table className="w-full text-sm">
               <thead className="bg-btm-navy text-center text-[11px] font-semibold uppercase tracking-wide text-white">
                 <tr>
                   <th className="sticky left-0 z-10 bg-btm-navy px-2 py-2 text-left sm:px-4 sm:py-2.5">Producto</th>
-                  {matrix.days.map((d) => {
-                    const { day, weekday } = dayHeaderParts(d);
-                    return (
-                      <th key={d} className="whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5">
-                        <span className="block">{day}</span>
-                        <span className="block font-normal normal-case text-white/70">{weekday}</span>
-                      </th>
-                    );
-                  })}
+                  {showDays &&
+                    matrix.days.map((d) => {
+                      const { day, weekday } = dayHeaderParts(d);
+                      return (
+                        <th key={d} className="whitespace-nowrap px-2 py-2 sm:px-3 sm:py-2.5">
+                          <span className="block">{day}</span>
+                          <span className="block font-normal normal-case text-white/70">{weekday}</span>
+                        </th>
+                      );
+                    })}
                   <th className="whitespace-nowrap px-2 py-2 sm:px-4 sm:py-2.5">Total</th>
                 </tr>
               </thead>
@@ -187,29 +198,36 @@ export function PendingByDayReport({
                             {row.productName}
                           </button>
                         </td>
-                        {matrix.days.map((d) => {
-                          const isSelectedCell = isSelectedProduct && selection?.day === d;
-                          return (
-                            <td key={d} className="whitespace-nowrap p-0 text-center text-btm-black/70">
-                              <button
-                                type="button"
-                                onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: d })}
-                                className={`w-full cursor-pointer px-2 py-1.5 text-xs hover:bg-btm-navy/5 hover:text-btm-red sm:px-3 sm:py-2 sm:text-sm ${
-                                  isSelectedCell ? "bg-btm-navy/10 font-semibold text-btm-red" : ""
-                                }`}
-                              >
-                                {formatCantidad(row.byDay[d] ?? 0)}
-                              </button>
-                            </td>
-                          );
-                        })}
+                        {showDays &&
+                          matrix.days.map((d) => {
+                            const isSelectedCell = isSelectedProduct && selection?.day === d;
+                            const dayValue = row.byDay[d] ?? 0;
+                            const hasMovement = dayValue !== 0;
+                            return (
+                              <td key={d} className="whitespace-nowrap p-0 text-center text-btm-black/70">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleSelection({ productId: row.productId, productName: row.productName, day: d })}
+                                  className={`w-full cursor-pointer px-2 py-1.5 text-xs hover:bg-btm-navy/5 hover:text-btm-red sm:px-3 sm:py-2 sm:text-sm ${
+                                    isSelectedCell
+                                      ? "bg-btm-navy/10 font-semibold text-btm-red"
+                                      : hasMovement
+                                        ? "font-bold text-btm-red"
+                                        : ""
+                                  }`}
+                                >
+                                  {formatCantidad(dayValue)}
+                                </button>
+                              </td>
+                            );
+                          })}
                         <td className="whitespace-nowrap px-2 py-1.5 text-center text-xs font-bold text-btm-navy sm:px-4 sm:py-2 sm:text-sm">
                           {formatCantidad(row.total)}
                         </td>
                       </tr>
                       {isSelectedProduct && (
                         <tr>
-                          <td colSpan={matrix.days.length + 2} className="bg-btm-navy/5 p-0">
+                          <td colSpan={(showDays ? matrix.days.length : 0) + 2} className="bg-btm-navy/5 p-0">
                             <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between sm:p-4">
                               <div>
                                 <p className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy sm:text-sm">
@@ -238,7 +256,7 @@ export function PendingByDayReport({
                 })}
                 {visibleRows.length === 0 && (
                   <tr>
-                    <td colSpan={matrix.days.length + 2} className="px-4 py-8 text-center text-btm-black/50">
+                    <td colSpan={(showDays ? matrix.days.length : 0) + 2} className="px-4 py-8 text-center text-btm-black/50">
                       No hay nada pendiente en este rango.
                     </td>
                   </tr>
@@ -250,14 +268,15 @@ export function PendingByDayReport({
                     <td className="sticky left-0 z-10 bg-btm-navy/5 px-2 py-2 text-left text-xs font-bold uppercase tracking-wide text-btm-navy sm:px-4 sm:py-2.5 sm:text-sm">
                       Total
                     </td>
-                    {matrix.days.map((d) => (
-                      <td
-                        key={d}
-                        className="whitespace-nowrap px-2 py-2 text-center text-xs font-bold text-btm-navy sm:px-3 sm:py-2.5 sm:text-sm"
-                      >
-                        {formatCantidad(matrix.totalByDay[d] ?? 0)}
-                      </td>
-                    ))}
+                    {showDays &&
+                      matrix.days.map((d) => (
+                        <td
+                          key={d}
+                          className="whitespace-nowrap px-2 py-2 text-center text-xs font-bold text-btm-navy sm:px-3 sm:py-2.5 sm:text-sm"
+                        >
+                          {formatCantidad(matrix.totalByDay[d] ?? 0)}
+                        </td>
+                      ))}
                     <td className="whitespace-nowrap px-2 py-2 text-center text-xs font-bold text-btm-navy sm:px-4 sm:py-2.5 sm:text-sm">
                       {formatCantidad(matrix.grandTotal)}
                     </td>
