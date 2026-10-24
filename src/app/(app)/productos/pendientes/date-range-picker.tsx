@@ -32,7 +32,15 @@ function capitalize(s: string) {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-export function DateRangePicker({ value, onChange }: { value: DateRange; onChange: (range: DateRange) => void }) {
+export function DateRangePicker({
+  value,
+  onChange,
+  onClear,
+}: {
+  value: DateRange;
+  onChange: (range: DateRange) => void;
+  onClear?: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [viewMonth, setViewMonth] = useState(() =>
     startOfMonth(value.start ? new Date(`${value.start}T00:00:00`) : new Date()),
@@ -84,7 +92,7 @@ export function DateRangePicker({ value, onChange }: { value: DateRange; onChang
         {(value.start || value.end) && (
           <button
             type="button"
-            onClick={() => onChange({ start: null, end: null })}
+            onClick={() => (onClear ? onClear() : onChange({ start: null, end: null }))}
             className="cursor-pointer text-xs font-semibold uppercase tracking-wide text-btm-black/50 hover:text-btm-red"
           >
             Limpiar

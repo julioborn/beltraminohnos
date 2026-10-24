@@ -7,6 +7,7 @@ export type PendingDayOrder = {
   fecha_entrega: string | null;
   items: {
     cantidad: number;
+    precio_unitario: number;
     product_id: string;
     estado_produccion: "PENDIENTE" | "PARCIAL" | "FABRICADO";
     estado_logistica: "PENDIENTE" | "PARCIAL" | "ENTREGADO";
@@ -18,7 +19,7 @@ export type PendingDayMode = "fabricacion" | "entrega" | "fabricado";
 export const PENDING_DAY_MODE_LABELS: Record<PendingDayMode, string> = {
   fabricacion: "Pendiente de fabricación",
   entrega: "Pendiente de entrega",
-  fabricado: "Ya fabricado",
+  fabricado: "Stock",
 };
 
 function isRelevant(mode: PendingDayMode, item: { estado_produccion: string; estado_logistica: string }) {
@@ -35,6 +36,7 @@ export type PendingProductNoteRef = {
   cliente: string;
   fecha_entrega: string | null;
   cantidad: number;
+  monto: number;
 };
 
 export type PendingDayRow = {
@@ -42,6 +44,7 @@ export type PendingDayRow = {
   productName: string;
   byDay: Record<string, number>;
   total: number;
+  montoTotal: number;
 };
 
 export type PendingDayMatrix = {
@@ -49,6 +52,7 @@ export type PendingDayMatrix = {
   rows: PendingDayRow[];
   totalByDay: Record<string, number>;
   grandTotal: number;
+  grandMontoTotal: number;
 };
 
 export function buildPendingDayMatrix(
@@ -61,9 +65,9 @@ export function buildPendingDayMatrix(
   const days = eachDateInRange(start, end);
   const dayIndex = new Set(days);
 
-  const rowsByProduct = new Map<string, { productName: string; byDay: Record<string, number> }>();
+  const rowsByProduct = new Map<string, { productName: string; byDay: Record<string, number>; montoTotal: number }>();
   for (const p of products) {
-    rowsByProduct.set(p.id, { productName: p.name, byDay: Object.fromEntries(days.map((d) => [d, 0])) });
+    rowsByProduct.set(p.id, { productName: p.name, byDay: Object.fromEntries(days.map((d) => [d, 0])), montoTotal: 0 });
   }
 
   for (const o of orders) {
@@ -75,10 +79,11 @@ export function buildPendingDayMatrix(
 
       let row = rowsByProduct.get(it.product_id);
       if (!row) {
-        row = { productName: "—", byDay: Object.fromEntries(days.map((d) => [d, 0])) };
+        row = { productName: "—", byDay: Object.fromEntries(days.map((d) => [d, 0])), montoTotal: 0 };
         rowsByProduct.set(it.product_id, row);
       }
       row.byDay[o.fecha_entrega] = (row.byDay[o.fecha_entrega] ?? 0) + it.cantidad;
+      row.montoTotal += it.cantidad * it.precio_unitario;
     }
   }
 
@@ -87,6 +92,7 @@ export function buildPendingDayMatrix(
     productName: row.productName,
     byDay: row.byDay,
     total: days.reduce((sum, d) => sum + (row.byDay[d] ?? 0), 0),
+    montoTotal: row.montoTotal,
   }));
 
   const totalByDay: Record<string, number> = Object.fromEntries(days.map((d) => [d, 0]));
@@ -96,8 +102,9 @@ export function buildPendingDayMatrix(
     }
   }
   const grandTotal = days.reduce((sum, d) => sum + totalByDay[d], 0);
+  const grandMontoTotal = rows.reduce((sum, row) => sum + row.montoTotal, 0);
 
-  return { days, rows, totalByDay, grandTotal };
+  return { days, rows, totalByDay, grandTotal, grandMontoTotal };
 }
 
 export type PendingDetailRow = {
@@ -151,7 +158,14 @@ export function notesForProduct(
     for (const it of o.items) {
       if (it.product_id !== productId) continue;
       if (!isRelevant(mode, it)) continue;
-      refs.push({ id: o.id, numero: o.numero, cliente: o.cliente, fecha_entrega: o.fecha_entrega, cantidad: it.cantidad });
+      refs.push({
+        id: o.id,
+        numero: o.numero,
+        cliente: o.cliente,
+        fecha_entrega: o.fecha_entrega,
+        cantidad: it.cantidad,
+        monto: it.cantidad * it.precio_unitario,
+      });
     }
   }
 

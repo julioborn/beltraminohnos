@@ -111,7 +111,7 @@ export async function getOrdersPendingSummary() {
     .from("order_notes")
     .select(
       `id, numero, cliente, fecha, fecha_entrega, estado_logistica, estado_produccion,
-       items:order_items(cantidad, product_id, estado_produccion, estado_logistica, product:products(name))`,
+       items:order_items(cantidad, precio_unitario, product_id, estado_produccion, estado_logistica, product:products(name))`,
     )
     .order("fecha", { ascending: false })
     .limit(2000);

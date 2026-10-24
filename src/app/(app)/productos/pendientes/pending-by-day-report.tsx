@@ -6,11 +6,12 @@ import { DateRangePicker, type DateRange } from "./date-range-picker";
 import {
   buildPendingDayMatrix,
   notesForProduct,
+  PENDING_DAY_MODE_LABELS,
   type PendingDayMode,
   type PendingDayOrder,
-  type PendingProductNoteRef,
+  type PendingDayRow,
 } from "@/lib/reports/pending-by-day";
-import { formatFecha, formatDiaEntrega } from "@/lib/format";
+import { formatFecha, formatDiaEntrega, formatUsd } from "@/lib/format";
 
 const WEEKDAY_FORMATTER = new Intl.DateTimeFormat("es-AR", { weekday: "long" });
 
@@ -26,6 +27,21 @@ function dayHeaderParts(iso: string) {
 type Selection = { productId: string; productName: string; day: string | null };
 type View = { type: "matrix" } | { type: "product"; productId: string; productName: string; day: string | null };
 
+// Sin elegir nada, igual hay que mostrar todo lo pendiente — se arma un
+// rango por default a partir de las fechas de entrega reales (la más
+// temprana a la más tardía), así el usuario puede acotarlo después si
+// quiere, en vez de partir de una tabla vacía.
+function defaultDateRange(orders: PendingDayOrder[]): DateRange {
+  let min: string | null = null;
+  let max: string | null = null;
+  for (const o of orders) {
+    if (!o.fecha_entrega) continue;
+    if (min === null || o.fecha_entrega < min) min = o.fecha_entrega;
+    if (max === null || o.fecha_entrega > max) max = o.fecha_entrega;
+  }
+  return { start: min, end: max };
+}
+
 export function PendingByDayReport({
   products,
   orders,
@@ -33,7 +49,7 @@ export function PendingByDayReport({
   products: { id: string; name: string }[];
   orders: PendingDayOrder[];
 }) {
-  const [range, setRange] = useState<DateRange>({ start: null, end: null });
+  const [range, setRange] = useState<DateRange>(() => defaultDateRange(orders));
   const [mode, setMode] = useState<PendingDayMode>("fabricacion");
   const [selection, setSelection] = useState<Selection | null>(null);
   const [view, setView] = useState<View>({ type: "matrix" });
@@ -44,11 +60,17 @@ export function PendingByDayReport({
     return buildPendingDayMatrix(products, orders, range.start, range.end, mode);
   }, [products, orders, range, mode]);
 
+  const visibleRows = useMemo(() => matrix?.rows.filter((r) => r.total !== 0) ?? [], [matrix]);
+
   const selectionSummary = useMemo(() => {
-    if (!selection) return { count: 0, total: 0 };
+    if (!selection) return { count: 0, total: 0, monto: 0 };
     const dayRange = selection.day ? { start: selection.day, end: selection.day } : undefined;
     const notes = notesForProduct(orders, selection.productId, mode, dayRange);
-    return { count: notes.length, total: notes.reduce((sum, n) => sum + n.cantidad, 0) };
+    return {
+      count: notes.length,
+      total: notes.reduce((sum, n) => sum + n.cantidad, 0),
+      monto: notes.reduce((sum, n) => sum + n.monto, 0),
+    };
   }, [orders, mode, selection]);
 
   useEffect(() => {
@@ -86,16 +108,16 @@ export function PendingByDayReport({
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
       <p className="text-sm text-btm-black/60">
-        Elegí un rango de fechas de entrega para ver cuánto hay pendiente, día por día.
+        Se muestra todo lo pendiente por defecto. Elegí un rango de fechas de entrega si querés acotarlo.
       </p>
 
       <div className="flex flex-wrap items-center gap-3">
-        <DateRangePicker value={range} onChange={setRange} />
+        <DateRangePicker value={range} onChange={setRange} onClear={() => setRange(defaultDateRange(orders))} />
         {matrix && (
           <div className="flex flex-wrap gap-2">
-            <ModeButton label="Pendiente de fabricación" active={mode === "fabricacion"} onClick={() => changeMode("fabricacion")} />
-            <ModeButton label="Pendiente de entrega" active={mode === "entrega"} onClick={() => changeMode("entrega")} />
-            <ModeButton label="Ya fabricado" active={mode === "fabricado"} onClick={() => changeMode("fabricado")} />
+            <ModeButton label={PENDING_DAY_MODE_LABELS.fabricacion} active={mode === "fabricacion"} onClick={() => changeMode("fabricacion")} />
+            <ModeButton label={PENDING_DAY_MODE_LABELS.entrega} active={mode === "entrega"} onClick={() => changeMode("entrega")} />
+            <ModeButton label={PENDING_DAY_MODE_LABELS.fabricado} active={mode === "fabricado"} onClick={() => changeMode("fabricado")} />
           </div>
         )}
         {matrix && range.start && range.end && (
@@ -117,9 +139,11 @@ export function PendingByDayReport({
       </div>
 
       {!matrix ? (
-        <p className="text-sm text-btm-black/50">Elegí una fecha desde y una fecha hasta para ver la tabla.</p>
+        <p className="text-sm text-btm-black/50">No hay notas con fecha de entrega cargada todavía.</p>
       ) : (
         <>
+          <PendingChart rows={visibleRows} modeLabel={PENDING_DAY_MODE_LABELS[mode]} />
+
           <p className="text-xs text-btm-black/50">
             Tocá el nombre de un producto para ver todas sus notas pendientes, o tocá un día puntual para ver solo las de ese día.
           </p>
@@ -141,12 +165,11 @@ export function PendingByDayReport({
                 </tr>
               </thead>
               <tbody className="divide-y divide-black/5">
-                {matrix.rows.map((row) => {
-                  const empty = row.total === 0;
+                {visibleRows.map((row) => {
                   const isSelectedProduct = selection?.productId === row.productId;
                   return (
                     <Fragment key={row.productId}>
-                      <tr className={empty ? "opacity-40" : ""}>
+                      <tr>
                         <td className="sticky left-0 z-10 max-w-[100px] bg-white p-0 font-medium sm:max-w-none">
                           <button
                             type="button"
@@ -187,7 +210,7 @@ export function PendingByDayReport({
                                   {row.productName}
                                 </p>
                                 <p className="text-xs text-btm-black/60">
-                                  {selectionSummary.count} nota{selectionSummary.count === 1 ? "" : "s"} · {formatCantidad(selectionSummary.total)} tn
+                                  {formatUsd(selectionSummary.monto)} · {formatCantidad(selectionSummary.total)} tn
                                   {selection?.day ? ` · ${formatDiaEntrega(selection.day)}` : " · todas las fechas"}
                                 </p>
                               </div>
@@ -207,15 +230,15 @@ export function PendingByDayReport({
                     </Fragment>
                   );
                 })}
-                {matrix.rows.length === 0 && (
+                {visibleRows.length === 0 && (
                   <tr>
                     <td colSpan={matrix.days.length + 2} className="px-4 py-8 text-center text-btm-black/50">
-                      No hay productos cargados.
+                      No hay nada pendiente en este rango.
                     </td>
                   </tr>
                 )}
               </tbody>
-              {matrix.rows.length > 0 && (
+              {visibleRows.length > 0 && (
                 <tfoot>
                   <tr className="border-t-2 border-btm-navy bg-btm-navy/5">
                     <td className="sticky left-0 z-10 bg-btm-navy/5 px-2 py-2 text-left text-xs font-bold uppercase tracking-wide text-btm-navy sm:px-4 sm:py-2.5 sm:text-sm">
@@ -268,6 +291,7 @@ function ProductNotesView({
   }, [orders, productId, mode, range]);
 
   const total = notes.reduce((sum, n) => sum + n.cantidad, 0);
+  const monto = notes.reduce((sum, n) => sum + n.monto, 0);
 
   return (
     <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
@@ -287,14 +311,14 @@ function ProductNotesView({
       <div className="flex flex-wrap items-center gap-3">
         <DateRangePicker value={range} onChange={setRange} />
         <div className="flex flex-wrap gap-2">
-          <ModeButton label="Pendiente de fabricación" active={mode === "fabricacion"} onClick={() => onModeChange("fabricacion")} />
-          <ModeButton label="Pendiente de entrega" active={mode === "entrega"} onClick={() => onModeChange("entrega")} />
-          <ModeButton label="Ya fabricado" active={mode === "fabricado"} onClick={() => onModeChange("fabricado")} />
+          <ModeButton label={PENDING_DAY_MODE_LABELS.fabricacion} active={mode === "fabricacion"} onClick={() => onModeChange("fabricacion")} />
+          <ModeButton label={PENDING_DAY_MODE_LABELS.entrega} active={mode === "entrega"} onClick={() => onModeChange("entrega")} />
+          <ModeButton label={PENDING_DAY_MODE_LABELS.fabricado} active={mode === "fabricado"} onClick={() => onModeChange("fabricado")} />
         </div>
       </div>
 
       <p className="text-sm text-btm-black/60">
-        {notes.length} nota{notes.length === 1 ? "" : "s"} · {formatCantidad(total)} tn
+        {formatUsd(monto)} · {formatCantidad(total)} tn
         {range.start && range.end ? "" : " · sin filtro de fecha"}
       </p>
 
@@ -313,6 +337,7 @@ function ProductNotesView({
                 <span className="text-btm-black/70">{n.cliente}</span>
               </span>
               <span className="flex shrink-0 flex-col items-end text-xs text-btm-black/50">
+                <span className="font-semibold text-btm-navy">{formatUsd(n.monto)}</span>
                 <span>{formatCantidad(n.cantidad)} tn</span>
                 <span>{n.fecha_entrega ? formatFecha(n.fecha_entrega) : "Sin fecha"}</span>
               </span>
@@ -320,6 +345,60 @@ function ProductNotesView({
           ))}
         </div>
       )}
+    </section>
+  );
+}
+
+const CHART_TOP_N = 10;
+
+function PendingChart({ rows, modeLabel }: { rows: PendingDayRow[]; modeLabel: string }) {
+  if (rows.length === 0) return null;
+  const top = [...rows].sort((a, b) => b.montoTotal - a.montoTotal).slice(0, CHART_TOP_N);
+  const max = Math.max(...top.map((r) => r.montoTotal), 1);
+
+  return (
+    <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
+      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+        {modeLabel} · Top {top.length} productos
+      </h2>
+
+      <div className="flex items-center gap-3">
+        <span className="w-28 shrink-0 sm:w-40" />
+        <span className="flex-1" />
+        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
+          Monto
+        </span>
+        <span className="w-20 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
+          Toneladas
+        </span>
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {top.map((row) => {
+          const pct = Math.max((row.montoTotal / max) * 100, row.montoTotal > 0 ? 2 : 0);
+          return (
+            <div key={row.productId} className="flex items-center gap-3">
+              <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.productName}>
+                {row.productName}
+              </span>
+              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
+                <div
+                  className="h-full rounded-full bg-btm-navy"
+                  style={{ width: `${pct}%` }}
+                  role="img"
+                  aria-label={`${row.productName}: ${formatUsd(row.montoTotal)}, ${formatCantidad(row.total)} tn`}
+                />
+              </div>
+              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                {formatUsd(row.montoTotal)}
+              </span>
+              <span className="btm-fig w-20 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                {formatCantidad(row.total)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </section>
   );
 }
