@@ -66,25 +66,25 @@ export function ReportSections({
 
       {open === "cliente" && (
         <div className="flex flex-col gap-4">
-          <ReportChart title="Top 10 clientes" rows={porCliente} />
+          <ReportChart label="clientes" rows={porCliente} />
           <ReportTable title="Ventas por cliente" nameColumn="Cliente" rows={porCliente} />
         </div>
       )}
       {open === "vendedor" && (
         <div className="flex flex-col gap-4">
-          <ReportChart title="Top 10 vendedores" rows={porVendedor} />
+          <ReportChart label="vendedores" rows={porVendedor} />
           <ReportTable title="Ventas por vendedor" nameColumn="Vendedor" rows={porVendedor} />
         </div>
       )}
       {open === "zona" && (
         <div className="flex flex-col gap-4">
-          <ReportChart title="Top 10 zonas" rows={porZona} />
+          <ReportChart label="zonas" rows={porZona} />
           <ReportTable title="Ventas por zona" nameColumn="Zona" rows={porZona} />
         </div>
       )}
       {open === "producto" && (
         <div className="flex flex-col gap-4">
-          <ReportChart title="Top 10 productos" rows={porProducto} />
+          <ReportChart label="productos" rows={porProducto} />
           <ReportTable title="Ventas por producto" nameColumn="Producto" rows={porProducto} />
         </div>
       )}
@@ -193,10 +193,11 @@ function ReportTable({ title, nameColumn, rows }: { title: string; nameColumn: s
 
 const CHART_TOP_N = 10;
 
-function ReportChart({ title, rows }: { title: string; rows: AggregateRow[] }) {
+function ReportChart({ label, rows }: { label: string; rows: AggregateRow[] }) {
   if (rows.length === 0) return null;
   const top = rows.slice(0, CHART_TOP_N);
   const max = Math.max(...top.map((r) => r.total), 1);
+  const title = `Top ${top.length} ${label}`;
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
