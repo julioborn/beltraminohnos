@@ -64,17 +64,40 @@ export function ReportSections({
         })}
       </div>
 
-      {open === "cliente" && <ReportTable title="Ventas por cliente" nameColumn="Cliente" rows={porCliente} />}
-      {open === "vendedor" && <ReportTable title="Ventas por vendedor" nameColumn="Vendedor" rows={porVendedor} />}
-      {open === "zona" && <ReportTable title="Ventas por zona" nameColumn="Zona" rows={porZona} />}
+      {open === "cliente" && (
+        <div className="flex flex-col gap-4">
+          <ReportChart title="Top 10 clientes" rows={porCliente} />
+          <ReportTable title="Ventas por cliente" nameColumn="Cliente" rows={porCliente} />
+        </div>
+      )}
+      {open === "vendedor" && (
+        <div className="flex flex-col gap-4">
+          <ReportChart title="Top 10 vendedores" rows={porVendedor} />
+          <ReportTable title="Ventas por vendedor" nameColumn="Vendedor" rows={porVendedor} />
+        </div>
+      )}
+      {open === "zona" && (
+        <div className="flex flex-col gap-4">
+          <ReportChart title="Top 10 zonas" rows={porZona} />
+          <ReportTable title="Ventas por zona" nameColumn="Zona" rows={porZona} />
+        </div>
+      )}
       {open === "producto" && (
         <div className="flex flex-col gap-4">
-          <ProductoChart rows={porProducto} />
+          <ReportChart title="Top 10 productos" rows={porProducto} />
           <ReportTable title="Ventas por producto" nameColumn="Producto" rows={porProducto} />
         </div>
       )}
     </div>
   );
+}
+
+function sumToneladas(rows: AggregateRow[]) {
+  return rows.reduce((sum, r) => sum + r.toneladas, 0);
+}
+
+function sumTotal(rows: AggregateRow[]) {
+  return rows.reduce((sum, r) => sum + r.total, 0);
 }
 
 const REPORT_PAGE_SIZE = 20;
@@ -152,6 +175,15 @@ function ReportTable({ title, nameColumn, rows }: { title: string; nameColumn: s
               </tr>
             )}
           </tbody>
+          {rows.length > 0 && (
+            <tfoot>
+              <tr className="border-t-2 border-btm-navy/20 bg-btm-navy/5">
+                <td className="px-3 py-2.5 font-display text-xs font-extrabold uppercase tracking-wide text-btm-navy">Total</td>
+                <td className="px-3 py-2.5 text-right font-semibold text-btm-navy">{formatTn(sumToneladas(rows))}</td>
+                <td className="px-3 py-2.5 text-right font-semibold text-btm-navy">{formatUsd(sumTotal(rows))}</td>
+              </tr>
+            </tfoot>
+          )}
         </table>
       </div>
       <ReportPager page={currentPage} totalPages={totalPages} totalRows={rows.length} onPageChange={setPage} />
@@ -161,15 +193,13 @@ function ReportTable({ title, nameColumn, rows }: { title: string; nameColumn: s
 
 const CHART_TOP_N = 10;
 
-function ProductoChart({ rows }: { rows: AggregateRow[] }) {
+function ReportChart({ title, rows }: { title: string; rows: AggregateRow[] }) {
   if (rows.length === 0) return null;
   const top = rows.slice(0, CHART_TOP_N);
 
   return (
     <section className="flex flex-col gap-5 rounded-lg border border-black/10 p-4 sm:p-5">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-        Top {top.length} productos
-      </h2>
+      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
       <BarRow label="Toneladas" rows={top} getValue={(r) => r.toneladas} formatValue={formatTn} />
       <BarRow label="Monto" rows={top} getValue={(r) => r.total} formatValue={formatUsd} />
     </section>

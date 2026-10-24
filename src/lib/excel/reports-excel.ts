@@ -23,6 +23,14 @@ function addAggregateSheet(workbook: ExcelJS.Workbook, name: string, nameColumn:
   for (const row of rows) {
     sheet.addRow([row.label, row.toneladas, row.total]);
   }
+
+  const totalToneladas = rows.reduce((sum, r) => sum + r.toneladas, 0);
+  const totalUsd = rows.reduce((sum, r) => sum + r.total, 0);
+  const totalRow = sheet.addRow(["Total", totalToneladas, totalUsd]);
+  totalRow.eachCell((cell) => {
+    cell.font = { bold: true };
+  });
+
   sheet.columns = [{ width: 32 }, { width: 14 }, { width: 16 }];
 }
 
