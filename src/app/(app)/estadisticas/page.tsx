@@ -43,7 +43,7 @@ export default async function EstadisticasPage({
   const porZona = aggregateByZona(orders).slice(0, 6);
   const porProducto = aggregateByProducto(orders).slice(0, 6);
   const porVendedor = aggregateByVendedor(orders).slice(0, 6);
-  const { logistica, produccion } = estadoCounts(orders);
+  const { logistica } = estadoCounts(orders);
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -105,25 +105,6 @@ export default async function EstadisticasPage({
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Facturación mensual</h2>
         <MonthlyChart data={porMes} />
       </section>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <EstadoSplit
-          title="Estado del pedido"
-          items={[
-            { label: "Pendiente", value: logistica.PENDIENTE, className: "bg-btm-pendiente" },
-            { label: "Parcial", value: logistica.PARCIAL, className: "bg-btm-parcial" },
-            { label: "Entregado", value: logistica.ENTREGADO, className: "bg-btm-entregado" },
-          ]}
-        />
-        <EstadoSplit
-          title="Estado de producción"
-          items={[
-            { label: "Pendiente", value: produccion.PENDIENTE, className: "bg-btm-pendiente" },
-            { label: "Parcial", value: produccion.PARCIAL, className: "bg-btm-parcial" },
-            { label: "Fabricado", value: produccion.FABRICADO, className: "bg-btm-fabricado" },
-          ]}
-        />
-      </div>
 
       <TopSections porZona={porZona} porProducto={porProducto} porVendedor={porVendedor} />
     </div>
@@ -274,38 +255,5 @@ function MonthlyChart({ data }: { data: { label: string; total: number }[] }) {
         </div>
       ))}
     </div>
-  );
-}
-
-function EstadoSplit({
-  title,
-  items,
-}: {
-  title: string;
-  items: { label: string; value: number; className: string }[];
-}) {
-  const total = items.reduce((sum, i) => sum + i.value, 0);
-
-  return (
-    <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-      <div className="flex h-3 w-full overflow-hidden rounded-full bg-black/5">
-        {items.map((item) => (
-          <div
-            key={item.label}
-            className={item.className}
-            style={{ width: total > 0 ? `${(item.value / total) * 100}%` : 0 }}
-          />
-        ))}
-      </div>
-      <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-xs">
-        {items.map((item) => (
-          <span key={item.label} className="flex items-center gap-1.5 text-btm-black/70">
-            <span className={`h-2 w-2 rounded-full ${item.className}`} aria-hidden />
-            {item.label}: {item.value} ({percent(item.value, total)}%)
-          </span>
-        ))}
-      </div>
-    </section>
   );
 }

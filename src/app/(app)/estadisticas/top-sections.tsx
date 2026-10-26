@@ -2,10 +2,9 @@
 
 import { useState } from "react";
 import { formatUsd } from "@/lib/format";
-import { BarList } from "@/components/bar-list";
 import { VendedorIcon, ZonaIcon, ProductoIcon } from "@/components/report-icons";
+import type { AggregateRow } from "@/lib/reports/aggregate";
 
-type Row = { label: string; total: number };
 type SectionKey = "zona" | "producto" | "vendedor";
 
 const SECTIONS: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
@@ -19,9 +18,9 @@ export function TopSections({
   porProducto,
   porVendedor,
 }: {
-  porZona: Row[];
-  porProducto: Row[];
-  porVendedor: Row[];
+  porZona: AggregateRow[];
+  porProducto: AggregateRow[];
+  porVendedor: AggregateRow[];
 }) {
   const [open, setOpen] = useState<SectionKey | null>(null);
 
@@ -29,7 +28,7 @@ export function TopSections({
     setOpen((prev) => (prev === key ? null : key));
   }
 
-  const data: Record<SectionKey, Row[]> = { zona: porZona, producto: porProducto, vendedor: porVendedor };
+  const data: Record<SectionKey, AggregateRow[]> = { zona: porZona, producto: porProducto, vendedor: porVendedor };
 
   return (
     <div className="flex flex-col gap-6">
@@ -65,9 +64,52 @@ export function TopSections({
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
             {SECTIONS.find((s) => s.key === open)?.label}
           </h2>
-          <BarList rows={data[open].map((r) => ({ label: r.label, value: r.total }))} formatValue={formatUsd} />
+          <TopBarChart rows={data[open]} />
         </section>
       )}
+    </div>
+  );
+}
+
+const TOP_BAR_CHART_N = 8;
+
+function formatTn(value: number) {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
+
+// Monto arriba de la barra, toneladas y la etiqueta abajo — es lo que pidió
+// el dueño puntualmente para estos 3 gráficos (zona/producto/vendedor), a
+// diferencia del resto de los gráficos horizontales de la app.
+function TopBarChart({ rows }: { rows: AggregateRow[] }) {
+  if (rows.length === 0) {
+    return <p className="text-sm text-btm-black/50">Sin datos para este período.</p>;
+  }
+
+  const top = rows.slice(0, TOP_BAR_CHART_N);
+  const max = Math.max(...top.map((r) => r.toneladas), 1);
+
+  return (
+    <div className="flex items-end gap-3 overflow-x-auto pb-1">
+      {top.map((r) => (
+        <div key={r.label} className="flex min-w-[72px] flex-1 flex-col items-center gap-1.5">
+          <span className="btm-fig whitespace-nowrap text-xs font-bold text-btm-navy">{formatUsd(r.total)}</span>
+          <div className="flex h-32 w-full items-end">
+            <div
+              className="w-full rounded-t-md bg-btm-navy"
+              style={{ height: `${Math.max((r.toneladas / max) * 100, r.toneladas > 0 ? 4 : 0)}%` }}
+            />
+          </div>
+          <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/60">
+            {formatTn(r.toneladas)}
+          </span>
+          <span
+            className="text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50"
+            title={r.label}
+          >
+            {r.label}
+          </span>
+        </div>
+      ))}
     </div>
   );
 }
