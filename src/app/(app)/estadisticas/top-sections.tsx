@@ -78,7 +78,9 @@ const TOP_BAR_CHART_N = 8;
 // así que el color no compite con una leyenda: es el look "Excel 3D" que
 // pidió puntualmente el dueño para estos 3 gráficos.
 const TOP_BAR_COLORS = ["#2a78d6", "#eb6834", "#e87ba4", "#eda100", "#1baf7a", "#4a3aa7", "#e34948", "#008300"];
-const BAR_DEPTH = 9;
+const BAR_DEPTH = 8;
+const BAR_WIDTH = 40;
+const SKEW_DEG = 30;
 
 function formatTn(value: number) {
   return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
@@ -102,8 +104,13 @@ function TopBarChart({ rows }: { rows: AggregateRow[] }) {
         const heightPct = Math.max((r.toneladas / max) * 100, r.toneladas > 0 ? 4 : 0);
         return (
           <div key={r.label} className="flex min-w-[76px] flex-1 flex-col items-center gap-1.5">
-            <span className="btm-fig whitespace-nowrap text-xs font-bold text-btm-navy">{formatUsd(r.total)}</span>
-            <div className="flex h-32 w-full items-end">
+            <div className="relative flex h-32 w-full items-end justify-center">
+              <span
+                className="btm-fig absolute left-1/2 whitespace-nowrap text-xs font-bold text-btm-navy"
+                style={{ bottom: `calc(${heightPct}% + ${BAR_DEPTH + 6}px)`, transform: "translateX(-50%)" }}
+              >
+                {formatUsd(r.total)}
+              </span>
               <Bar3D color={color} heightPct={heightPct} />
             </div>
             <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/60">
@@ -128,17 +135,14 @@ function TopBarChart({ rows }: { rows: AggregateRow[] }) {
 // librería de gráficos nueva al proyecto.
 function Bar3D({ color, heightPct }: { color: string; heightPct: number }) {
   return (
-    <div
-      className="relative"
-      style={{ width: `calc(100% - ${BAR_DEPTH}px)`, height: `${heightPct}%`, background: color }}
-    >
+    <div className="relative" style={{ width: BAR_WIDTH, height: `${heightPct}%`, background: color }}>
       <div
         className="absolute left-0 w-full"
         style={{
           top: -BAR_DEPTH,
           height: BAR_DEPTH,
           background: `color-mix(in srgb, ${color} 65%, white)`,
-          transform: "skewX(-30deg)",
+          transform: `skewX(-${SKEW_DEG}deg)`,
           transformOrigin: "bottom left",
         }}
         aria-hidden
@@ -149,7 +153,7 @@ function Bar3D({ color, heightPct }: { color: string; heightPct: number }) {
           right: -BAR_DEPTH,
           width: BAR_DEPTH,
           background: `color-mix(in srgb, ${color} 65%, black)`,
-          transform: "skewY(-45deg)",
+          transform: `skewY(-${SKEW_DEG}deg)`,
           transformOrigin: "top left",
         }}
         aria-hidden
