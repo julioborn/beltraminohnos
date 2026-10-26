@@ -12,6 +12,10 @@ const BAR_COLORS = ["#2a78d6", "#eb6834", "#e87ba4", "#eda100", "#1baf7a", "#4a3
 // punto donde "pisa" la barra quedan iguales para todas, sea cual sea su
 // altura. CHART_H es la altura máxima de la cara frontal; DEPTH es el
 // "espesor" del prisma; TEXT_H reserva arriba el lugar para la etiqueta.
+// El SVG se renderiza al 100% del ancho de su columna (grid de a 1fr por
+// barra) en vez de con un ancho fijo en px — así el gráfico entero siempre
+// entra en el ancho disponible, sin scroll horizontal, sea cual sea la
+// cantidad de barras.
 const CHART_H = 180;
 const DEPTH = 12;
 const BAR_W = 44;
@@ -42,19 +46,19 @@ export function Bar3DChart({
   const max = Math.max(...top.map((r) => r.primary), 1);
 
   return (
-    <div className="flex items-start justify-center gap-8 overflow-x-auto px-2 pb-2">
+    <div className="grid items-end gap-3" style={{ gridTemplateColumns: `repeat(${top.length}, minmax(0, 1fr))` }}>
       {top.map((r, i) => {
         const color = BAR_COLORS[i % BAR_COLORS.length];
         const frontH = Math.round(Math.max((r.primary / max) * CHART_H, r.primary > 0 ? MIN_FRONT_H : 0));
         return (
-          <div key={r.label} className="flex w-28 shrink-0 flex-col items-center">
+          <div key={r.label} className="flex min-w-0 flex-col items-center">
             <Bar3D color={color} frontH={frontH} primaryLabel={formatPrimary(r.primary)} />
             {formatSecondary && r.secondary !== undefined && (
-              <span className="btm-fig mt-1 whitespace-nowrap text-xs font-semibold text-btm-black/60">
+              <span className="btm-fig mt-1 max-w-full truncate text-xs font-semibold text-btm-black/60">
                 {formatSecondary(r.secondary)}
               </span>
             )}
-            <span className="mt-1 text-center text-xs leading-snug font-semibold uppercase tracking-wide text-btm-black/50">
+            <span className="mt-1 w-full text-center text-xs leading-snug font-semibold break-words uppercase tracking-wide text-btm-black/50">
               {r.label}
             </span>
           </div>
@@ -72,9 +76,9 @@ function Bar3D({ color, frontH, primaryLabel }: { color: string; frontH: number;
 
   return (
     <svg
-      width={SVG_W}
-      height={SVG_H}
       viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+      preserveAspectRatio="none"
+      className="h-52 w-full"
       style={{ overflow: "visible" }}
       role="img"
       aria-label={primaryLabel}
