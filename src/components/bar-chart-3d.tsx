@@ -43,14 +43,17 @@ export function Bar3DChart({
   const max = Math.max(...top.map((r) => r.primary), 1);
 
   return (
-    <div className="grid items-end gap-1.5" style={{ gridTemplateColumns: `repeat(${top.length}, minmax(0, 1fr))` }}>
+    <div
+      className="grid items-end gap-1.5 pt-9"
+      style={{ gridTemplateColumns: `repeat(${top.length}, minmax(0, 1fr))` }}
+    >
       {top.map((r, i) => {
         const color = BAR_COLORS[i % BAR_COLORS.length];
         const heightPct = Math.max((r.primary / max) * 100, r.primary > 0 ? MIN_HEIGHT_PCT : 0);
         const primaryLabel = formatPrimary(r.primary);
         return (
           <div key={r.label} className="flex min-w-0 flex-col items-center">
-            <div className="relative flex w-full items-end justify-center pt-4" style={{ height: CHART_H_PX }}>
+            <div className="relative flex w-full items-end justify-center" style={{ height: CHART_H_PX }}>
               <span
                 className="btm-fig absolute left-1/2 max-w-full truncate px-0.5 text-[10px] font-bold text-btm-navy"
                 style={{ bottom: `calc(${heightPct}% + ${DEPTH_PX + 3}px)`, transform: "translateX(-50%)" }}
