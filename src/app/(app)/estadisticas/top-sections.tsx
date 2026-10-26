@@ -84,11 +84,11 @@ const TOP_BAR_COLORS = ["#2a78d6", "#eb6834", "#e87ba4", "#eda100", "#1baf7a", "
 // punto donde "pisa" la barra quedan iguales para todas, sea cual sea su
 // altura. CHART_H es la altura máxima de la cara frontal; DEPTH es el
 // "espesor" del prisma; TEXT_H reserva arriba el lugar para el monto.
-const CHART_H = 100;
-const DEPTH = 7;
-const BAR_W = 24;
-const MIN_FRONT_H = 12;
-const TEXT_H = 16;
+const CHART_H = 180;
+const DEPTH = 12;
+const BAR_W = 44;
+const MIN_FRONT_H = 20;
+const TEXT_H = 26;
 const SVG_W = BAR_W + DEPTH;
 const SVG_H = CHART_H + DEPTH + TEXT_H;
 
@@ -109,20 +109,17 @@ function TopBarChart({ rows }: { rows: AggregateRow[] }) {
   const max = Math.max(...top.map((r) => r.toneladas), 1);
 
   return (
-    <div className="flex items-start justify-center gap-2 overflow-x-auto pb-1">
+    <div className="flex items-start justify-center gap-8 overflow-x-auto px-2 pb-2">
       {top.map((r, i) => {
         const color = TOP_BAR_COLORS[i % TOP_BAR_COLORS.length];
         const frontH = Math.round(Math.max((r.toneladas / max) * CHART_H, r.toneladas > 0 ? MIN_FRONT_H : 0));
         return (
-          <div key={r.label} className="flex w-16 shrink-0 flex-col items-center">
+          <div key={r.label} className="flex w-28 shrink-0 flex-col items-center">
             <Bar3D color={color} frontH={frontH} monto={formatUsd(r.total)} />
-            <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/60">
+            <span className="btm-fig mt-1 whitespace-nowrap text-xs font-semibold text-btm-black/60">
               {formatTn(r.toneladas)}
             </span>
-            <span
-              className="mt-0.5 line-clamp-2 h-7 text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50"
-              title={r.label}
-            >
+            <span className="mt-1 text-center text-xs leading-snug font-semibold uppercase tracking-wide text-btm-black/50">
               {r.label}
             </span>
           </div>
@@ -149,10 +146,10 @@ function Bar3D({ color, frontH, monto }: { color: string; frontH: number; monto:
     >
       <text
         x={SVG_W / 2}
-        y={frontTop - DEPTH - 4}
+        y={frontTop - DEPTH - 6}
         textAnchor="middle"
         className="btm-fig"
-        fontSize="11"
+        fontSize="15"
         fontWeight="700"
         fill="#21305d"
       >
