@@ -77,7 +77,7 @@ export default async function ConsignacionesPanelPage({
       (!params.stockProducto || r.productId === params.stockProducto),
   );
 
-  const saldoChartRows = saldos.map((s) => ({ label: s.sucursalName, primary: s.saldo, secondary: s.totalVentas }));
+  const saldoChartRows = saldos.map((s) => ({ label: s.sucursalName, primary: s.saldo, secondary: s.toneladas }));
   const ventasChartRows = ventasPorProducto.map((v) => ({ label: v.productName, primary: v.montoArs, secondary: v.toneladas }));
   const stockChartRows = aggregateToneladasBySucursal(stockFisicoFiltrado);
   const movimientosChartRows = aggregateMovimientosBySucursal(movimientos);
@@ -143,9 +143,9 @@ export default async function ConsignacionesPanelPage({
                 <HorizontalBarChart
                   rows={saldoChartRows}
                   primaryLabel="Saldo"
-                  secondaryLabel="Vendido"
-                  formatPrimary={formatArs}
-                  formatSecondary={formatArs}
+                  secondaryLabel="Toneladas"
+                  formatPrimary={formatArsCompact}
+                  formatSecondary={formatTn}
                 />
               </div>
               <ScrollFade>
@@ -187,7 +187,7 @@ export default async function ConsignacionesPanelPage({
             rows={ventasChartRows}
             primaryLabel="Monto"
             secondaryLabel="Toneladas"
-            formatPrimary={formatArs}
+            formatPrimary={formatArsCompact}
             formatSecondary={formatTn}
           />
         </section>
@@ -313,7 +313,7 @@ export default async function ConsignacionesPanelPage({
                 rows={movimientosChartRows.map((r) => ({ label: r.label, primary: r.monto, secondary: r.toneladas }))}
                 primaryLabel="Monto"
                 secondaryLabel="Toneladas"
-                formatPrimary={formatArs}
+                formatPrimary={formatArsCompact}
                 formatSecondary={formatTn}
               />
             </div>
@@ -520,6 +520,13 @@ function formatTn(value: number) {
   return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
 }
 
+// Sin el sufijo " ARS" de formatArs — en los gráficos de barra las columnas
+// son angostas y ya está claro por contexto que es ARS; con el sufijo los
+// montos grandes se cortaban en dos líneas.
+function formatArsCompact(value: number) {
+  return `$${value.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
 function aggregateToneladasBySucursal(rows: { sucursalName: string; toneladas: number }[]) {
   const map = new Map<string, number>();
   for (const r of rows) map.set(r.sucursalName, (map.get(r.sucursalName) ?? 0) + r.toneladas);
@@ -579,14 +586,14 @@ function HorizontalBarChart({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-3">
-        <span className="w-28 shrink-0 sm:w-40" />
+      <div className="flex items-center gap-2 sm:gap-3">
+        <span className="w-20 shrink-0 sm:w-32" />
         <span className="flex-1" />
-        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
+        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50 sm:w-28">
           {primaryLabel}
         </span>
         {secondaryLabel && (
-          <span className="w-20 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
+          <span className="w-16 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50 sm:w-20">
             {secondaryLabel}
           </span>
         )}
@@ -595,8 +602,8 @@ function HorizontalBarChart({
         {top.map((row) => {
           const pct = Math.max((row.primary / max) * 100, row.primary > 0 ? 2 : 0);
           return (
-            <div key={row.label} className="flex items-center gap-3">
-              <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.label}>
+            <div key={row.label} className="flex items-center gap-2 sm:gap-3">
+              <span className="w-20 shrink-0 truncate text-xs text-btm-black/70 sm:w-32" title={row.label}>
                 {row.label}
               </span>
               <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
@@ -609,11 +616,11 @@ function HorizontalBarChart({
                   }`}
                 />
               </div>
-              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
+              <span className="btm-fig w-24 shrink-0 truncate text-right text-xs font-semibold text-btm-navy sm:w-28">
                 {formatPrimary(row.primary)}
               </span>
               {secondaryLabel && formatSecondary && (
-                <span className="btm-fig w-20 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                <span className="btm-fig w-16 shrink-0 truncate text-right text-xs font-semibold text-btm-navy sm:w-20">
                   {formatSecondary(row.secondary ?? 0)}
                 </span>
               )}

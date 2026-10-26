@@ -107,6 +107,7 @@ export type SucursalSaldo = {
   totalPendienteFacturar: number;
   totalPagado: number;
   saldo: number;
+  toneladas: number;
 };
 
 export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
@@ -116,7 +117,7 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
     supabase.from("sucursales").select("id, name").order("name"),
     supabase
       .from("sucursal_movimientos")
-      .select("sucursal_id, tipo_movimiento, monto_ars, estado_facturacion")
+      .select("sucursal_id, tipo_movimiento, cantidad_bolsas, monto_ars, estado_facturacion, product:products(kg_por_bolsa)")
       .in("tipo_movimiento", ["VENTA", "DIRECTA_CLIENTE"]),
     supabase.from("sucursal_pagos").select("sucursal_id, importe_ars"),
   ]);
@@ -134,6 +135,7 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
     const totalPagado = pagos
       .filter((p) => p.sucursal_id === s.id)
       .reduce((sum, p) => sum + p.importe_ars, 0);
+    const toneladas = ventas.reduce((sum, m) => sum + (m.cantidad_bolsas * (m.product?.kg_por_bolsa ?? 30)) / 1000, 0);
 
     return {
       sucursalId: s.id,
@@ -143,6 +145,7 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
       totalPendienteFacturar: totalVentas - totalFacturado,
       totalPagado,
       saldo: totalVentas - totalPagado,
+      toneladas,
     };
   });
 }
