@@ -16,7 +16,7 @@ export type ConsignacionFilters = {
 const MOVIMIENTO_SELECT = `id, fecha, tipo_movimiento, cantidad_bolsas, precio_usd, tipo_cambio,
   cliente_nombre, cliente_cuit, monto_ars, comision_pct, comision_ars, estado_facturacion,
   n_factura, remito, observaciones,
-  sucursal:sucursales(id, name), product:products(id, name)`;
+  sucursal:sucursales(id, name), product:products(id, name, kg_por_bolsa)`;
 
 export async function getSucursales() {
   const supabase = await createClient();
@@ -153,13 +153,14 @@ export type StockFisicoRow = {
   productId: string;
   productName: string;
   bolsas: number;
+  toneladas: number;
 };
 
 export async function getStockFisico(): Promise<StockFisicoRow[]> {
   const supabase = await createClient();
   const { data } = await supabase
     .from("sucursal_movimientos")
-    .select("tipo_movimiento, cantidad_bolsas, sucursal:sucursales(id, name), product:products(id, name)");
+    .select("tipo_movimiento, cantidad_bolsas, sucursal:sucursales(id, name), product:products(id, name, kg_por_bolsa)");
 
   const map = new Map<string, StockFisicoRow>();
   for (const m of data ?? []) {
@@ -171,8 +172,11 @@ export async function getStockFisico(): Promise<StockFisicoRow[]> {
       productId: m.product.id,
       productName: m.product.name,
       bolsas: 0,
+      toneladas: 0,
     };
-    row.bolsas += m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    const signedBolsas = m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    row.bolsas += signedBolsas;
+    row.toneladas += (signedBolsas * m.product.kg_por_bolsa) / 1000;
     map.set(key, row);
   }
 
@@ -255,13 +259,13 @@ export async function getResumenSucursal(sucursalId: string): Promise<ResumenPro
     .sort((a, b) => a.productName.localeCompare(b.productName));
 }
 
-export type VentaPorProducto = { productName: string; bolsas: number; montoArs: number };
+export type VentaPorProducto = { productName: string; bolsas: number; toneladas: number; montoArs: number };
 
 export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "desde" | "hasta">): Promise<VentaPorProducto[]> {
   const supabase = await createClient();
   let query = supabase
     .from("sucursal_movimientos")
-    .select("cantidad_bolsas, monto_ars, product:products(name)")
+    .select("cantidad_bolsas, monto_ars, product:products(name, kg_por_bolsa)")
     .in("tipo_movimiento", ["VENTA", "DIRECTA_CLIENTE"]);
 
   if (filters.desde) query = query.gte("fecha", filters.desde);
@@ -272,8 +276,9 @@ export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "d
   const map = new Map<string, VentaPorProducto>();
   for (const m of data ?? []) {
     const label = m.product?.name ?? "—";
-    const row = map.get(label) ?? { productName: label, bolsas: 0, montoArs: 0 };
+    const row = map.get(label) ?? { productName: label, bolsas: 0, toneladas: 0, montoArs: 0 };
     row.bolsas += m.cantidad_bolsas;
+    row.toneladas += (m.cantidad_bolsas * (m.product?.kg_por_bolsa ?? 30)) / 1000;
     row.montoArs += m.monto_ars ?? 0;
     map.set(label, row);
   }

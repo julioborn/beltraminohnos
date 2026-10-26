@@ -77,6 +77,13 @@ export default async function ConsignacionesPanelPage({
       (!params.stockProducto || r.productId === params.stockProducto),
   );
 
+  const saldoChartRows = saldos.map((s) => ({ label: s.sucursalName, primary: s.saldo, secondary: s.totalVentas }));
+  const ventasChartRows = ventasPorProducto.map((v) => ({ label: v.productName, primary: v.montoArs, secondary: v.toneladas }));
+  const stockChartRows = aggregateToneladasBySucursal(stockFisicoFiltrado);
+  const movimientosChartRows = aggregateMovimientosBySucursal(movimientos);
+  const pieGruposPorSucursalProducto = toPieGroups(gruposPorProducto, (g) => g.productName);
+  const pieGruposPorSucursalCliente = toPieGroups(gruposPorCliente, (g) => g.clienteNombre);
+
   function tabHref(targetTab: Tab) {
     return `/consignaciones/panel${targetTab !== "cargar" ? `?tab=${targetTab}` : ""}`;
   }
@@ -131,7 +138,17 @@ export default async function ConsignacionesPanelPage({
               Todavía no hay sucursales cargadas.
             </p>
           ) : (
-            <ScrollFade>
+            <>
+              <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+                <HorizontalBarChart
+                  rows={saldoChartRows}
+                  primaryLabel="Saldo"
+                  secondaryLabel="Vendido"
+                  formatPrimary={formatArs}
+                  formatSecondary={formatArs}
+                />
+              </div>
+              <ScrollFade>
               <div className="overflow-x-auto rounded-lg border border-black/10">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
@@ -158,20 +175,28 @@ export default async function ConsignacionesPanelPage({
                   </tbody>
                 </table>
               </div>
-            </ScrollFade>
+              </ScrollFade>
+            </>
           )}
         </section>
       )}
 
       {tab === "ventas" && (
         <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
-          <VentasPorProductoChart data={ventasPorProducto} />
+          <HorizontalBarChart
+            rows={ventasChartRows}
+            primaryLabel="Monto"
+            secondaryLabel="Toneladas"
+            formatPrimary={formatArs}
+            formatSecondary={formatTn}
+          />
         </section>
       )}
 
       {tab === "pendientes-sucursal" && (
         <section className="flex flex-col gap-3">
           <SucursalFilterForm tab="pendientes-sucursal" sucursales={sucursales} selected={params.sucursal} hasFilter={hasSucursalFilter} />
+          <PieChartGroup groups={pieGruposPorSucursalProducto} />
           <PendientesPorProducto groups={gruposPorProducto} />
         </section>
       )}
@@ -179,12 +204,18 @@ export default async function ConsignacionesPanelPage({
       {tab === "pendientes-cliente" && (
         <section className="flex flex-col gap-3">
           <SucursalFilterForm tab="pendientes-cliente" sucursales={sucursales} selected={params.sucursal} hasFilter={hasSucursalFilter} />
+          <PieChartGroup groups={pieGruposPorSucursalCliente} />
           <PendientesPorCliente groups={gruposPorCliente} />
         </section>
       )}
 
       {tab === "stock" && (
         <>
+          {stockChartRows.length > 0 && (
+            <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+              <HorizontalBarChart rows={stockChartRows.map((r) => ({ label: r.label, primary: r.toneladas }))} primaryLabel="Toneladas" formatPrimary={formatTn} />
+            </div>
+          )}
           <form
             method="get"
             className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:flex-wrap sm:items-end"
@@ -276,6 +307,17 @@ export default async function ConsignacionesPanelPage({
 
       {tab === "movimientos" && (
         <>
+          {movimientosChartRows.length > 0 && (
+            <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+              <HorizontalBarChart
+                rows={movimientosChartRows.map((r) => ({ label: r.label, primary: r.monto, secondary: r.toneladas }))}
+                primaryLabel="Monto"
+                secondaryLabel="Toneladas"
+                formatPrimary={formatArs}
+                formatSecondary={formatTn}
+              />
+            </div>
+          )}
           <form
             method="get"
             className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:flex-wrap sm:items-end"
@@ -362,6 +404,10 @@ export default async function ConsignacionesPanelPage({
 
 type MovimientoRow = Awaited<ReturnType<typeof getSucursalMovimientos>>[number];
 
+function movimientoToneladas(m: MovimientoRow) {
+  return (m.cantidad_bolsas * (m.product?.kg_por_bolsa ?? 30)) / 1000;
+}
+
 function groupPorProducto(rows: MovimientoRow[]): PendienteSucursalProducto[] {
   const map = new Map<string, PendienteSucursalProducto>();
   for (const m of rows) {
@@ -372,10 +418,12 @@ function groupPorProducto(rows: MovimientoRow[]): PendienteSucursalProducto[] {
       sucursalName: m.sucursal.name,
       productName: m.product.name,
       bolsas: 0,
+      toneladas: 0,
       montoArs: 0,
       ids: [] as string[],
     };
     group.bolsas += m.cantidad_bolsas;
+    group.toneladas += movimientoToneladas(m);
     group.montoArs += m.monto_ars ?? 0;
     group.ids.push(m.id);
     map.set(key, group);
@@ -395,11 +443,13 @@ function groupPorCliente(rows: MovimientoRow[]): PendienteSucursalCliente[] {
       clienteNombre,
       clienteCuit: m.cliente_cuit,
       bolsas: 0,
+      toneladas: 0,
       montoArs: 0,
       comisionArs: 0,
       ids: [] as string[],
     };
     group.bolsas += m.cantidad_bolsas;
+    group.toneladas += movimientoToneladas(m);
     group.montoArs += m.monto_ars ?? 0;
     group.comisionArs += m.comision_ars ?? 0;
     group.ids.push(m.id);
@@ -466,29 +516,170 @@ function Kpi({ label, value }: { label: string; value: string }) {
   );
 }
 
-function VentasPorProductoChart({ data }: { data: { productName: string; montoArs: number }[] }) {
-  if (data.length === 0) {
-    return <p className="text-sm text-btm-black/50">Sin ventas en el período.</p>;
+function formatTn(value: number) {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
+
+function aggregateToneladasBySucursal(rows: { sucursalName: string; toneladas: number }[]) {
+  const map = new Map<string, number>();
+  for (const r of rows) map.set(r.sucursalName, (map.get(r.sucursalName) ?? 0) + r.toneladas);
+  return Array.from(map.entries())
+    .map(([label, toneladas]) => ({ label, toneladas }))
+    .sort((a, b) => b.toneladas - a.toneladas);
+}
+
+function aggregateMovimientosBySucursal(rows: MovimientoRow[]) {
+  const map = new Map<string, { monto: number; toneladas: number }>();
+  for (const m of rows) {
+    if (!m.sucursal) continue;
+    const row = map.get(m.sucursal.name) ?? { monto: 0, toneladas: 0 };
+    row.monto += m.monto_ars ?? 0;
+    row.toneladas += movimientoToneladas(m);
+    map.set(m.sucursal.name, row);
+  }
+  return Array.from(map.entries())
+    .map(([label, v]) => ({ label, ...v }))
+    .sort((a, b) => b.monto - a.monto);
+}
+
+function toPieGroups<T extends { sucursalName: string; montoArs: number }>(
+  groups: T[],
+  getLabel: (g: T) => string,
+): { sucursalName: string; slices: { label: string; value: number }[] }[] {
+  const map = new Map<string, { label: string; value: number }[]>();
+  for (const g of groups) {
+    const slices = map.get(g.sucursalName) ?? [];
+    slices.push({ label: getLabel(g), value: g.montoArs });
+    map.set(g.sucursalName, slices);
+  }
+  return Array.from(map.entries()).map(([sucursalName, slices]) => ({ sucursalName, slices }));
+}
+
+const CHART_TOP_N = 10;
+
+function HorizontalBarChart({
+  rows,
+  primaryLabel,
+  secondaryLabel,
+  formatPrimary,
+  formatSecondary,
+}: {
+  rows: { label: string; primary: number; secondary?: number }[];
+  primaryLabel: string;
+  secondaryLabel?: string;
+  formatPrimary: (value: number) => string;
+  formatSecondary?: (value: number) => string;
+}) {
+  if (rows.length === 0) {
+    return <p className="text-sm text-btm-black/50">Sin datos para mostrar.</p>;
   }
 
-  const top = data.slice(0, 10);
-  const max = Math.max(...top.map((d) => d.montoArs), 1);
+  const top = rows.slice(0, CHART_TOP_N);
+  const max = Math.max(...top.map((r) => r.primary), 1);
 
   return (
-    <div className="flex items-end gap-3 overflow-x-auto pb-1">
-      {top.map((d) => (
-        <div key={d.productName} className="flex min-w-[64px] flex-1 flex-col items-center gap-1.5">
-          <div className="flex h-32 w-full items-end">
-            <div
-              className="w-full rounded-t-md bg-btm-navy"
-              style={{ height: `${Math.max((d.montoArs / max) * 100, d.montoArs > 0 ? 4 : 0)}%` }}
-              title={formatArs(d.montoArs)}
-            />
-          </div>
-          <span className="text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50">
-            {d.productName}
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <span className="w-28 shrink-0 sm:w-40" />
+        <span className="flex-1" />
+        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
+          {primaryLabel}
+        </span>
+        {secondaryLabel && (
+          <span className="w-20 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
+            {secondaryLabel}
           </span>
-        </div>
+        )}
+      </div>
+      <div className="flex flex-col gap-2">
+        {top.map((row) => {
+          const pct = Math.max((row.primary / max) * 100, row.primary > 0 ? 2 : 0);
+          return (
+            <div key={row.label} className="flex items-center gap-3">
+              <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.label}>
+                {row.label}
+              </span>
+              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
+                <div
+                  className="h-full rounded-full bg-btm-navy"
+                  style={{ width: `${pct}%` }}
+                  role="img"
+                  aria-label={`${row.label}: ${formatPrimary(row.primary)}${
+                    secondaryLabel && formatSecondary ? `, ${formatSecondary(row.secondary ?? 0)}` : ""
+                  }`}
+                />
+              </div>
+              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                {formatPrimary(row.primary)}
+              </span>
+              {secondaryLabel && formatSecondary && (
+                <span className="btm-fig w-20 shrink-0 text-right text-xs font-semibold text-btm-navy">
+                  {formatSecondary(row.secondary ?? 0)}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+const PIE_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7"];
+const PIE_SLICE_CAP = 5;
+
+function MiniPieChart({ title, slices }: { title: string; slices: { label: string; value: number }[] }) {
+  const sorted = [...slices].filter((s) => s.value > 0).sort((a, b) => b.value - a.value);
+  const top = sorted.slice(0, PIE_SLICE_CAP);
+  const restTotal = sorted.slice(PIE_SLICE_CAP).reduce((sum, s) => sum + s.value, 0);
+  const display = restTotal > 0 ? [...top, { label: "Otros", value: restTotal }] : top;
+  const total = display.reduce((sum, d) => sum + d.value, 0);
+
+  if (total <= 0) return null;
+
+  const boundaries = display.reduce<{ start: number; end: number }[]>((acc, d) => {
+    const prevEnd = acc.length > 0 ? acc[acc.length - 1].end : 0;
+    return [...acc, { start: prevEnd, end: prevEnd + (d.value / total) * 360 }];
+  }, []);
+  const stops = display
+    .map((d, i) => `${PIE_COLORS[i % PIE_COLORS.length]} ${boundaries[i].start}deg ${boundaries[i].end}deg`)
+    .join(", ");
+
+  return (
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-black/10 p-4">
+      <h3 className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy">{title}</h3>
+      <div
+        className="h-28 w-28 shrink-0 rounded-full"
+        style={{ background: `conic-gradient(${stops})` }}
+        role="img"
+        aria-label={`${title}: ${display.map((d) => `${d.label} ${Math.round((d.value / total) * 100)}%`).join(", ")}`}
+      />
+      <div className="flex w-full flex-col gap-1">
+        {display.map((d, i) => (
+          <div key={d.label} className="flex items-center gap-2 text-xs">
+            <span
+              className="h-2.5 w-2.5 shrink-0 rounded-full"
+              style={{ background: PIE_COLORS[i % PIE_COLORS.length] }}
+              aria-hidden
+            />
+            <span className="flex-1 truncate text-btm-black/70" title={d.label}>
+              {d.label}
+            </span>
+            <span className="btm-fig shrink-0 font-semibold text-btm-navy">{formatArs(d.value)}</span>
+            <span className="w-9 shrink-0 text-right text-btm-black/40">{Math.round((d.value / total) * 100)}%</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PieChartGroup({ groups }: { groups: { sucursalName: string; slices: { label: string; value: number }[] }[] }) {
+  if (groups.length === 0) return null;
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {groups.map((g) => (
+        <MiniPieChart key={g.sucursalName} title={g.sucursalName} slices={g.slices} />
       ))}
     </div>
   );

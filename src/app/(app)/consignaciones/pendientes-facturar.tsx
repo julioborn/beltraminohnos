@@ -10,6 +10,7 @@ export type PendienteSucursalProducto = {
   sucursalName: string;
   productName: string;
   bolsas: number;
+  toneladas: number;
   montoArs: number;
   ids: string[];
 };
@@ -20,6 +21,7 @@ export type PendienteSucursalCliente = {
   clienteNombre: string;
   clienteCuit: string | null;
   bolsas: number;
+  toneladas: number;
   montoArs: number;
   comisionArs: number;
   ids: string[];
