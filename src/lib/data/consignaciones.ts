@@ -217,6 +217,7 @@ export type ResumenProducto = {
   ventasSucursalPendientes: number;
   ventasDirectasPendientes: number;
   stockFisico: number;
+  stockFisicoToneladas: number;
 };
 
 // "Stock inicio" reconstruye lo que se consignó en total a la sucursal: lo
@@ -227,7 +228,7 @@ export async function getResumenSucursal(sucursalId: string): Promise<ResumenPro
   const supabase = await createClient();
   const { data } = await supabase
     .from("sucursal_movimientos")
-    .select("tipo_movimiento, cantidad_bolsas, estado_facturacion, product:products(id, name)")
+    .select("tipo_movimiento, cantidad_bolsas, estado_facturacion, product:products(id, name, kg_por_bolsa)")
     .eq("sucursal_id", sucursalId);
 
   const map = new Map<string, ResumenProducto>();
@@ -240,9 +241,12 @@ export async function getResumenSucursal(sucursalId: string): Promise<ResumenPro
       ventasSucursalPendientes: 0,
       ventasDirectasPendientes: 0,
       stockFisico: 0,
+      stockFisicoToneladas: 0,
     };
 
-    row.stockFisico += m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    const signedBolsas = m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    row.stockFisico += signedBolsas;
+    row.stockFisicoToneladas += (signedBolsas * m.product.kg_por_bolsa) / 1000;
 
     if (m.estado_facturacion === "PENDIENTE") {
       if (m.tipo_movimiento === "VENTA") row.ventasSucursalPendientes += m.cantidad_bolsas;

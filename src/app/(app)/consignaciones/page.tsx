@@ -46,7 +46,11 @@ export default async function ConsignacionesResumenPage({
             {sucursal.name} no tiene movimientos cargados todavía.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-black/10">
+          <>
+            <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+              <StockFisicoChart rows={resumen} />
+            </div>
+            <div className="overflow-x-auto rounded-lg border border-black/10">
             <table className="w-full min-w-[640px] text-sm">
               <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
                 <tr>
@@ -69,9 +73,57 @@ export default async function ConsignacionesResumenPage({
                 ))}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </section>
+    </div>
+  );
+}
+
+const STOCK_CHART_TOP_N = 10;
+
+function formatTn(value: number) {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
+
+function StockFisicoChart({ rows }: { rows: { productName: string; stockFisicoToneladas: number }[] }) {
+  const sorted = [...rows].sort((a, b) => b.stockFisicoToneladas - a.stockFisicoToneladas);
+  const top = sorted.slice(0, STOCK_CHART_TOP_N);
+  const max = Math.max(...top.map((r) => Math.abs(r.stockFisicoToneladas)), 1);
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-center gap-3">
+        <span className="w-20 shrink-0 sm:w-32" />
+        <span className="flex-1" />
+        <span className="w-20 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50 sm:w-24">
+          Toneladas
+        </span>
+      </div>
+      <div className="flex flex-col gap-2">
+        {top.map((row) => {
+          const pct = Math.max((Math.abs(row.stockFisicoToneladas) / max) * 100, row.stockFisicoToneladas !== 0 ? 2 : 0);
+          return (
+            <div key={row.productName} className="flex items-center gap-3">
+              <span className="w-20 shrink-0 truncate text-xs text-btm-black/70 sm:w-32" title={row.productName}>
+                {row.productName}
+              </span>
+              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
+                <div
+                  className="h-full rounded-full bg-btm-navy"
+                  style={{ width: `${pct}%` }}
+                  role="img"
+                  aria-label={`${row.productName}: ${formatTn(row.stockFisicoToneladas)}`}
+                />
+              </div>
+              <span className="btm-fig w-20 shrink-0 truncate text-right text-xs font-semibold text-btm-navy sm:w-24">
+                {formatTn(row.stockFisicoToneladas)}
+              </span>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
