@@ -35,7 +35,7 @@ const TABS: { key: Tab; label: string }[] = [
 export default async function ConsignacionesPanelPage({
   searchParams,
 }: {
-  searchParams: Promise<ConsignacionFilters & { tab?: string }>;
+  searchParams: Promise<ConsignacionFilters & { tab?: string; stockSucursal?: string; stockProducto?: string }>;
 }) {
   const role = await getProfileRole();
   if (!hasFullAccess(role) && role !== "contable") {
@@ -69,6 +69,13 @@ export default async function ConsignacionesPanelPage({
 
   const gruposPorProducto = groupPorProducto(pendientesVenta);
   const gruposPorCliente = groupPorCliente(pendientesDirecta);
+
+  const hasStockFilter = Boolean(params.stockSucursal || params.stockProducto);
+  const stockFisicoFiltrado = stockFisico.filter(
+    (r) =>
+      (!params.stockSucursal || r.sucursalId === params.stockSucursal) &&
+      (!params.stockProducto || r.productId === params.stockProducto),
+  );
 
   function tabHref(targetTab: Tab) {
     return `/consignaciones/panel${targetTab !== "cargar" ? `?tab=${targetTab}` : ""}`;
@@ -177,36 +184,94 @@ export default async function ConsignacionesPanelPage({
       )}
 
       {tab === "stock" && (
-        <section className="flex flex-col gap-3">
-          {stockFisico.length === 0 ? (
-            <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
-              Todavía no hay stock cargado.
-            </p>
-          ) : (
-            <ScrollFade>
-              <div className="overflow-x-auto rounded-lg border border-black/10">
-                <table className="w-full min-w-[520px] text-sm">
-                  <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                    <tr>
-                      <th className="px-3 py-2.5">Sucursal</th>
-                      <th className="px-3 py-2.5">Producto</th>
-                      <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-black/5">
-                    {stockFisico.map((r) => (
-                      <tr key={`${r.sucursalId}_${r.productId}`}>
-                        <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
-                        <td className="px-3 py-2.5">{r.productName}</td>
-                        <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
+        <>
+          <form
+            method="get"
+            className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:flex-wrap sm:items-end"
+          >
+            <input type="hidden" name="tab" value="stock" />
+            <div className="flex flex-col gap-1">
+              <label htmlFor="stockSucursal" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Sucursal
+              </label>
+              <select
+                id="stockSucursal"
+                name="stockSucursal"
+                defaultValue={params.stockSucursal ?? ""}
+                className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">Todas</option>
+                {sucursales.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="stockProducto" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
+                Producto
+              </label>
+              <select
+                id="stockProducto"
+                name="stockProducto"
+                defaultValue={params.stockProducto ?? ""}
+                className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm"
+              >
+                <option value="">Todos</option>
+                {products.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex gap-2">
+              <button type="submit" className="rounded-md bg-btm-navy px-5 py-2 text-sm font-semibold text-white hover:bg-btm-red">
+                Filtrar
+              </button>
+              {hasStockFilter && (
+                <Link
+                  href="/consignaciones/panel?tab=stock"
+                  className="flex items-center justify-center rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+                >
+                  Limpiar
+                </Link>
+              )}
+            </div>
+          </form>
+
+          <section className="flex flex-col gap-3">
+            {stockFisicoFiltrado.length === 0 ? (
+              <p className="rounded-lg border border-black/10 p-4 text-sm text-btm-black/50">
+                {stockFisico.length === 0 ? "Todavía no hay stock cargado." : "No hay stock para este filtro."}
+              </p>
+            ) : (
+              <ScrollFade>
+                <div className="overflow-x-auto rounded-lg border border-black/10">
+                  <table className="w-full min-w-[520px] text-sm">
+                    <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                      <tr>
+                        <th className="px-3 py-2.5">Sucursal</th>
+                        <th className="px-3 py-2.5">Producto</th>
+                        <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </ScrollFade>
-          )}
-        </section>
+                    </thead>
+                    <tbody className="divide-y divide-black/5">
+                      {stockFisicoFiltrado.map((r) => (
+                        <tr key={`${r.sucursalId}_${r.productId}`}>
+                          <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
+                          <td className="px-3 py-2.5">{r.productName}</td>
+                          <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </ScrollFade>
+            )}
+          </section>
+        </>
       )}
 
       {tab === "movimientos" && (
