@@ -73,6 +73,13 @@ export function TopSections({
 
 const TOP_BAR_CHART_N = 8;
 
+// Un color distinto por barra — acá cada barra es una entidad individual
+// (zona/producto/vendedor) ya identificada por su propia etiqueta debajo,
+// así que el color no compite con una leyenda: es el look "Excel 3D" que
+// pidió puntualmente el dueño para estos 3 gráficos.
+const TOP_BAR_COLORS = ["#2a78d6", "#eb6834", "#e87ba4", "#eda100", "#1baf7a", "#4a3aa7", "#e34948", "#008300"];
+const BAR_DEPTH = 9;
+
 function formatTn(value: number) {
   return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
 }
@@ -89,27 +96,64 @@ function TopBarChart({ rows }: { rows: AggregateRow[] }) {
   const max = Math.max(...top.map((r) => r.toneladas), 1);
 
   return (
-    <div className="flex items-end gap-3 overflow-x-auto pb-1">
-      {top.map((r) => (
-        <div key={r.label} className="flex min-w-[72px] flex-1 flex-col items-center gap-1.5">
-          <span className="btm-fig whitespace-nowrap text-xs font-bold text-btm-navy">{formatUsd(r.total)}</span>
-          <div className="flex h-32 w-full items-end">
-            <div
-              className="w-full rounded-t-md bg-btm-navy"
-              style={{ height: `${Math.max((r.toneladas / max) * 100, r.toneladas > 0 ? 4 : 0)}%` }}
-            />
+    <div className="flex items-end gap-4 overflow-x-auto pt-3 pb-1">
+      {top.map((r, i) => {
+        const color = TOP_BAR_COLORS[i % TOP_BAR_COLORS.length];
+        const heightPct = Math.max((r.toneladas / max) * 100, r.toneladas > 0 ? 4 : 0);
+        return (
+          <div key={r.label} className="flex min-w-[76px] flex-1 flex-col items-center gap-1.5">
+            <span className="btm-fig whitespace-nowrap text-xs font-bold text-btm-navy">{formatUsd(r.total)}</span>
+            <div className="flex h-32 w-full items-end">
+              <Bar3D color={color} heightPct={heightPct} />
+            </div>
+            <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/60">
+              {formatTn(r.toneladas)}
+            </span>
+            <span
+              className="text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50"
+              title={r.label}
+            >
+              {r.label}
+            </span>
           </div>
-          <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/60">
-            {formatTn(r.toneladas)}
-          </span>
-          <span
-            className="text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50"
-            title={r.label}
-          >
-            {r.label}
-          </span>
-        </div>
-      ))}
+        );
+      })}
+    </div>
+  );
+}
+
+// Simula un prisma 3D con CSS puro (cara frontal + cara superior + cara
+// lateral, cada una con un ::skew y un tono del mismo color) — mismo efecto
+// visual que un gráfico de barras 3D "estilo Excel", sin sumar ninguna
+// librería de gráficos nueva al proyecto.
+function Bar3D({ color, heightPct }: { color: string; heightPct: number }) {
+  return (
+    <div
+      className="relative"
+      style={{ width: `calc(100% - ${BAR_DEPTH}px)`, height: `${heightPct}%`, background: color }}
+    >
+      <div
+        className="absolute left-0 w-full"
+        style={{
+          top: -BAR_DEPTH,
+          height: BAR_DEPTH,
+          background: `color-mix(in srgb, ${color} 65%, white)`,
+          transform: "skewX(-30deg)",
+          transformOrigin: "bottom left",
+        }}
+        aria-hidden
+      />
+      <div
+        className="absolute top-0 h-full"
+        style={{
+          right: -BAR_DEPTH,
+          width: BAR_DEPTH,
+          background: `color-mix(in srgb, ${color} 65%, black)`,
+          transform: "skewY(-45deg)",
+          transformOrigin: "top left",
+        }}
+        aria-hidden
+      />
     </div>
   );
 }
