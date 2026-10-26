@@ -3,7 +3,6 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { actualizarMovimientoSucursal, eliminarMovimientoSucursal } from "@/lib/actions/consignaciones";
 import { formatArs, formatFecha, formatUsd } from "@/lib/format";
-import { ScrollFade } from "@/components/scroll-fade";
 import type { getSucursalMovimientos } from "@/lib/data/consignaciones";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -21,67 +20,65 @@ export function MovimientosTable({ movimientos, products }: { movimientos: Movim
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
-    <ScrollFade>
-      <div className="overflow-x-auto rounded-lg border border-black/10">
-        <table className="w-full min-w-[1140px] text-sm">
-          <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-            <tr>
-              <th className="px-3 py-2.5">Fecha</th>
-              <th className="px-3 py-2.5">Sucursal</th>
-              <th className="px-3 py-2.5">Producto</th>
-              <th className="px-3 py-2.5">Tipo</th>
-              <th className="px-3 py-2.5 text-right">Bolsas</th>
-              <th className="px-3 py-2.5 text-right">Precio USD</th>
-              <th className="px-3 py-2.5 text-right">Tipo de cambio</th>
-              <th className="px-3 py-2.5 text-right">Monto</th>
-              <th className="px-3 py-2.5">Cliente</th>
-              <th className="px-3 py-2.5">CUIT</th>
-              <th className="px-3 py-2.5">Facturación</th>
-              <th className="px-3 py-2.5"></th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/5">
-            {movimientos.map((m) =>
-              editingId === m.id ? (
-                <MovimientoEditRow key={m.id} movimiento={m} products={products} onDone={() => setEditingId(null)} />
-              ) : (
-                <tr key={m.id}>
-                  <td className="px-3 py-2.5 whitespace-nowrap">{formatFecha(m.fecha)}</td>
-                  <td className="px-3 py-2.5">{m.sucursal?.name ?? "—"}</td>
-                  <td className="px-3 py-2.5">{m.product?.name ?? "—"}</td>
-                  <td className="px-3 py-2.5">{TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
-                  <td className="px-3 py-2.5 text-right">{m.cantidad_bolsas}</td>
-                  <td className="px-3 py-2.5 text-right">{m.precio_usd != null ? formatUsd(m.precio_usd) : "—"}</td>
-                  <td className="px-3 py-2.5 text-right">
-                    {m.tipo_cambio != null
-                      ? m.tipo_cambio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                      : "—"}
-                  </td>
-                  <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
-                  <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
-                  <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
-                  <td className="px-3 py-2.5">
-                    <FacturacionBadge estado={m.estado_facturacion} />
-                  </td>
-                  <td className="px-3 py-2.5 text-right">
-                    <div className="flex justify-end gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(m.id)}
-                        className="rounded-md border border-black/15 px-3 py-1 text-xs font-semibold text-btm-black/70 hover:bg-black/5"
-                      >
-                        Editar
-                      </button>
-                      <BorrarMovimientoButton id={m.id} />
-                    </div>
-                  </td>
-                </tr>
-              ),
-            )}
-          </tbody>
-        </table>
-      </div>
-    </ScrollFade>
+    <div className="overflow-x-auto rounded-lg border border-black/10">
+      <table className="w-full min-w-[1140px] text-sm">
+        <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+          <tr>
+            <th className="px-3 py-2.5">Fecha</th>
+            <th className="px-3 py-2.5">Sucursal</th>
+            <th className="px-3 py-2.5">Producto</th>
+            <th className="px-3 py-2.5">Tipo</th>
+            <th className="px-3 py-2.5 text-right">Bolsas</th>
+            <th className="px-3 py-2.5 text-right">Precio USD</th>
+            <th className="px-3 py-2.5 text-right">Tipo de cambio</th>
+            <th className="px-3 py-2.5 text-right">Monto</th>
+            <th className="px-3 py-2.5">Cliente</th>
+            <th className="px-3 py-2.5">CUIT</th>
+            <th className="px-3 py-2.5">Facturación</th>
+            <th className="px-3 py-2.5"></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-black/5">
+          {movimientos.map((m) =>
+            editingId === m.id ? (
+              <MovimientoEditRow key={m.id} movimiento={m} products={products} onDone={() => setEditingId(null)} />
+            ) : (
+              <tr key={m.id}>
+                <td className="px-3 py-2.5 whitespace-nowrap">{formatFecha(m.fecha)}</td>
+                <td className="px-3 py-2.5">{m.sucursal?.name ?? "—"}</td>
+                <td className="px-3 py-2.5">{m.product?.name ?? "—"}</td>
+                <td className="px-3 py-2.5">{TIPO_LABELS[m.tipo_movimiento] ?? m.tipo_movimiento}</td>
+                <td className="px-3 py-2.5 text-right">{m.cantidad_bolsas}</td>
+                <td className="px-3 py-2.5 text-right">{m.precio_usd != null ? formatUsd(m.precio_usd) : "—"}</td>
+                <td className="px-3 py-2.5 text-right">
+                  {m.tipo_cambio != null
+                    ? m.tipo_cambio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                    : "—"}
+                </td>
+                <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
+                <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
+                <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
+                <td className="px-3 py-2.5">
+                  <FacturacionBadge estado={m.estado_facturacion} />
+                </td>
+                <td className="px-3 py-2.5 text-right">
+                  <div className="flex justify-end gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => setEditingId(m.id)}
+                      className="rounded-md border border-black/15 px-3 py-1 text-xs font-semibold text-btm-black/70 hover:bg-black/5"
+                    >
+                      Editar
+                    </button>
+                    <BorrarMovimientoButton id={m.id} />
+                  </div>
+                </td>
+              </tr>
+            ),
+          )}
+        </tbody>
+      </table>
+    </div>
   );
 }
 

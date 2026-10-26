@@ -11,7 +11,6 @@ import {
 } from "@/lib/data/consignaciones";
 import { getActiveProducts } from "@/lib/data/master-data";
 import { formatArs } from "@/lib/format";
-import { ScrollFade } from "@/components/scroll-fade";
 import {
   PendientesPorProducto,
   PendientesPorCliente,
@@ -148,7 +147,6 @@ export default async function ConsignacionesPanelPage({
                   formatSecondary={formatTn}
                 />
               </div>
-              <ScrollFade>
               <div className="overflow-x-auto rounded-lg border border-black/10">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
@@ -175,7 +173,6 @@ export default async function ConsignacionesPanelPage({
                   </tbody>
                 </table>
               </div>
-              </ScrollFade>
             </>
           )}
         </section>
@@ -278,28 +275,26 @@ export default async function ConsignacionesPanelPage({
                 {stockFisico.length === 0 ? "Todavía no hay stock cargado." : "No hay stock para este filtro."}
               </p>
             ) : (
-              <ScrollFade>
-                <div className="overflow-x-auto rounded-lg border border-black/10">
-                  <table className="w-full min-w-[520px] text-sm">
-                    <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                      <tr>
-                        <th className="px-3 py-2.5">Sucursal</th>
-                        <th className="px-3 py-2.5">Producto</th>
-                        <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
+              <div className="overflow-x-auto rounded-lg border border-black/10">
+                <table className="w-full min-w-[520px] text-sm">
+                  <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                    <tr>
+                      <th className="px-3 py-2.5">Sucursal</th>
+                      <th className="px-3 py-2.5">Producto</th>
+                      <th className="px-3 py-2.5 text-right">Bolsas en stock</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-black/5">
+                    {stockFisicoFiltrado.map((r) => (
+                      <tr key={`${r.sucursalId}_${r.productId}`}>
+                        <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
+                        <td className="px-3 py-2.5">{r.productName}</td>
+                        <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
                       </tr>
-                    </thead>
-                    <tbody className="divide-y divide-black/5">
-                      {stockFisicoFiltrado.map((r) => (
-                        <tr key={`${r.sucursalId}_${r.productId}`}>
-                          <td className="px-3 py-2.5 font-semibold text-btm-navy">{r.sucursalName}</td>
-                          <td className="px-3 py-2.5">{r.productName}</td>
-                          <td className="px-3 py-2.5 text-right">{r.bolsas}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </ScrollFade>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             )}
           </section>
         </>

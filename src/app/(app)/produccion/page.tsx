@@ -3,7 +3,6 @@ import { redirect } from "next/navigation";
 import { canViewProduccion } from "@/lib/auth/role";
 import { getTurnos, getConsumoMateriaPrima, type ProduccionFilters } from "@/lib/data/produccion";
 import { formatFecha } from "@/lib/format";
-import { ScrollFade } from "@/components/scroll-fade";
 
 export default async function ProduccionPage({
   searchParams,
@@ -75,28 +74,26 @@ export default async function ProduccionPage({
             No hay producción cargada todavía.
           </p>
         ) : (
-          <ScrollFade>
-            <div className="overflow-x-auto rounded-lg border border-black/10">
-              <table className="w-full min-w-[480px] text-sm">
-                <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
-                  <tr>
-                    <th className="px-4 py-2.5">Insumo</th>
-                    <th className="px-4 py-2.5 text-right">Kg consumidos</th>
+          <div className="overflow-x-auto rounded-lg border border-black/10">
+            <table className="w-full min-w-[480px] text-sm">
+              <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                <tr>
+                  <th className="px-4 py-2.5">Insumo</th>
+                  <th className="px-4 py-2.5 text-right">Kg consumidos</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-black/5">
+                {consumo.insumos.map((i) => (
+                  <tr key={i.producto}>
+                    <td className="px-4 py-2.5">{i.producto}</td>
+                    <td className="px-4 py-2.5 text-right font-semibold text-btm-navy">
+                      {i.kgConsumidos.toLocaleString("es-AR", { maximumFractionDigits: 1 })}
+                    </td>
                   </tr>
-                </thead>
-                <tbody className="divide-y divide-black/5">
-                  {consumo.insumos.map((i) => (
-                    <tr key={i.producto}>
-                      <td className="px-4 py-2.5">{i.producto}</td>
-                      <td className="px-4 py-2.5 text-right font-semibold text-btm-navy">
-                        {i.kgConsumidos.toLocaleString("es-AR", { maximumFractionDigits: 1 })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </ScrollFade>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
 
@@ -134,36 +131,34 @@ export default async function ProduccionPage({
                   {t.hora_ingreso && <span>· Ingreso {t.hora_ingreso.slice(0, 5)}</span>}
                   {t.hora_salida && <span>· Salida {t.hora_salida.slice(0, 5)}</span>}
                 </div>
-                <ScrollFade fadeFrom="from-white">
-                  <div className="overflow-x-auto rounded-md border border-black/10">
-                    <table className="w-full min-w-[520px] text-xs">
-                      <thead className="bg-black/[.03] text-left font-semibold uppercase tracking-wide text-btm-black/60">
-                        <tr>
-                          <th className="px-3 py-2">Fórmula</th>
-                          <th className="px-3 py-2 text-right">Kg objetivo</th>
-                          <th className="px-3 py-2 text-right">Kg real</th>
-                          <th className="px-3 py-2">Envase</th>
-                          <th className="px-3 py-2">Partida</th>
+                <div className="overflow-x-auto rounded-md border border-black/10">
+                  <table className="w-full min-w-[520px] text-xs">
+                    <thead className="bg-black/[.03] text-left font-semibold uppercase tracking-wide text-btm-black/60">
+                      <tr>
+                        <th className="px-3 py-2">Fórmula</th>
+                        <th className="px-3 py-2 text-right">Kg objetivo</th>
+                        <th className="px-3 py-2 text-right">Kg real</th>
+                        <th className="px-3 py-2">Envase</th>
+                        <th className="px-3 py-2">Partida</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-black/5">
+                      {t.producciones.map((p) => (
+                        <tr key={p.id}>
+                          <td className="px-3 py-2">
+                            {p.formula ? `${p.formula.codigo} · ${p.formula.nombre}` : "—"}
+                          </td>
+                          <td className="px-3 py-2 text-right">{p.kg_objetivo ?? "—"}</td>
+                          <td className="px-3 py-2 text-right font-semibold text-btm-navy">
+                            {p.kg_producido_real ?? "—"}
+                          </td>
+                          <td className="px-3 py-2">{p.tipo_envase ?? "—"}</td>
+                          <td className="px-3 py-2">{p.partida ?? "—"}</td>
                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-black/5">
-                        {t.producciones.map((p) => (
-                          <tr key={p.id}>
-                            <td className="px-3 py-2">
-                              {p.formula ? `${p.formula.codigo} · ${p.formula.nombre}` : "—"}
-                            </td>
-                            <td className="px-3 py-2 text-right">{p.kg_objetivo ?? "—"}</td>
-                            <td className="px-3 py-2 text-right font-semibold text-btm-navy">
-                              {p.kg_producido_real ?? "—"}
-                            </td>
-                            <td className="px-3 py-2">{p.tipo_envase ?? "—"}</td>
-                            <td className="px-3 py-2">{p.partida ?? "—"}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </ScrollFade>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
                 {t.turno_paradas.length > 0 && (
                   <p className="text-xs text-btm-black/60">
                     Paradas: {t.turno_paradas.map((pa) => `${pa.tipo}${pa.minutos ? ` (${pa.minutos}m)` : ""}`).join(", ")}
