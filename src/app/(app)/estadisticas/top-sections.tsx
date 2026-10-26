@@ -78,17 +78,28 @@ const TOP_BAR_CHART_N = 8;
 // así que el color no compite con una leyenda: es el look "Excel 3D" que
 // pidió puntualmente el dueño para estos 3 gráficos.
 const TOP_BAR_COLORS = ["#2a78d6", "#eb6834", "#e87ba4", "#eda100", "#1baf7a", "#4a3aa7", "#e34948", "#008300"];
-const BAR_DEPTH = 8;
-const BAR_WIDTH = 40;
-const SKEW_DEG = 30;
+
+// Geometría del prisma en coordenadas SVG exactas (nada de transform/skew
+// aproximado) — así el tamaño del cubo, la posición del monto arriba y el
+// punto donde "pisa" la barra quedan iguales para todas, sea cual sea su
+// altura. CHART_H es la altura máxima de la cara frontal; DEPTH es el
+// "espesor" del prisma; TEXT_H reserva arriba el lugar para el monto.
+const CHART_H = 100;
+const DEPTH = 7;
+const BAR_W = 24;
+const MIN_FRONT_H = 12;
+const TEXT_H = 16;
+const SVG_W = BAR_W + DEPTH;
+const SVG_H = CHART_H + DEPTH + TEXT_H;
 
 function formatTn(value: number) {
   return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
 }
 
-// Monto arriba de la barra, toneladas y la etiqueta abajo — es lo que pidió
-// el dueño puntualmente para estos 3 gráficos (zona/producto/vendedor), a
-// diferencia del resto de los gráficos horizontales de la app.
+// Monto arriba de la barra (como parte del mismo SVG, para que nunca quede
+// cortado contra el borde de la tarjeta) y toneladas + nombre abajo, en un
+// renglón de altura fija para que un nombre de dos líneas no corra el
+// resto del gráfico.
 function TopBarChart({ rows }: { rows: AggregateRow[] }) {
   if (rows.length === 0) {
     return <p className="text-sm text-btm-black/50">Sin datos para este período.</p>;
@@ -98,26 +109,18 @@ function TopBarChart({ rows }: { rows: AggregateRow[] }) {
   const max = Math.max(...top.map((r) => r.toneladas), 1);
 
   return (
-    <div className="flex items-end gap-4 overflow-x-auto pt-3 pb-1">
+    <div className="flex items-start justify-center gap-2 overflow-x-auto pb-1">
       {top.map((r, i) => {
         const color = TOP_BAR_COLORS[i % TOP_BAR_COLORS.length];
-        const heightPct = Math.max((r.toneladas / max) * 100, r.toneladas > 0 ? 4 : 0);
+        const frontH = Math.round(Math.max((r.toneladas / max) * CHART_H, r.toneladas > 0 ? MIN_FRONT_H : 0));
         return (
-          <div key={r.label} className="flex min-w-[76px] flex-1 flex-col items-center gap-1.5">
-            <div className="relative flex h-32 w-full items-end justify-center">
-              <span
-                className="btm-fig absolute left-1/2 whitespace-nowrap text-xs font-bold text-btm-navy"
-                style={{ bottom: `calc(${heightPct}% + ${BAR_DEPTH + 6}px)`, transform: "translateX(-50%)" }}
-              >
-                {formatUsd(r.total)}
-              </span>
-              <Bar3D color={color} heightPct={heightPct} />
-            </div>
+          <div key={r.label} className="flex w-16 shrink-0 flex-col items-center">
+            <Bar3D color={color} frontH={frontH} monto={formatUsd(r.total)} />
             <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/60">
               {formatTn(r.toneladas)}
             </span>
             <span
-              className="text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50"
+              className="mt-0.5 line-clamp-2 h-7 text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/50"
               title={r.label}
             >
               {r.label}
@@ -129,35 +132,44 @@ function TopBarChart({ rows }: { rows: AggregateRow[] }) {
   );
 }
 
-// Simula un prisma 3D con CSS puro (cara frontal + cara superior + cara
-// lateral, cada una con un ::skew y un tono del mismo color) — mismo efecto
-// visual que un gráfico de barras 3D "estilo Excel", sin sumar ninguna
-// librería de gráficos nueva al proyecto.
-function Bar3D({ color, heightPct }: { color: string; heightPct: number }) {
+function Bar3D({ color, frontH, monto }: { color: string; frontH: number; monto: string }) {
+  const baseY = SVG_H;
+  const frontTop = baseY - frontH;
+  const top = `color-mix(in srgb, ${color} 65%, white)`;
+  const side = `color-mix(in srgb, ${color} 65%, black)`;
+
   return (
-    <div className="relative" style={{ width: BAR_WIDTH, height: `${heightPct}%`, background: color }}>
-      <div
-        className="absolute left-0 w-full"
-        style={{
-          top: -BAR_DEPTH,
-          height: BAR_DEPTH,
-          background: `color-mix(in srgb, ${color} 65%, white)`,
-          transform: `skewX(-${SKEW_DEG}deg)`,
-          transformOrigin: "bottom left",
-        }}
-        aria-hidden
+    <svg
+      width={SVG_W}
+      height={SVG_H}
+      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
+      style={{ overflow: "visible" }}
+      role="img"
+      aria-label={`${monto}`}
+    >
+      <text
+        x={SVG_W / 2}
+        y={frontTop - DEPTH - 4}
+        textAnchor="middle"
+        className="btm-fig"
+        fontSize="11"
+        fontWeight="700"
+        fill="#21305d"
+      >
+        {monto}
+      </text>
+      {/* cara lateral */}
+      <polygon
+        points={`${BAR_W},${frontTop} ${BAR_W},${baseY} ${BAR_W + DEPTH},${baseY - DEPTH} ${BAR_W + DEPTH},${frontTop - DEPTH}`}
+        fill={side}
       />
-      <div
-        className="absolute top-0 h-full"
-        style={{
-          right: -BAR_DEPTH,
-          width: BAR_DEPTH,
-          background: `color-mix(in srgb, ${color} 65%, black)`,
-          transform: `skewY(-${SKEW_DEG}deg)`,
-          transformOrigin: "top left",
-        }}
-        aria-hidden
+      {/* cara superior */}
+      <polygon
+        points={`0,${frontTop} ${BAR_W},${frontTop} ${BAR_W + DEPTH},${frontTop - DEPTH} ${DEPTH},${frontTop - DEPTH}`}
+        fill={top}
       />
-    </div>
+      {/* cara frontal */}
+      <rect x={0} y={frontTop} width={BAR_W} height={frontH} fill={color} />
+    </svg>
   );
 }
