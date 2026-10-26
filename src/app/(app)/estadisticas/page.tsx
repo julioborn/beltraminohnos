@@ -14,6 +14,7 @@ import {
   type AggregateRow,
 } from "@/lib/reports/aggregate";
 import { formatUsd, formatFecha } from "@/lib/format";
+import { Bar3DChart } from "@/components/bar-chart-3d";
 import { TopSections } from "./top-sections";
 
 export default async function EstadisticasPage({
@@ -103,7 +104,11 @@ export default async function EstadisticasPage({
 
       <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
         <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Facturación mensual</h2>
-        <MonthlyChart data={porMes} />
+        <Bar3DChart
+          rows={porMes.map((d) => ({ label: d.label, primary: d.total }))}
+          topN={porMes.length}
+          formatPrimary={formatUsd}
+        />
       </section>
 
       <TopSections porZona={porZona} porProducto={porProducto} porVendedor={porVendedor} />
@@ -162,7 +167,11 @@ function PendingNotesCard({
           <p className="text-sm text-btm-black/70">
             <span className="font-bold text-btm-navy">{formatUsd(monto)}</span> · {formatTn(toneladas)}
           </p>
-          <PendingProductBars rows={rows} />
+          <Bar3DChart
+            rows={rows.slice(0, 5).map((r) => ({ label: r.label, primary: r.total, secondary: r.toneladas }))}
+            formatPrimary={formatUsd}
+            formatSecondary={formatTn}
+          />
           <details className="group">
             <summary className="flex w-fit cursor-pointer list-none items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-btm-navy [&::-webkit-details-marker]:hidden">
               <svg
@@ -197,63 +206,3 @@ function PendingNotesCard({
   );
 }
 
-const PENDING_BARS_TOP_N = 5;
-
-function PendingProductBars({ rows }: { rows: AggregateRow[] }) {
-  const top = rows.slice(0, PENDING_BARS_TOP_N);
-  const max = Math.max(...top.map((r) => r.total), 1);
-
-  return (
-    <div className="flex flex-col gap-2">
-      {top.map((row) => {
-        const pct = Math.max((row.total / max) * 100, row.total > 0 ? 2 : 0);
-        return (
-          <div key={row.label} className="flex items-center gap-2">
-            <span className="w-20 shrink-0 truncate text-xs text-btm-black/70 sm:w-28" title={row.label}>
-              {row.label}
-            </span>
-            <div className="h-3 flex-1 overflow-hidden rounded-full bg-black/[.04]">
-              <div
-                className="h-full rounded-full bg-btm-navy"
-                style={{ width: `${pct}%` }}
-                role="img"
-                aria-label={`${row.label}: ${formatUsd(row.total)}, ${formatTn(row.toneladas)}`}
-              />
-            </div>
-            <span className="btm-fig w-16 shrink-0 text-right text-[11px] font-semibold text-btm-navy sm:w-20">
-              {formatUsd(row.total)}
-            </span>
-            <span className="btm-fig w-12 shrink-0 text-right text-[11px] font-semibold text-btm-navy sm:w-16">
-              {formatTn(row.toneladas)}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function MonthlyChart({ data }: { data: { label: string; total: number }[] }) {
-  if (data.length === 0) {
-    return <p className="text-sm text-btm-black/50">Sin datos para este período.</p>;
-  }
-
-  const max = Math.max(...data.map((d) => d.total), 1);
-
-  return (
-    <div className="flex items-end gap-3 overflow-x-auto pb-1">
-      {data.map((d) => (
-        <div key={d.label} className="flex min-w-[40px] flex-1 flex-col items-center gap-1.5">
-          <div className="flex h-32 w-full items-end">
-            <div
-              className="w-full rounded-t-md bg-btm-navy"
-              style={{ height: `${Math.max((d.total / max) * 100, d.total > 0 ? 4 : 0)}%` }}
-              title={formatUsd(d.total)}
-            />
-          </div>
-          <span className="text-[10px] font-semibold uppercase tracking-wide text-btm-black/50">{d.label}</span>
-        </div>
-      ))}
-    </div>
-  );
-}

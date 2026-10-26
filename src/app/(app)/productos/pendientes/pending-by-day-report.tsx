@@ -12,6 +12,7 @@ import {
   type PendingDayRow,
 } from "@/lib/reports/pending-by-day";
 import { formatFecha, formatDiaEntrega, formatUsd } from "@/lib/format";
+import { Bar3DChart } from "@/components/bar-chart-3d";
 import { StockDepositoSection } from "./stock-deposito-section";
 import type { ProductStockBalance } from "@/lib/data/stock";
 
@@ -378,52 +379,18 @@ const CHART_TOP_N = 10;
 
 function PendingChart({ rows, modeLabel }: { rows: PendingDayRow[]; modeLabel: string }) {
   if (rows.length === 0) return null;
-  const top = [...rows].sort((a, b) => b.montoTotal - a.montoTotal).slice(0, CHART_TOP_N);
-  const max = Math.max(...top.map((r) => r.montoTotal), 1);
+  const sorted = [...rows].sort((a, b) => b.montoTotal - a.montoTotal);
+  const title = `${modeLabel} · Top ${Math.min(sorted.length, CHART_TOP_N)} productos`;
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
-      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-        {modeLabel} · Top {top.length} productos
-      </h2>
-
-      <div className="flex items-center gap-3">
-        <span className="w-28 shrink-0 sm:w-40" />
-        <span className="flex-1" />
-        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
-          Monto
-        </span>
-        <span className="w-20 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
-          Toneladas
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {top.map((row) => {
-          const pct = Math.max((row.montoTotal / max) * 100, row.montoTotal > 0 ? 2 : 0);
-          return (
-            <div key={row.productId} className="flex items-center gap-3">
-              <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.productName}>
-                {row.productName}
-              </span>
-              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
-                <div
-                  className="h-full rounded-full bg-btm-navy"
-                  style={{ width: `${pct}%` }}
-                  role="img"
-                  aria-label={`${row.productName}: ${formatUsd(row.montoTotal)}, ${formatCantidad(row.total)} tn`}
-                />
-              </div>
-              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
-                {formatUsd(row.montoTotal)}
-              </span>
-              <span className="btm-fig w-20 shrink-0 text-right text-xs font-semibold text-btm-navy">
-                {formatCantidad(row.total)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
+      <Bar3DChart
+        rows={sorted.map((r) => ({ label: r.productName, primary: r.montoTotal, secondary: r.total }))}
+        topN={CHART_TOP_N}
+        formatPrimary={formatUsd}
+        formatSecondary={(v) => `${formatCantidad(v)} tn`}
+      />
     </section>
   );
 }

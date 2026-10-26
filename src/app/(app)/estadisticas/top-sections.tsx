@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatUsd } from "@/lib/format";
 import { VendedorIcon, ZonaIcon, ProductoIcon } from "@/components/report-icons";
+import { Bar3DChart } from "@/components/bar-chart-3d";
 import type { AggregateRow } from "@/lib/reports/aggregate";
 
 type SectionKey = "zona" | "producto" | "vendedor";
@@ -12,6 +13,10 @@ const SECTIONS: { key: SectionKey; label: string; icon: React.ReactNode }[] = [
   { key: "producto", label: "Top productos", icon: <ProductoIcon /> },
   { key: "vendedor", label: "Top vendedores", icon: <VendedorIcon /> },
 ];
+
+function formatTn(value: number) {
+  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
 
 export function TopSections({
   porZona,
@@ -64,109 +69,13 @@ export function TopSections({
           <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
             {SECTIONS.find((s) => s.key === open)?.label}
           </h2>
-          <TopBarChart rows={data[open]} />
+          <Bar3DChart
+            rows={data[open].map((r) => ({ label: r.label, primary: r.total, secondary: r.toneladas }))}
+            formatPrimary={formatUsd}
+            formatSecondary={formatTn}
+          />
         </section>
       )}
     </div>
-  );
-}
-
-const TOP_BAR_CHART_N = 8;
-
-// Un color distinto por barra — acá cada barra es una entidad individual
-// (zona/producto/vendedor) ya identificada por su propia etiqueta debajo,
-// así que el color no compite con una leyenda: es el look "Excel 3D" que
-// pidió puntualmente el dueño para estos 3 gráficos.
-const TOP_BAR_COLORS = ["#2a78d6", "#eb6834", "#e87ba4", "#eda100", "#1baf7a", "#4a3aa7", "#e34948", "#008300"];
-
-// Geometría del prisma en coordenadas SVG exactas (nada de transform/skew
-// aproximado) — así el tamaño del cubo, la posición del monto arriba y el
-// punto donde "pisa" la barra quedan iguales para todas, sea cual sea su
-// altura. CHART_H es la altura máxima de la cara frontal; DEPTH es el
-// "espesor" del prisma; TEXT_H reserva arriba el lugar para el monto.
-const CHART_H = 180;
-const DEPTH = 12;
-const BAR_W = 44;
-const MIN_FRONT_H = 20;
-const TEXT_H = 26;
-const SVG_W = BAR_W + DEPTH;
-const SVG_H = CHART_H + DEPTH + TEXT_H;
-
-function formatTn(value: number) {
-  return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
-}
-
-// Monto arriba de la barra (como parte del mismo SVG, para que nunca quede
-// cortado contra el borde de la tarjeta) y toneladas + nombre abajo, en un
-// renglón de altura fija para que un nombre de dos líneas no corra el
-// resto del gráfico.
-function TopBarChart({ rows }: { rows: AggregateRow[] }) {
-  if (rows.length === 0) {
-    return <p className="text-sm text-btm-black/50">Sin datos para este período.</p>;
-  }
-
-  const top = rows.slice(0, TOP_BAR_CHART_N);
-  const max = Math.max(...top.map((r) => r.toneladas), 1);
-
-  return (
-    <div className="flex items-start justify-center gap-8 overflow-x-auto px-2 pb-2">
-      {top.map((r, i) => {
-        const color = TOP_BAR_COLORS[i % TOP_BAR_COLORS.length];
-        const frontH = Math.round(Math.max((r.toneladas / max) * CHART_H, r.toneladas > 0 ? MIN_FRONT_H : 0));
-        return (
-          <div key={r.label} className="flex w-28 shrink-0 flex-col items-center">
-            <Bar3D color={color} frontH={frontH} monto={formatUsd(r.total)} />
-            <span className="btm-fig mt-1 whitespace-nowrap text-xs font-semibold text-btm-black/60">
-              {formatTn(r.toneladas)}
-            </span>
-            <span className="mt-1 text-center text-xs leading-snug font-semibold uppercase tracking-wide text-btm-black/50">
-              {r.label}
-            </span>
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function Bar3D({ color, frontH, monto }: { color: string; frontH: number; monto: string }) {
-  const baseY = SVG_H;
-  const frontTop = baseY - frontH;
-  const top = `color-mix(in srgb, ${color} 65%, white)`;
-  const side = `color-mix(in srgb, ${color} 65%, black)`;
-
-  return (
-    <svg
-      width={SVG_W}
-      height={SVG_H}
-      viewBox={`0 0 ${SVG_W} ${SVG_H}`}
-      style={{ overflow: "visible" }}
-      role="img"
-      aria-label={`${monto}`}
-    >
-      <text
-        x={SVG_W / 2}
-        y={frontTop - DEPTH - 6}
-        textAnchor="middle"
-        className="btm-fig"
-        fontSize="15"
-        fontWeight="700"
-        fill="#21305d"
-      >
-        {monto}
-      </text>
-      {/* cara lateral */}
-      <polygon
-        points={`${BAR_W},${frontTop} ${BAR_W},${baseY} ${BAR_W + DEPTH},${baseY - DEPTH} ${BAR_W + DEPTH},${frontTop - DEPTH}`}
-        fill={side}
-      />
-      {/* cara superior */}
-      <polygon
-        points={`0,${frontTop} ${BAR_W},${frontTop} ${BAR_W + DEPTH},${frontTop - DEPTH} ${DEPTH},${frontTop - DEPTH}`}
-        fill={top}
-      />
-      {/* cara frontal */}
-      <rect x={0} y={frontTop} width={BAR_W} height={frontH} fill={color} />
-    </svg>
   );
 }

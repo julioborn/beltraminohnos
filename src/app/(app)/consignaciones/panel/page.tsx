@@ -11,6 +11,7 @@ import {
 } from "@/lib/data/consignaciones";
 import { getActiveProducts } from "@/lib/data/master-data";
 import { formatArs } from "@/lib/format";
+import { Bar3DChart } from "@/components/bar-chart-3d";
 import {
   PendientesPorProducto,
   PendientesPorCliente,
@@ -139,13 +140,7 @@ export default async function ConsignacionesPanelPage({
           ) : (
             <>
               <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-                <HorizontalBarChart
-                  rows={saldoChartRows}
-                  primaryLabel="Saldo"
-                  secondaryLabel="Toneladas"
-                  formatPrimary={formatArsCompact}
-                  formatSecondary={formatTn}
-                />
+                <Bar3DChart rows={saldoChartRows} formatPrimary={formatArsCompact} formatSecondary={formatTn} />
               </div>
               <div className="overflow-x-auto rounded-lg border border-black/10">
                 <table className="w-full min-w-[560px] text-sm">
@@ -180,13 +175,7 @@ export default async function ConsignacionesPanelPage({
 
       {tab === "ventas" && (
         <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
-          <HorizontalBarChart
-            rows={ventasChartRows}
-            primaryLabel="Monto"
-            secondaryLabel="Toneladas"
-            formatPrimary={formatArsCompact}
-            formatSecondary={formatTn}
-          />
+          <Bar3DChart rows={ventasChartRows} formatPrimary={formatArsCompact} formatSecondary={formatTn} />
         </section>
       )}
 
@@ -210,7 +199,7 @@ export default async function ConsignacionesPanelPage({
         <>
           {stockChartRows.length > 0 && (
             <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-              <HorizontalBarChart rows={stockChartRows.map((r) => ({ label: r.label, primary: r.toneladas }))} primaryLabel="Toneladas" formatPrimary={formatTn} />
+              <Bar3DChart rows={stockChartRows.map((r) => ({ label: r.label, primary: r.toneladas }))} formatPrimary={formatTn} />
             </div>
           )}
           <form
@@ -304,10 +293,8 @@ export default async function ConsignacionesPanelPage({
         <>
           {movimientosChartRows.length > 0 && (
             <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-              <HorizontalBarChart
+              <Bar3DChart
                 rows={movimientosChartRows.map((r) => ({ label: r.label, primary: r.monto, secondary: r.toneladas }))}
-                primaryLabel="Monto"
-                secondaryLabel="Toneladas"
                 formatPrimary={formatArsCompact}
                 formatSecondary={formatTn}
               />
@@ -555,76 +542,6 @@ function toPieGroups<T extends { sucursalName: string; montoArs: number }>(
     map.set(g.sucursalName, slices);
   }
   return Array.from(map.entries()).map(([sucursalName, slices]) => ({ sucursalName, slices }));
-}
-
-const CHART_TOP_N = 10;
-
-function HorizontalBarChart({
-  rows,
-  primaryLabel,
-  secondaryLabel,
-  formatPrimary,
-  formatSecondary,
-}: {
-  rows: { label: string; primary: number; secondary?: number }[];
-  primaryLabel: string;
-  secondaryLabel?: string;
-  formatPrimary: (value: number) => string;
-  formatSecondary?: (value: number) => string;
-}) {
-  if (rows.length === 0) {
-    return <p className="text-sm text-btm-black/50">Sin datos para mostrar.</p>;
-  }
-
-  const top = rows.slice(0, CHART_TOP_N);
-  const max = Math.max(...top.map((r) => r.primary), 1);
-
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex items-center gap-2 sm:gap-3">
-        <span className="w-20 shrink-0 sm:w-32" />
-        <span className="flex-1" />
-        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50 sm:w-28">
-          {primaryLabel}
-        </span>
-        {secondaryLabel && (
-          <span className="w-16 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50 sm:w-20">
-            {secondaryLabel}
-          </span>
-        )}
-      </div>
-      <div className="flex flex-col gap-2">
-        {top.map((row) => {
-          const pct = Math.max((row.primary / max) * 100, row.primary > 0 ? 2 : 0);
-          return (
-            <div key={row.label} className="flex items-center gap-2 sm:gap-3">
-              <span className="w-20 shrink-0 truncate text-xs text-btm-black/70 sm:w-32" title={row.label}>
-                {row.label}
-              </span>
-              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
-                <div
-                  className="h-full rounded-full bg-btm-navy"
-                  style={{ width: `${pct}%` }}
-                  role="img"
-                  aria-label={`${row.label}: ${formatPrimary(row.primary)}${
-                    secondaryLabel && formatSecondary ? `, ${formatSecondary(row.secondary ?? 0)}` : ""
-                  }`}
-                />
-              </div>
-              <span className="btm-fig w-24 shrink-0 truncate text-right text-xs font-semibold text-btm-navy sm:w-28">
-                {formatPrimary(row.primary)}
-              </span>
-              {secondaryLabel && formatSecondary && (
-                <span className="btm-fig w-16 shrink-0 truncate text-right text-xs font-semibold text-btm-navy sm:w-20">
-                  {formatSecondary(row.secondary ?? 0)}
-                </span>
-              )}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
 }
 
 const PIE_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7"];

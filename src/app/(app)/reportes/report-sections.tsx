@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatUsd } from "@/lib/format";
 import { ClienteIcon, VendedorIcon, ZonaIcon, ProductoIcon } from "@/components/report-icons";
+import { Bar3DChart } from "@/components/bar-chart-3d";
 import type { AggregateRow } from "@/lib/reports/aggregate";
 
 type SectionKey = "cliente" | "vendedor" | "zona" | "producto";
@@ -195,51 +196,17 @@ const CHART_TOP_N = 10;
 
 function ReportChart({ label, rows }: { label: string; rows: AggregateRow[] }) {
   if (rows.length === 0) return null;
-  const top = rows.slice(0, CHART_TOP_N);
-  const max = Math.max(...top.map((r) => r.total), 1);
-  const title = `Top ${top.length} ${label}`;
+  const title = `Top ${Math.min(rows.length, CHART_TOP_N)} ${label}`;
 
   return (
     <section className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:p-5">
       <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">{title}</h2>
-
-      <div className="flex items-center gap-3">
-        <span className="w-28 shrink-0 sm:w-40" />
-        <span className="flex-1" />
-        <span className="w-24 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
-          Monto
-        </span>
-        <span className="w-20 shrink-0 text-right text-[11px] font-semibold uppercase tracking-wide text-btm-black/50">
-          Toneladas
-        </span>
-      </div>
-
-      <div className="flex flex-col gap-2">
-        {top.map((row) => {
-          const pct = Math.max((row.total / max) * 100, row.total > 0 ? 2 : 0);
-          return (
-            <div key={row.label} className="flex items-center gap-3">
-              <span className="w-28 shrink-0 truncate text-xs text-btm-black/70 sm:w-40" title={row.label}>
-                {row.label}
-              </span>
-              <div className="h-4 flex-1 overflow-hidden rounded-full bg-black/[.04]">
-                <div
-                  className="h-full rounded-full bg-btm-navy"
-                  style={{ width: `${pct}%` }}
-                  role="img"
-                  aria-label={`${row.label}: ${formatUsd(row.total)}, ${formatTn(row.toneladas)}`}
-                />
-              </div>
-              <span className="btm-fig w-24 shrink-0 text-right text-xs font-semibold text-btm-navy">
-                {formatUsd(row.total)}
-              </span>
-              <span className="btm-fig w-20 shrink-0 text-right text-xs font-semibold text-btm-navy">
-                {formatTn(row.toneladas)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <Bar3DChart
+        rows={rows.map((r) => ({ label: r.label, primary: r.total, secondary: r.toneladas }))}
+        topN={CHART_TOP_N}
+        formatPrimary={formatUsd}
+        formatSecondary={formatTn}
+      />
     </section>
   );
 }
