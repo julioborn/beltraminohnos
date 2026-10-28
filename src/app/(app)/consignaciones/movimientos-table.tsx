@@ -2,7 +2,8 @@
 
 import { useActionState, useEffect, useRef, useState } from "react";
 import { actualizarMovimientoSucursal, eliminarMovimientoSucursal } from "@/lib/actions/consignaciones";
-import { formatArs, formatFecha, formatUsd } from "@/lib/format";
+import { formatFecha, formatUsd } from "@/lib/format";
+import { formatMonto, type Currency } from "@/lib/currency";
 import type { getSucursalMovimientos } from "@/lib/data/consignaciones";
 import type { Database } from "@/lib/supabase/database.types";
 
@@ -16,7 +17,17 @@ const TIPO_LABELS: Record<string, string> = {
   DIRECTA_CLIENTE: "Directa cliente",
 };
 
-export function MovimientosTable({ movimientos, products }: { movimientos: Movimiento[]; products: Option[] }) {
+export function MovimientosTable({
+  movimientos,
+  products,
+  currency,
+  tipoCambio,
+}: {
+  movimientos: Movimiento[];
+  products: Option[];
+  currency: Currency;
+  tipoCambio: number | null;
+}) {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   return (
@@ -55,7 +66,9 @@ export function MovimientosTable({ movimientos, products }: { movimientos: Movim
                     ? m.tipo_cambio.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                     : "—"}
                 </td>
-                <td className="px-3 py-2.5 text-right">{m.monto_ars != null ? formatArs(m.monto_ars) : "—"}</td>
+                <td className="px-3 py-2.5 text-right">
+                  {m.monto_ars != null ? formatMonto(m.monto_ars, currency, tipoCambio) : "—"}
+                </td>
                 <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
                 <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
                 <td className="px-3 py-2.5">

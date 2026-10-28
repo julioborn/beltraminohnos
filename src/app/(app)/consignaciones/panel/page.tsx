@@ -11,7 +11,9 @@ import {
   type ConsignacionFilters,
 } from "@/lib/data/consignaciones";
 import { getActiveProducts } from "@/lib/data/master-data";
-import { formatArs, formatUsd } from "@/lib/format";
+import { formatUsd } from "@/lib/format";
+import { formatMonto, formatMontoCompact } from "@/lib/currency";
+import { getCurrencyContext } from "@/lib/currency-server";
 import { Bar3DChart } from "@/components/bar-chart-3d";
 import {
   PendientesPorProducto,
@@ -60,7 +62,7 @@ export default async function ConsignacionesPanelPage({
   const rangeFilters = { desde: params.desde, hasta: params.hasta };
   const ventasRange = monthRange(params.ventasMes);
 
-  const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta, products] =
+  const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta, products, { currency, tipoCambio }] =
     await Promise.all([
       getSucursales(),
       getSucursalMovimientos(params),
@@ -70,7 +72,11 @@ export default async function ConsignacionesPanelPage({
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "VENTA", estado: "PENDIENTE" }),
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
       getActiveProducts(),
+      getCurrencyContext(),
     ]);
+
+  const fmtMonto = (value: number) => formatMonto(value, currency, tipoCambio);
+  const fmtMontoCompact = (value: number) => formatMontoCompact(value, currency, tipoCambio);
 
   const stockChartSucursalId = sucursales.some((s) => s.id === params.stockChartSucursal)
     ? params.stockChartSucursal!
@@ -149,10 +155,10 @@ export default async function ConsignacionesPanelPage({
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Kpi label="Total vendido" value={formatArs(totalVentas)} />
-        <Kpi label="Pendiente de facturar" value={formatArs(totalPendienteFacturar)} />
-        <Kpi label="Total pagado" value={formatArs(totalPagado)} />
-        <Kpi label="Saldo pendiente de cobro" value={formatArs(totalSaldo)} />
+        <Kpi label="Total vendido" value={fmtMonto(totalVentas)} />
+        <Kpi label="Pendiente de facturar" value={fmtMonto(totalPendienteFacturar)} />
+        <Kpi label="Total pagado" value={fmtMonto(totalPagado)} />
+        <Kpi label="Saldo pendiente de cobro" value={fmtMonto(totalSaldo)} />
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -180,7 +186,7 @@ export default async function ConsignacionesPanelPage({
           ) : (
             <>
               <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-                <Bar3DChart rows={saldoChartRows} formatPrimary={formatArsCompact} formatSecondary={formatTn} />
+                <Bar3DChart rows={saldoChartRows} formatPrimary={fmtMontoCompact} formatSecondary={formatTn} />
               </div>
 
               {saldoChartSucursal && (
@@ -195,7 +201,7 @@ export default async function ConsignacionesPanelPage({
                       paramName="saldoChartSucursal"
                     />
                   </div>
-                  <Bar3DChart rows={saldoComposicionChartRows} formatPrimary={formatArsCompact} />
+                  <Bar3DChart rows={saldoComposicionChartRows} formatPrimary={fmtMontoCompact} />
                 </div>
               )}
 
@@ -213,12 +219,12 @@ export default async function ConsignacionesPanelPage({
                     {saldos.map((s) => (
                       <tr key={s.sucursalId}>
                         <td className="px-4 py-2.5 font-semibold text-btm-navy">{s.sucursalName}</td>
-                        <td className="px-4 py-2.5 text-right">{formatArs(s.totalVentas)}</td>
-                        <td className="px-4 py-2.5 text-right">{formatArs(s.totalPagado)}</td>
+                        <td className="px-4 py-2.5 text-right">{fmtMonto(s.totalVentas)}</td>
+                        <td className="px-4 py-2.5 text-right">{fmtMonto(s.totalPagado)}</td>
                         <td
                           className={`px-4 py-2.5 text-right font-semibold ${s.saldo > 0 ? "text-btm-red" : "text-btm-black/70"}`}
                         >
-                          {formatArs(s.saldo)}
+                          {fmtMonto(s.saldo)}
                         </td>
                       </tr>
                     ))}
@@ -237,23 +243,23 @@ export default async function ConsignacionesPanelPage({
             selectedSucursal={params.ventasSucursal ?? ""}
             selectedMes={params.ventasMes ?? ""}
           />
-          <Bar3DChart rows={ventasChartRows} formatPrimary={formatArsCompact} formatSecondary={formatTn} />
+          <Bar3DChart rows={ventasChartRows} formatPrimary={fmtMontoCompact} formatSecondary={formatTn} />
         </section>
       )}
 
       {tab === "pendientes-sucursal" && (
         <section className="flex flex-col gap-3">
           <SucursalFilterForm tab="pendientes-sucursal" sucursales={sucursales} selected={params.sucursal} hasFilter={hasSucursalFilter} />
-          <PieChartGroup groups={pieGruposPorSucursalProducto} />
-          <PendientesPorProducto groups={gruposPorProducto} />
+          <PieChartGroup groups={pieGruposPorSucursalProducto} formatValue={fmtMonto} />
+          <PendientesPorProducto groups={gruposPorProducto} currency={currency} tipoCambio={tipoCambio} />
         </section>
       )}
 
       {tab === "pendientes-cliente" && (
         <section className="flex flex-col gap-3">
           <SucursalFilterForm tab="pendientes-cliente" sucursales={sucursales} selected={params.sucursal} hasFilter={hasSucursalFilter} />
-          <PieChartGroup groups={pieGruposPorSucursalCliente} />
-          <PendientesPorCliente groups={gruposPorCliente} />
+          <PieChartGroup groups={pieGruposPorSucursalCliente} formatValue={fmtMonto} />
+          <PendientesPorCliente groups={gruposPorCliente} currency={currency} tipoCambio={tipoCambio} />
         </section>
       )}
 
@@ -381,7 +387,7 @@ export default async function ConsignacionesPanelPage({
             <div className="rounded-lg border border-black/10 p-4 sm:p-5">
               <Bar3DChart
                 rows={movimientosChartRows.map((r) => ({ label: r.label, primary: r.monto, secondary: r.toneladas }))}
-                formatPrimary={formatArsCompact}
+                formatPrimary={fmtMontoCompact}
                 formatSecondary={formatTn}
               />
             </div>
@@ -461,7 +467,7 @@ export default async function ConsignacionesPanelPage({
                 No hay movimientos cargados todavía.
               </p>
             ) : (
-              <MovimientosTable movimientos={movimientos} products={products} />
+              <MovimientosTable movimientos={movimientos} products={products} currency={currency} tipoCambio={tipoCambio} />
             )}
           </section>
         </>
@@ -597,13 +603,6 @@ function monthRange(mes?: string): { desde?: string; hasta?: string } {
   return { desde: `${mes}-01`, hasta: `${mes}-${String(lastDay).padStart(2, "0")}` };
 }
 
-// Sin el sufijo " ARS" de formatArs — en los gráficos de barra las columnas
-// son angostas y ya está claro por contexto que es ARS; con el sufijo los
-// montos grandes se cortaban en dos líneas.
-function formatArsCompact(value: number) {
-  return `$${value.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-}
-
 function aggregateToneladasBySucursal(rows: { sucursalName: string; toneladas: number; montoUsd: number }[]) {
   const map = new Map<string, { toneladas: number; montoUsd: number }>();
   for (const r of rows) {
@@ -647,7 +646,15 @@ function toPieGroups<T extends { sucursalName: string; montoArs: number }>(
 const PIE_COLORS = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7"];
 const PIE_SLICE_CAP = 5;
 
-function MiniPieChart({ title, slices }: { title: string; slices: { label: string; value: number }[] }) {
+function MiniPieChart({
+  title,
+  slices,
+  formatValue,
+}: {
+  title: string;
+  slices: { label: string; value: number }[];
+  formatValue: (value: number) => string;
+}) {
   const sorted = [...slices].filter((s) => s.value > 0).sort((a, b) => b.value - a.value);
   const top = sorted.slice(0, PIE_SLICE_CAP);
   const restTotal = sorted.slice(PIE_SLICE_CAP).reduce((sum, s) => sum + s.value, 0);
@@ -684,7 +691,7 @@ function MiniPieChart({ title, slices }: { title: string; slices: { label: strin
             <span className="flex-1 truncate text-btm-black/70" title={d.label}>
               {d.label}
             </span>
-            <span className="btm-fig shrink-0 font-semibold text-btm-navy">{formatArs(d.value)}</span>
+            <span className="btm-fig shrink-0 font-semibold text-btm-navy">{formatValue(d.value)}</span>
             <span className="w-9 shrink-0 text-right text-btm-black/40">{Math.round((d.value / total) * 100)}%</span>
           </div>
         ))}
@@ -693,12 +700,18 @@ function MiniPieChart({ title, slices }: { title: string; slices: { label: strin
   );
 }
 
-function PieChartGroup({ groups }: { groups: { sucursalName: string; slices: { label: string; value: number }[] }[] }) {
+function PieChartGroup({
+  groups,
+  formatValue,
+}: {
+  groups: { sucursalName: string; slices: { label: string; value: number }[] }[];
+  formatValue: (value: number) => string;
+}) {
   if (groups.length === 0) return null;
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {groups.map((g) => (
-        <MiniPieChart key={g.sucursalName} title={g.sucursalName} slices={g.slices} />
+        <MiniPieChart key={g.sucursalName} title={g.sucursalName} slices={g.slices} formatValue={formatValue} />
       ))}
     </div>
   );

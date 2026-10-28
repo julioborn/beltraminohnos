@@ -4,7 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getAuthUser, hasFullAccess, type ProfileRole } from "@/lib/auth/role";
 import { getSucursalByProfileId } from "@/lib/data/consignaciones";
 import { MobileMenu } from "@/components/mobile-menu";
-import { DolarBadge } from "@/components/dolar-badge";
+import { CurrencyToggle } from "@/components/currency-toggle";
+import { getCurrencyContext } from "@/lib/currency-server";
 
 // Mismos 9 destinos y mismo orden que las cards de Inicio, para que el menú
 // lateral y la pantalla de inicio coincidan exactamente.
@@ -47,6 +48,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const isOperador = role === "operador";
   const isProduccionRole = role === "produccion";
   const misucursal = user ? await getSucursalByProfileId(user.id) : null;
+  const { currency, tipoCambio } = await getCurrencyContext();
 
   const navLinks = isLimitado
     ? [
@@ -89,7 +91,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             priority
           />
         </Link>
-        <DolarBadge />
+        <CurrencyToggle currency={currency} rate={tipoCambio} />
       </header>
 
       <main className="flex flex-1 flex-col">{children}</main>

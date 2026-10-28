@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { marcarMovimientosFacturados } from "@/lib/actions/consignaciones";
-import { formatArs } from "@/lib/format";
+import { formatMonto, type Currency } from "@/lib/currency";
 
 export type PendienteSucursalProducto = {
   key: string;
@@ -39,7 +39,15 @@ function useSelection() {
   return { selected, toggle, clear: () => setSelected(new Set()) };
 }
 
-export function PendientesPorProducto({ groups }: { groups: PendienteSucursalProducto[] }) {
+export function PendientesPorProducto({
+  groups,
+  currency,
+  tipoCambio,
+}: {
+  groups: PendienteSucursalProducto[];
+  currency: Currency;
+  tipoCambio: number | null;
+}) {
   const { selected, toggle, clear } = useSelection();
   const [pending, startTransition] = useTransition();
 
@@ -87,7 +95,7 @@ export function PendientesPorProducto({ groups }: { groups: PendienteSucursalPro
                 <td className="px-3 py-2.5 font-semibold text-btm-navy">{g.sucursalName}</td>
                 <td className="px-3 py-2.5">{g.productName}</td>
                 <td className="px-3 py-2.5 text-right">{g.bolsas}</td>
-                <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
+                <td className="px-3 py-2.5 text-right font-semibold">{formatMonto(g.montoArs, currency, tipoCambio)}</td>
               </tr>
             ))}
           </tbody>
@@ -105,7 +113,15 @@ export function PendientesPorProducto({ groups }: { groups: PendienteSucursalPro
   );
 }
 
-export function PendientesPorCliente({ groups }: { groups: PendienteSucursalCliente[] }) {
+export function PendientesPorCliente({
+  groups,
+  currency,
+  tipoCambio,
+}: {
+  groups: PendienteSucursalCliente[];
+  currency: Currency;
+  tipoCambio: number | null;
+}) {
   const { selected, toggle, clear } = useSelection();
   const [pending, startTransition] = useTransition();
 
@@ -156,8 +172,8 @@ export function PendientesPorCliente({ groups }: { groups: PendienteSucursalClie
                 <td className="px-3 py-2.5">{g.clienteNombre}</td>
                 <td className="px-3 py-2.5">{g.clienteCuit ?? "—"}</td>
                 <td className="px-3 py-2.5 text-right">{g.bolsas}</td>
-                <td className="px-3 py-2.5 text-right font-semibold">{formatArs(g.montoArs)}</td>
-                <td className="px-3 py-2.5 text-right">{formatArs(g.comisionArs)}</td>
+                <td className="px-3 py-2.5 text-right font-semibold">{formatMonto(g.montoArs, currency, tipoCambio)}</td>
+                <td className="px-3 py-2.5 text-right">{formatMonto(g.comisionArs, currency, tipoCambio)}</td>
               </tr>
             ))}
           </tbody>

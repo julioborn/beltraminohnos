@@ -252,21 +252,25 @@ export type ResumenProducto = {
   ventasDirectasPendientes: number;
   stockFisico: number;
   stockFisicoToneladas: number;
+  stockFisicoMontoUsd: number;
 };
 
 // "Stock inicio" reconstruye lo que se consignó en total a la sucursal: lo
 // que todavía tiene físico, más lo que ya vendió pero no facturó (sucursal
 // o directo a cliente) — así la contadora puede chequear de un vistazo que
 // no se esté perdiendo nada entre lo entregado y lo pendiente de facturar.
-export async function getResumenSucursal(sucursalId: string): Promise<ResumenProducto[]> {
+export async function getResumenSucursal(sucursalId: string, zonaId: string): Promise<ResumenProducto[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("sucursal_movimientos")
-    .select("tipo_movimiento, cantidad_bolsas, estado_facturacion, product:products(id, name, kg_por_bolsa)")
-    .eq("sucursal_id", sucursalId);
+  const [movimientosRes, priceMap] = await Promise.all([
+    supabase
+      .from("sucursal_movimientos")
+      .select("tipo_movimiento, cantidad_bolsas, estado_facturacion, product:products(id, name, kg_por_bolsa)")
+      .eq("sucursal_id", sucursalId),
+    getPriceMap(),
+  ]);
 
   const map = new Map<string, ResumenProducto>();
-  for (const m of data ?? []) {
+  for (const m of movimientosRes.data ?? []) {
     if (!m.product) continue;
     const row = map.get(m.product.id) ?? {
       productId: m.product.id,
@@ -276,11 +280,14 @@ export async function getResumenSucursal(sucursalId: string): Promise<ResumenPro
       ventasDirectasPendientes: 0,
       stockFisico: 0,
       stockFisicoToneladas: 0,
+      stockFisicoMontoUsd: 0,
     };
 
     const signedBolsas = m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    const precio = priceMap[`${m.product.id}_BOLSA_${zonaId}`] ?? 0;
     row.stockFisico += signedBolsas;
     row.stockFisicoToneladas += (signedBolsas * m.product.kg_por_bolsa) / 1000;
+    row.stockFisicoMontoUsd += signedBolsas * precio;
 
     if (m.estado_facturacion === "PENDIENTE") {
       if (m.tipo_movimiento === "VENTA") row.ventasSucursalPendientes += m.cantidad_bolsas;

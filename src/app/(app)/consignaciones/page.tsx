@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getSucursales, getResumenSucursal } from "@/lib/data/consignaciones";
+import { formatUsd } from "@/lib/format";
 import { Bar3DChart } from "@/components/bar-chart-3d";
 import { EmpresaSelect } from "./empresa-select";
 
@@ -31,7 +32,7 @@ export default async function ConsignacionesResumenPage({
 
   const sucursalId = sucursales.some((s) => s.id === params.sucursal) ? params.sucursal! : sucursales[0].id;
   const sucursal = sucursales.find((s) => s.id === sucursalId)!;
-  const resumen = await getResumenSucursal(sucursalId);
+  const resumen = await getResumenSucursal(sucursalId, sucursal.zona_id);
 
   return (
     <div className="mx-auto flex w-full max-w-4xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -50,8 +51,9 @@ export default async function ConsignacionesResumenPage({
           <>
             <div className="rounded-lg border border-black/10 p-4 sm:p-5">
               <Bar3DChart
-                rows={resumen.map((r) => ({ label: r.productName, primary: r.stockFisicoToneladas }))}
-                formatPrimary={formatTn}
+                rows={resumen.map((r) => ({ label: r.productName, primary: r.stockFisicoMontoUsd, secondary: r.stockFisicoToneladas }))}
+                formatPrimary={formatUsd}
+                formatSecondary={formatTn}
               />
             </div>
             <div className="overflow-x-auto rounded-lg border border-black/10">
