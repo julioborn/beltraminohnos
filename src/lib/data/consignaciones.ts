@@ -100,6 +100,8 @@ export async function getSucursalPagos(filters: Pick<ConsignacionFilters, "desde
   return data ?? [];
 }
 
+export type SaldoProducto = { productId: string; productName: string; saldoArs: number };
+
 export type SucursalSaldo = {
   sucursalId: string;
   sucursalName: string;
@@ -109,8 +111,13 @@ export type SucursalSaldo = {
   totalPagado: number;
   saldo: number;
   toneladas: number;
+  productos: SaldoProducto[];
 };
 
+// Los pagos se registran por sucursal, no por producto, así que el saldo no
+// tiene un desglose "real" por producto — se reparte proporcional a lo
+// vendido de cada uno (decisión confirmada con el usuario), de forma que la
+// suma de los segmentos siempre da exacto el saldo de la sucursal.
 export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
   const supabase = await createClient();
 
@@ -118,7 +125,9 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
     supabase.from("sucursales").select("id, name").order("name"),
     supabase
       .from("sucursal_movimientos")
-      .select("sucursal_id, tipo_movimiento, cantidad_bolsas, monto_ars, estado_facturacion, product:products(kg_por_bolsa)")
+      .select(
+        "sucursal_id, tipo_movimiento, cantidad_bolsas, monto_ars, estado_facturacion, product:products(id, name, kg_por_bolsa)",
+      )
       .in("tipo_movimiento", ["VENTA", "DIRECTA_CLIENTE"]),
     supabase.from("sucursal_pagos").select("sucursal_id, importe_ars"),
   ]);
@@ -137,6 +146,24 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
       .filter((p) => p.sucursal_id === s.id)
       .reduce((sum, p) => sum + p.importe_ars, 0);
     const toneladas = ventas.reduce((sum, m) => sum + (m.cantidad_bolsas * (m.product?.kg_por_bolsa ?? 30)) / 1000, 0);
+    const saldo = totalVentas - totalPagado;
+
+    const ventasPorProducto = new Map<string, { productName: string; monto: number }>();
+    for (const m of ventas) {
+      if (!m.product) continue;
+      const entry = ventasPorProducto.get(m.product.id) ?? { productName: m.product.name, monto: 0 };
+      entry.monto += m.monto_ars ?? 0;
+      ventasPorProducto.set(m.product.id, entry);
+    }
+
+    const productos: SaldoProducto[] = Array.from(ventasPorProducto.entries())
+      .map(([productId, { productName, monto }]) => ({
+        productId,
+        productName,
+        saldoArs: totalVentas > 0 ? saldo * (monto / totalVentas) : 0,
+      }))
+      .filter((p) => p.saldoArs !== 0)
+      .sort((a, b) => b.saldoArs - a.saldoArs);
 
     return {
       sucursalId: s.id,
@@ -145,8 +172,9 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
       totalFacturado,
       totalPendienteFacturar: totalVentas - totalFacturado,
       totalPagado,
-      saldo: totalVentas - totalPagado,
+      saldo,
       toneladas,
+      productos,
     };
   });
 }

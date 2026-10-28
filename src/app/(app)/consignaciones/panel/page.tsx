@@ -14,7 +14,13 @@ import { getActiveProducts } from "@/lib/data/master-data";
 import { formatUsd } from "@/lib/format";
 import { formatMonto, formatMontoCompact } from "@/lib/currency";
 import { getCurrencyContext } from "@/lib/currency-server";
-import { Bar3DChart } from "@/components/bar-chart-3d";
+import {
+  Bar3DChart,
+  StackedBar3DChart,
+  BAR_COLORS,
+  type StackedBar3DRow,
+  type StackedBar3DLegendItem,
+} from "@/components/bar-chart-3d";
 import {
   PendientesPorProducto,
   PendientesPorCliente,
@@ -91,6 +97,36 @@ export default async function ConsignacionesPanelPage({
     : saldos[0]?.sucursalId;
   const saldoChartSucursal = saldos.find((s) => s.sucursalId === saldoChartSucursalId);
 
+  // Orden fijo de productos (de mayor a menor saldo total) para que el color
+  // y la posición de cada segmento sea consistente entre todas las barras.
+  const productoSaldoTotales = new Map<string, { productName: string; total: number }>();
+  for (const s of saldos) {
+    for (const p of s.productos) {
+      const entry = productoSaldoTotales.get(p.productId) ?? { productName: p.productName, total: 0 };
+      entry.total += p.saldoArs;
+      productoSaldoTotales.set(p.productId, entry);
+    }
+  }
+  const productoOrder = Array.from(productoSaldoTotales.entries())
+    .map(([productId, v]) => ({ productId, ...v }))
+    .sort((a, b) => b.total - a.total);
+  const productoColor = new Map(productoOrder.map((p, i) => [p.productId, BAR_COLORS[i % BAR_COLORS.length]]));
+  const saldoLegend: StackedBar3DLegendItem[] = productoOrder.map((p) => ({
+    key: p.productId,
+    label: p.productName,
+    color: productoColor.get(p.productId)!,
+  }));
+  const saldoStackedRows: StackedBar3DRow[] = saldos.map((s) => ({
+    label: s.sucursalName,
+    total: s.saldo,
+    segments: s.productos.map((p) => ({
+      key: p.productId,
+      label: p.productName,
+      value: p.saldoArs,
+      color: productoColor.get(p.productId) ?? "#2a78d6",
+    })),
+  }));
+
   const hasFilter = Boolean(params.desde || params.hasta || params.sucursal || params.tipo || params.estado);
   const hasSucursalFilter = Boolean(params.sucursal);
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();
@@ -110,15 +146,6 @@ export default async function ConsignacionesPanelPage({
       (!params.stockProducto || r.productId === params.stockProducto),
   );
 
-  const saldoChartRows = saldos.map((s) => ({ label: s.sucursalName, primary: s.saldo, secondary: s.toneladas }));
-  const saldoComposicionChartRows = saldoChartSucursal
-    ? [
-        { label: "Vendido", primary: saldoChartSucursal.totalVentas },
-        { label: "Pagado", primary: saldoChartSucursal.totalPagado },
-        { label: "Pendiente de facturar", primary: saldoChartSucursal.totalPendienteFacturar },
-        { label: "Saldo", primary: saldoChartSucursal.saldo },
-      ]
-    : [];
   const ventasChartRows = ventasPorProducto.map((v) => ({ label: v.productName, primary: v.montoArs, secondary: v.toneladas }));
   const stockChartRows = aggregateToneladasBySucursal(stockFisicoFiltrado);
   const stockPorProductoChartRows = stockPorProductoSucursal.map((r) => ({
@@ -186,14 +213,23 @@ export default async function ConsignacionesPanelPage({
           ) : (
             <>
               <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-                <Bar3DChart rows={saldoChartRows} formatPrimary={fmtMontoCompact} formatSecondary={formatTn} />
+                <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+                  Composición del saldo por producto y sucursal
+                </h2>
+                <p className="mb-3 text-xs text-btm-black/50">Importe facturado y no cobrado (solo ventas minoristas)</p>
+                <StackedBar3DChart
+                  rows={saldoStackedRows}
+                  formatTotal={fmtMontoCompact}
+                  formatSegment={fmtMontoCompact}
+                  legend={saldoLegend}
+                />
               </div>
 
               {saldoChartSucursal && (
                 <div className="rounded-lg border border-black/10 p-4 sm:p-5">
                   <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                     <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
-                      Composición del saldo · {saldoChartSucursal.sucursalName}
+                      Detalle del saldo por producto · {saldoChartSucursal.sucursalName}
                     </h2>
                     <PanelSucursalSelect
                       sucursales={sucursales}
@@ -201,7 +237,48 @@ export default async function ConsignacionesPanelPage({
                       paramName="saldoChartSucursal"
                     />
                   </div>
-                  <Bar3DChart rows={saldoComposicionChartRows} formatPrimary={fmtMontoCompact} />
+                  {saldoChartSucursal.productos.length === 0 ? (
+                    <p className="text-sm text-btm-black/50">{saldoChartSucursal.sucursalName} no tiene saldo pendiente.</p>
+                  ) : (
+                    <div className="overflow-x-auto rounded-lg border border-black/10">
+                      <table className="w-full min-w-[420px] text-sm">
+                        <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
+                          <tr>
+                            <th className="px-4 py-2.5">Producto</th>
+                            <th className="px-4 py-2.5 text-right">Importe</th>
+                            <th className="px-4 py-2.5 text-right">% del saldo</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-black/5">
+                          {saldoChartSucursal.productos.map((p) => (
+                            <tr key={p.productId}>
+                              <td className="px-4 py-2.5">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <span
+                                    className="h-2.5 w-2.5 shrink-0 rounded-full"
+                                    style={{ backgroundColor: productoColor.get(p.productId) ?? "#2a78d6" }}
+                                    aria-hidden
+                                  />
+                                  {p.productName}
+                                </span>
+                              </td>
+                              <td className="px-4 py-2.5 text-right">{fmtMonto(p.saldoArs)}</td>
+                              <td className="px-4 py-2.5 text-right">
+                                {saldoChartSucursal.saldo !== 0
+                                  ? `${Math.round((p.saldoArs / saldoChartSucursal.saldo) * 100)}%`
+                                  : "—"}
+                              </td>
+                            </tr>
+                          ))}
+                          <tr className="font-semibold">
+                            <td className="px-4 py-2.5">Total</td>
+                            <td className="px-4 py-2.5 text-right">{fmtMonto(saldoChartSucursal.saldo)}</td>
+                            <td className="px-4 py-2.5 text-right">100%</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
                 </div>
               )}
 
