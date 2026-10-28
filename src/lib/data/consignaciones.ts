@@ -1,5 +1,6 @@
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { getPriceMap } from "@/lib/data/master-data";
 import type { Database } from "@/lib/supabase/database.types";
 
 type TipoMovimiento = Database["public"]["Enums"]["tipo_movimiento_consignacion"];
@@ -157,16 +158,27 @@ export type StockFisicoRow = {
   productName: string;
   bolsas: number;
   toneladas: number;
+  montoUsd: number;
 };
 
+// El stock físico no tiene precio propio (es pura cantidad) — se valúa con
+// la misma lista de precios en USD por producto/zona que ya usa Pedidos,
+// según la zona comercial de cada sucursal. Si a algún producto le falta
+// precio para esa zona, ese renglón simplemente no suma monto (no rompe
+// el cálculo ni inventa un valor).
 export async function getStockFisico(): Promise<StockFisicoRow[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("sucursal_movimientos")
-    .select("tipo_movimiento, cantidad_bolsas, sucursal:sucursales(id, name), product:products(id, name, kg_por_bolsa)");
+  const [movimientosRes, priceMap] = await Promise.all([
+    supabase
+      .from("sucursal_movimientos")
+      .select(
+        "tipo_movimiento, cantidad_bolsas, sucursal:sucursales(id, name, zona_id), product:products(id, name, kg_por_bolsa)",
+      ),
+    getPriceMap(),
+  ]);
 
   const map = new Map<string, StockFisicoRow>();
-  for (const m of data ?? []) {
+  for (const m of movimientosRes.data ?? []) {
     if (!m.sucursal || !m.product) continue;
     const key = `${m.sucursal.id}_${m.product.id}`;
     const row = map.get(key) ?? {
@@ -176,10 +188,13 @@ export async function getStockFisico(): Promise<StockFisicoRow[]> {
       productName: m.product.name,
       bolsas: 0,
       toneladas: 0,
+      montoUsd: 0,
     };
     const signedBolsas = m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    const precio = priceMap[`${m.product.id}_BOLSA_${m.sucursal.zona_id}`] ?? 0;
     row.bolsas += signedBolsas;
     row.toneladas += (signedBolsas * m.product.kg_por_bolsa) / 1000;
+    row.montoUsd += signedBolsas * precio;
     map.set(key, row);
   }
 
@@ -188,20 +203,39 @@ export async function getStockFisico(): Promise<StockFisicoRow[]> {
     .sort((a, b) => a.sucursalName.localeCompare(b.sucursalName) || a.productName.localeCompare(b.productName));
 }
 
-export type StockFisicoProducto = { productId: string; productName: string; bolsas: number };
+export type StockFisicoProducto = {
+  productId: string;
+  productName: string;
+  bolsas: number;
+  toneladas: number;
+  montoUsd: number;
+};
 
-export async function getStockFisicoSucursal(sucursalId: string): Promise<StockFisicoProducto[]> {
+export async function getStockFisicoSucursal(sucursalId: string, zonaId: string): Promise<StockFisicoProducto[]> {
   const supabase = await createClient();
-  const { data } = await supabase
-    .from("sucursal_movimientos")
-    .select("tipo_movimiento, cantidad_bolsas, product:products(id, name)")
-    .eq("sucursal_id", sucursalId);
+  const [movimientosRes, priceMap] = await Promise.all([
+    supabase
+      .from("sucursal_movimientos")
+      .select("tipo_movimiento, cantidad_bolsas, product:products(id, name, kg_por_bolsa)")
+      .eq("sucursal_id", sucursalId),
+    getPriceMap(),
+  ]);
 
   const map = new Map<string, StockFisicoProducto>();
-  for (const m of data ?? []) {
+  for (const m of movimientosRes.data ?? []) {
     if (!m.product) continue;
-    const row = map.get(m.product.id) ?? { productId: m.product.id, productName: m.product.name, bolsas: 0 };
-    row.bolsas += m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    const row = map.get(m.product.id) ?? {
+      productId: m.product.id,
+      productName: m.product.name,
+      bolsas: 0,
+      toneladas: 0,
+      montoUsd: 0,
+    };
+    const signedBolsas = m.tipo_movimiento === "INGRESO_STOCK" ? m.cantidad_bolsas : -m.cantidad_bolsas;
+    const precio = priceMap[`${m.product.id}_BOLSA_${zonaId}`] ?? 0;
+    row.bolsas += signedBolsas;
+    row.toneladas += (signedBolsas * m.product.kg_por_bolsa) / 1000;
+    row.montoUsd += signedBolsas * precio;
     map.set(m.product.id, row);
   }
 

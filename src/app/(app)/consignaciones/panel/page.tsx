@@ -6,11 +6,12 @@ import {
   getSucursalMovimientos,
   getSucursalSaldos,
   getStockFisico,
+  getStockFisicoSucursal,
   getVentasPorProducto,
   type ConsignacionFilters,
 } from "@/lib/data/consignaciones";
 import { getActiveProducts } from "@/lib/data/master-data";
-import { formatArs } from "@/lib/format";
+import { formatArs, formatUsd } from "@/lib/format";
 import { Bar3DChart } from "@/components/bar-chart-3d";
 import {
   PendientesPorProducto,
@@ -35,7 +36,9 @@ const TABS: { key: Tab; label: string }[] = [
 export default async function ConsignacionesPanelPage({
   searchParams,
 }: {
-  searchParams: Promise<ConsignacionFilters & { tab?: string; stockSucursal?: string; stockProducto?: string }>;
+  searchParams: Promise<
+    ConsignacionFilters & { tab?: string; stockSucursal?: string; stockProducto?: string; stockChartSucursal?: string }
+  >;
 }) {
   const role = await getProfileRole();
   if (!hasFullAccess(role) && role !== "contable") {
@@ -57,6 +60,14 @@ export default async function ConsignacionesPanelPage({
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
       getActiveProducts(),
     ]);
+
+  const stockChartSucursalId = sucursales.some((s) => s.id === params.stockChartSucursal)
+    ? params.stockChartSucursal!
+    : sucursales[0]?.id;
+  const stockChartSucursal = sucursales.find((s) => s.id === stockChartSucursalId);
+  const stockPorProductoSucursal = stockChartSucursal
+    ? await getStockFisicoSucursal(stockChartSucursal.id, stockChartSucursal.zona_id)
+    : [];
 
   const hasFilter = Boolean(params.desde || params.hasta || params.sucursal || params.tipo || params.estado);
   const hasSucursalFilter = Boolean(params.sucursal);
@@ -80,6 +91,11 @@ export default async function ConsignacionesPanelPage({
   const saldoChartRows = saldos.map((s) => ({ label: s.sucursalName, primary: s.saldo, secondary: s.toneladas }));
   const ventasChartRows = ventasPorProducto.map((v) => ({ label: v.productName, primary: v.montoArs, secondary: v.toneladas }));
   const stockChartRows = aggregateToneladasBySucursal(stockFisicoFiltrado);
+  const stockPorProductoChartRows = stockPorProductoSucursal.map((r) => ({
+    label: r.productName,
+    primary: r.montoUsd,
+    secondary: r.toneladas,
+  }));
   const movimientosChartRows = aggregateMovimientosBySucursal(movimientos);
   const pieGruposPorSucursalProducto = toPieGroups(gruposPorProducto, (g) => g.productName);
   const pieGruposPorSucursalCliente = toPieGroups(gruposPorCliente, (g) => g.clienteNombre);
@@ -199,9 +215,49 @@ export default async function ConsignacionesPanelPage({
         <>
           {stockChartRows.length > 0 && (
             <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-              <Bar3DChart rows={stockChartRows.map((r) => ({ label: r.label, primary: r.toneladas }))} formatPrimary={formatTn} />
+              <h2 className="mb-3 font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+                Stock físico por sucursal
+              </h2>
+              <Bar3DChart
+                rows={stockChartRows.map((r) => ({ label: r.label, primary: r.montoUsd, secondary: r.toneladas }))}
+                formatPrimary={formatUsd}
+                formatSecondary={formatTn}
+              />
             </div>
           )}
+
+          {stockChartSucursal && (
+            <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+              <form method="get" className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                <input type="hidden" name="tab" value="stock" />
+                <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+                  Stock físico por producto · {stockChartSucursal.name}
+                </h2>
+                <div className="flex items-end gap-2">
+                  <select
+                    name="stockChartSucursal"
+                    defaultValue={stockChartSucursal.id}
+                    className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm"
+                  >
+                    {sucursales.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" className="rounded-md bg-btm-navy px-4 py-2 text-sm font-semibold text-white hover:bg-btm-red">
+                    Ver
+                  </button>
+                </div>
+              </form>
+              {stockPorProductoChartRows.length === 0 ? (
+                <p className="text-sm text-btm-black/50">{stockChartSucursal.name} no tiene stock cargado.</p>
+              ) : (
+                <Bar3DChart rows={stockPorProductoChartRows} formatPrimary={formatUsd} formatSecondary={formatTn} />
+              )}
+            </div>
+          )}
+
           <form
             method="get"
             className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:flex-wrap sm:items-end"
@@ -509,12 +565,17 @@ function formatArsCompact(value: number) {
   return `$${value.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
-function aggregateToneladasBySucursal(rows: { sucursalName: string; toneladas: number }[]) {
-  const map = new Map<string, number>();
-  for (const r of rows) map.set(r.sucursalName, (map.get(r.sucursalName) ?? 0) + r.toneladas);
+function aggregateToneladasBySucursal(rows: { sucursalName: string; toneladas: number; montoUsd: number }[]) {
+  const map = new Map<string, { toneladas: number; montoUsd: number }>();
+  for (const r of rows) {
+    const row = map.get(r.sucursalName) ?? { toneladas: 0, montoUsd: 0 };
+    row.toneladas += r.toneladas;
+    row.montoUsd += r.montoUsd;
+    map.set(r.sucursalName, row);
+  }
   return Array.from(map.entries())
-    .map(([label, toneladas]) => ({ label, toneladas }))
-    .sort((a, b) => b.toneladas - a.toneladas);
+    .map(([label, v]) => ({ label, ...v }))
+    .sort((a, b) => b.montoUsd - a.montoUsd);
 }
 
 function aggregateMovimientosBySucursal(rows: MovimientoRow[]) {

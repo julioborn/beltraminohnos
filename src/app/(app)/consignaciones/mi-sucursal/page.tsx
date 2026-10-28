@@ -60,7 +60,7 @@ export default async function MiSucursalPage({
     getSucursalMovimientos({ sucursal: sucursal.id }, { page, pageSize: MOVIMIENTOS_PAGE_SIZE }),
     getSucursalMovimientosCount({ sucursal: sucursal.id }),
     getSucursalSaldos(),
-    getStockFisicoSucursal(sucursal.id),
+    getStockFisicoSucursal(sucursal.id, sucursal.zona_id),
   ]);
 
   const totalPages = Math.max(1, Math.ceil(movimientosCount / MOVIMIENTOS_PAGE_SIZE));
