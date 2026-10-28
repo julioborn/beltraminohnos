@@ -21,6 +21,7 @@ import {
 } from "../pendientes-facturar";
 import { CargarMovimientoAdminForm } from "../cargar-movimiento-form";
 import { MovimientosTable } from "../movimientos-table";
+import { StockSucursalSelect } from "../stock-sucursal-select";
 
 type Tab = "cargar" | "saldo" | "ventas" | "pendientes-sucursal" | "pendientes-cliente" | "stock" | "movimientos";
 const TABS: { key: Tab; label: string }[] = [
@@ -228,28 +229,12 @@ export default async function ConsignacionesPanelPage({
 
           {stockChartSucursal && (
             <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-              <form method="get" className="mb-3 flex flex-wrap items-end justify-between gap-3">
-                <input type="hidden" name="tab" value="stock" />
+              <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
                 <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
                   Stock físico por producto · {stockChartSucursal.name}
                 </h2>
-                <div className="flex items-end gap-2">
-                  <select
-                    name="stockChartSucursal"
-                    defaultValue={stockChartSucursal.id}
-                    className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm"
-                  >
-                    {sucursales.map((s) => (
-                      <option key={s.id} value={s.id}>
-                        {s.name}
-                      </option>
-                    ))}
-                  </select>
-                  <button type="submit" className="rounded-md bg-btm-navy px-4 py-2 text-sm font-semibold text-white hover:bg-btm-red">
-                    Ver
-                  </button>
-                </div>
-              </form>
+                <StockSucursalSelect sucursales={sucursales} selected={stockChartSucursal.id} />
+              </div>
               {stockPorProductoChartRows.length === 0 ? (
                 <p className="text-sm text-btm-black/50">{stockChartSucursal.name} no tiene stock cargado.</p>
               ) : (
