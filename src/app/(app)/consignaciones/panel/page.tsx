@@ -22,6 +22,7 @@ import {
 import { CargarMovimientoAdminForm } from "../cargar-movimiento-form";
 import { MovimientosTable } from "../movimientos-table";
 import { StockSucursalSelect } from "../stock-sucursal-select";
+import { VentasFilter } from "../ventas-filter";
 
 type Tab = "cargar" | "saldo" | "ventas" | "pendientes-sucursal" | "pendientes-cliente" | "stock" | "movimientos";
 const TABS: { key: Tab; label: string }[] = [
@@ -38,7 +39,14 @@ export default async function ConsignacionesPanelPage({
   searchParams,
 }: {
   searchParams: Promise<
-    ConsignacionFilters & { tab?: string; stockSucursal?: string; stockProducto?: string; stockChartSucursal?: string }
+    ConsignacionFilters & {
+      tab?: string;
+      stockSucursal?: string;
+      stockProducto?: string;
+      stockChartSucursal?: string;
+      ventasSucursal?: string;
+      ventasMes?: string;
+    }
   >;
 }) {
   const role = await getProfileRole();
@@ -49,6 +57,7 @@ export default async function ConsignacionesPanelPage({
   const params = await searchParams;
   const tab: Tab = TABS.some((t) => t.key === params.tab) ? (params.tab as Tab) : "cargar";
   const rangeFilters = { desde: params.desde, hasta: params.hasta };
+  const ventasRange = monthRange(params.ventasMes);
 
   const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta, products] =
     await Promise.all([
@@ -56,7 +65,7 @@ export default async function ConsignacionesPanelPage({
       getSucursalMovimientos(params),
       getSucursalSaldos(),
       getStockFisico(),
-      getVentasPorProducto(rangeFilters),
+      getVentasPorProducto({ ...ventasRange, sucursal: params.ventasSucursal }),
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "VENTA", estado: "PENDIENTE" }),
       getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
       getActiveProducts(),
@@ -192,6 +201,11 @@ export default async function ConsignacionesPanelPage({
 
       {tab === "ventas" && (
         <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
+          <VentasFilter
+            sucursales={sucursales}
+            selectedSucursal={params.ventasSucursal ?? ""}
+            selectedMes={params.ventasMes ?? ""}
+          />
           <Bar3DChart rows={ventasChartRows} formatPrimary={formatArsCompact} formatSecondary={formatTn} />
         </section>
       )}
@@ -541,6 +555,15 @@ function Kpi({ label, value }: { label: string; value: string }) {
 
 function formatTn(value: number) {
   return `${value.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn`;
+}
+
+// "2026-10" (de un <input type="month">) -> primer y último día de ese mes.
+function monthRange(mes?: string): { desde?: string; hasta?: string } {
+  if (!mes) return {};
+  const [y, m] = mes.split("-").map(Number);
+  if (!y || !m) return {};
+  const lastDay = new Date(y, m, 0).getDate();
+  return { desde: `${mes}-01`, hasta: `${mes}-${String(lastDay).padStart(2, "0")}` };
 }
 
 // Sin el sufijo " ARS" de formatArs — en los gráficos de barra las columnas

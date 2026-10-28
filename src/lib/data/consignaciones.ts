@@ -302,7 +302,9 @@ export async function getResumenSucursal(sucursalId: string): Promise<ResumenPro
 
 export type VentaPorProducto = { productName: string; bolsas: number; toneladas: number; montoArs: number };
 
-export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "desde" | "hasta">): Promise<VentaPorProducto[]> {
+export async function getVentasPorProducto(
+  filters: Pick<ConsignacionFilters, "desde" | "hasta" | "sucursal">,
+): Promise<VentaPorProducto[]> {
   const supabase = await createClient();
   let query = supabase
     .from("sucursal_movimientos")
@@ -311,6 +313,7 @@ export async function getVentasPorProducto(filters: Pick<ConsignacionFilters, "d
 
   if (filters.desde) query = query.gte("fecha", filters.desde);
   if (filters.hasta) query = query.lte("fecha", filters.hasta);
+  if (filters.sucursal) query = query.eq("sucursal_id", filters.sucursal);
 
   const { data } = await query;
 
