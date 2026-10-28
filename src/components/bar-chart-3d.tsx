@@ -117,8 +117,13 @@ export type StackedBar3DSegment = { key: string; label: string; value: number; c
 export type StackedBar3DRow = { label: string; total: number; segments: StackedBar3DSegment[] };
 export type StackedBar3DLegendItem = { key: string; label: string; color: string };
 
-const STACKED_CHART_H_PX = 220;
-const STACKED_MIN_SEGMENT_LABEL_PX = 16;
+const STACKED_CHART_H_PX = 340;
+const STACKED_MIN_SEGMENT_LABEL_PX = 13;
+// La tapa 3D del prisma ocupa más píxeles acá que en Bar3DChart (porque el
+// gráfico es más alto), así que el hueco para el monto total no puede
+// reusar el DEPTH_PX fijo de la barra simple — si no, la tapa lo tapa.
+const STACKED_DEPTH_OFFSET_PX = Math.ceil((SVG_DEPTH / SVG_H) * STACKED_CHART_H_PX) + 4;
+const STACKED_GRID_PT_PX = STACKED_DEPTH_OFFSET_PX + 18;
 
 export function StackedBar3DChart({
   rows,
@@ -143,8 +148,8 @@ export function StackedBar3DChart({
   return (
     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
       <div
-        className="grid min-w-0 flex-1 items-end gap-2 pt-9"
-        style={{ gridTemplateColumns: `repeat(${visibleRows.length}, minmax(0, 1fr))` }}
+        className="grid min-w-0 flex-1 items-end gap-2"
+        style={{ gridTemplateColumns: `repeat(${visibleRows.length}, minmax(0, 1fr))`, paddingTop: STACKED_GRID_PT_PX }}
       >
         {visibleRows.map((r) => {
           const heightPct = Math.max((r.total / max) * 100, r.total > 0 ? MIN_HEIGHT_PCT : 0);
@@ -153,8 +158,8 @@ export function StackedBar3DChart({
             <div key={r.label} className="flex min-w-0 flex-col items-center">
               <div className="relative flex w-full items-end justify-center" style={{ height: STACKED_CHART_H_PX }}>
                 <span
-                  className="btm-fig absolute left-1/2 max-w-full truncate px-0.5 text-[10px] font-bold text-btm-navy"
-                  style={{ bottom: `calc(${heightPct}% + ${DEPTH_PX + 3}px)`, transform: "translateX(-50%)" }}
+                  className="btm-fig absolute left-1/2 z-10 max-w-full truncate px-0.5 text-[10px] font-bold text-btm-navy"
+                  style={{ bottom: `calc(${heightPct}% + ${STACKED_DEPTH_OFFSET_PX}px)`, transform: "translateX(-50%)" }}
                   title={totalLabel}
                 >
                   {totalLabel}
