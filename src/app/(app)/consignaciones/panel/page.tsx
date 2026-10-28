@@ -21,7 +21,7 @@ import {
 } from "../pendientes-facturar";
 import { CargarMovimientoAdminForm } from "../cargar-movimiento-form";
 import { MovimientosTable } from "../movimientos-table";
-import { StockSucursalSelect } from "../stock-sucursal-select";
+import { PanelSucursalSelect } from "../panel-sucursal-select";
 import { VentasFilter } from "../ventas-filter";
 
 type Tab = "cargar" | "saldo" | "ventas" | "pendientes-sucursal" | "pendientes-cliente" | "stock" | "movimientos";
@@ -44,6 +44,7 @@ export default async function ConsignacionesPanelPage({
       stockSucursal?: string;
       stockProducto?: string;
       stockChartSucursal?: string;
+      saldoChartSucursal?: string;
       ventasSucursal?: string;
       ventasMes?: string;
     }
@@ -79,6 +80,11 @@ export default async function ConsignacionesPanelPage({
     ? await getStockFisicoSucursal(stockChartSucursal.id, stockChartSucursal.zona_id)
     : [];
 
+  const saldoChartSucursalId = saldos.some((s) => s.sucursalId === params.saldoChartSucursal)
+    ? params.saldoChartSucursal!
+    : saldos[0]?.sucursalId;
+  const saldoChartSucursal = saldos.find((s) => s.sucursalId === saldoChartSucursalId);
+
   const hasFilter = Boolean(params.desde || params.hasta || params.sucursal || params.tipo || params.estado);
   const hasSucursalFilter = Boolean(params.sucursal);
   const qs = new URLSearchParams(Object.entries(params).filter(([, v]) => v) as [string, string][]).toString();
@@ -99,6 +105,14 @@ export default async function ConsignacionesPanelPage({
   );
 
   const saldoChartRows = saldos.map((s) => ({ label: s.sucursalName, primary: s.saldo, secondary: s.toneladas }));
+  const saldoComposicionChartRows = saldoChartSucursal
+    ? [
+        { label: "Vendido", primary: saldoChartSucursal.totalVentas },
+        { label: "Pagado", primary: saldoChartSucursal.totalPagado },
+        { label: "Pendiente de facturar", primary: saldoChartSucursal.totalPendienteFacturar },
+        { label: "Saldo", primary: saldoChartSucursal.saldo },
+      ]
+    : [];
   const ventasChartRows = ventasPorProducto.map((v) => ({ label: v.productName, primary: v.montoArs, secondary: v.toneladas }));
   const stockChartRows = aggregateToneladasBySucursal(stockFisicoFiltrado);
   const stockPorProductoChartRows = stockPorProductoSucursal.map((r) => ({
@@ -168,6 +182,23 @@ export default async function ConsignacionesPanelPage({
               <div className="rounded-lg border border-black/10 p-4 sm:p-5">
                 <Bar3DChart rows={saldoChartRows} formatPrimary={formatArsCompact} formatSecondary={formatTn} />
               </div>
+
+              {saldoChartSucursal && (
+                <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+                  <div className="mb-3 flex flex-wrap items-end justify-between gap-3">
+                    <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
+                      Composición del saldo · {saldoChartSucursal.sucursalName}
+                    </h2>
+                    <PanelSucursalSelect
+                      sucursales={sucursales}
+                      selected={saldoChartSucursal.sucursalId}
+                      paramName="saldoChartSucursal"
+                    />
+                  </div>
+                  <Bar3DChart rows={saldoComposicionChartRows} formatPrimary={formatArsCompact} />
+                </div>
+              )}
+
               <div className="overflow-x-auto rounded-lg border border-black/10">
                 <table className="w-full min-w-[560px] text-sm">
                   <thead className="bg-black/[.03] text-left text-[11px] font-semibold uppercase tracking-wide text-btm-black/60">
@@ -247,7 +278,7 @@ export default async function ConsignacionesPanelPage({
                 <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
                   Stock físico por producto · {stockChartSucursal.name}
                 </h2>
-                <StockSucursalSelect sucursales={sucursales} selected={stockChartSucursal.id} />
+                <PanelSucursalSelect sucursales={sucursales} selected={stockChartSucursal.id} paramName="stockChartSucursal" />
               </div>
               {stockPorProductoChartRows.length === 0 ? (
                 <p className="text-sm text-btm-black/50">{stockChartSucursal.name} no tiene stock cargado.</p>

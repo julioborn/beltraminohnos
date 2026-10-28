@@ -3,12 +3,17 @@
 import { useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export function StockSucursalSelect({
+// Selector de sucursal reutilizable para los gráficos del panel que
+// muestran "elegí una sucursal, mirá su desglose" (stock físico por
+// producto, saldo por composición) — cambia solo al elegir, sin botón.
+export function PanelSucursalSelect({
   sucursales,
   selected,
+  paramName,
 }: {
   sucursales: { id: string; name: string }[];
   selected: string;
+  paramName: string;
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -21,7 +26,7 @@ export function StockSucursalSelect({
         disabled={pending}
         onChange={(e) => {
           const params = new URLSearchParams(searchParams);
-          params.set("stockChartSucursal", e.target.value);
+          params.set(paramName, e.target.value);
           startTransition(() => {
             router.push(`/consignaciones/panel?${params.toString()}`);
           });
