@@ -187,11 +187,13 @@ export type ActualizarMovimientoState = { error: string } | undefined;
 
 // Solo contable/admin corrigen movimientos ya cargados (típicamente por un
 // cliente de sucursal, sin revisión previa) — fecha, tipo, producto,
-// cantidad y cliente. Si el tipo queda en venta/directa y ya tenía un precio
-// guardado, se reusa ese precio histórico (no se pide cotización nueva); si
-// viene de "Ingreso de stock" (nunca tuvo precio), se resuelve uno recién,
-// igual que al cargar un movimiento por primera vez. El monto en ARS y la
-// comisión siempre se recalculan a partir de esos valores.
+// cantidad y cliente. Si el tipo queda en venta/directa y el producto no
+// cambió, se reusa el precio USD histórico guardado; si el producto cambió
+// (p. ej. corrigiendo un error de carga), se vuelve a resolver el precio
+// para el nuevo producto, manteniendo el tipo de cambio histórico si ya
+// había uno. Si viene de "Ingreso de stock" (nunca tuvo precio ni cotización),
+// se resuelven ambos, igual que al cargar un movimiento por primera vez.
+// El monto en ARS y la comisión siempre se recalculan a partir de esos valores.
 export async function actualizarMovimientoSucursal(
   _prevState: ActualizarMovimientoState,
   formData: FormData,
@@ -225,7 +227,7 @@ export async function actualizarMovimientoSucursal(
   const [existingRes, productRes] = await Promise.all([
     supabase
       .from("sucursal_movimientos")
-      .select("precio_usd, tipo_cambio, comision_pct, sucursal_id")
+      .select("product_id, precio_usd, tipo_cambio, comision_pct, sucursal_id")
       .eq("id", id)
       .maybeSingle(),
     supabase.from("products").select("kg_por_bolsa, comision_pct").eq("id", productId).single(),
@@ -255,28 +257,34 @@ export async function actualizarMovimientoSucursal(
     update.cliente_nombre = null;
     update.cliente_cuit = null;
   } else {
-    let precioUsd = existing.precio_usd;
+    const productChanged = existing.product_id !== productId;
+    let precioUsd = productChanged ? null : existing.precio_usd;
     let tipoCambio = existing.tipo_cambio;
 
-    if (precioUsd === null || tipoCambio === null) {
-      const [sucursalRes, priceMap, dolar] = await Promise.all([
+    if (precioUsd === null) {
+      const [sucursalRes, priceMap] = await Promise.all([
         supabase.from("sucursales").select("zona_id").eq("id", existing.sucursal_id).single(),
         getPriceMap(),
-        getDolarOficial(),
       ]);
       if (!sucursalRes.data) return { error: "No se pudo resolver la sucursal del movimiento." };
-      if (dolar.venta === null) {
-        return { error: "No se pudo obtener la cotización del dólar. Probá de nuevo en unos minutos." };
-      }
       const precio = priceMap[`${productId}_BOLSA_${sucursalRes.data.zona_id}`];
       if (precio === null || precio === undefined) {
         return { error: "Falta cargar el precio de ese producto para la zona de la sucursal." };
       }
       precioUsd = precio;
-      tipoCambio = dolar.venta;
       update.precio_usd = precioUsd;
-      update.tipo_cambio = tipoCambio;
+
+      if (tipoCambio === null) {
+        const dolar = await getDolarOficial();
+        if (dolar.venta === null) {
+          return { error: "No se pudo obtener la cotización del dólar. Probá de nuevo en unos minutos." };
+        }
+        tipoCambio = dolar.venta;
+        update.tipo_cambio = tipoCambio;
+      }
     }
+
+    if (tipoCambio === null) return { error: "No se pudo resolver el tipo de cambio del movimiento." };
 
     const toneladas = (cantidadBolsas * product.kg_por_bolsa) / 1000;
     const montoArs = toneladas * precioUsd * tipoCambio * IVA;
