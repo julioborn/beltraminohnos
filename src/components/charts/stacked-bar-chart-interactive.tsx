@@ -1,68 +1,82 @@
 "use client";
 
-// Mitad cliente del gráfico apilado: solo recibe strings/números ya
-// formateados (nunca las funciones de formato — eso rompe la serialización
-// de RSC al cruzar de Server a Client Component, mismo problema que ya
-// documenta bar-chart-3d-interactive.tsx). Tocar la columna abre el panel
-// de detalle debajo, igual que en los gráficos 3D; el tooltip de Recharts
-// al pasar el mouse es un extra para desktop.
+// Mitad cliente del gráfico apilado (ECharts): solo recibe strings/números
+// ya formateados (nunca una función de formato — eso rompe la
+// serialización de RSC al cruzar de Server a Client Component, ver
+// stacked-bar-chart.tsx). Tocar una columna abre el panel de detalle
+// debajo, igual que en los gráficos 3D que reemplaza; el tooltip de
+// ECharts al pasar el mouse es un extra para desktop.
 
 import { useState } from "react";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
+import ReactECharts from "echarts-for-react";
+import type { EChartsOption, TooltipComponentFormatterCallbackParams } from "echarts";
 
-import { ChartContainer, ChartTooltip, ChartTooltipContent, type ChartConfig } from "@/components/ui/chart";
-
-export type StackedBarChartDatum = Record<string, string | number>;
+export type StackedBarChartSeries = { key: string; name: string; color: string; data: number[] };
 export type StackedBarDetailSegment = { key: string; label: string; color: string; valueLabel: string };
 export type StackedBarDetailRow = { label: string; totalLabel: string; segments: StackedBarDetailSegment[] };
-export type StackedBarLegendItem = { key: string; label: string; color: string };
+
+type EChartsClickParams = { name?: string; seriesName?: string; dataIndex: number };
 
 export function StackedBarChartInteractive({
-  data,
-  config,
-  legend,
+  categories,
+  series,
+  labels,
   detailRows,
 }: {
-  data: StackedBarChartDatum[];
-  config: ChartConfig;
-  legend: StackedBarLegendItem[];
+  categories: string[];
+  series: StackedBarChartSeries[];
+  labels: string[][];
   detailRows: StackedBarDetailRow[];
 }) {
   const [expanded, setExpanded] = useState<string | null>(null);
   const expandedItem = detailRows.find((r) => r.label === expanded);
 
+  const option: EChartsOption = {
+    grid: { left: 8, right: 8, top: 20, bottom: 24, containLabel: true },
+    xAxis: {
+      type: "category",
+      data: categories,
+      axisLine: { lineStyle: { color: "rgba(0,0,0,0.1)" } },
+      axisTick: { show: false },
+      axisLabel: { fontSize: 10, fontWeight: 600, color: "rgba(55,53,52,0.5)" },
+    },
+    yAxis: { type: "value", show: false },
+    tooltip: {
+      trigger: "item",
+      confine: true,
+      backgroundColor: "#ffffff",
+      borderColor: "rgba(0,0,0,0.1)",
+      textStyle: { color: "#21305d", fontSize: 12 },
+      formatter: (raw: TooltipComponentFormatterCallbackParams) => {
+        const params = (Array.isArray(raw) ? raw[0] : raw) as EChartsClickParams | undefined;
+        if (!params) return "";
+        const seriesIndex = series.findIndex((s) => s.name === params.seriesName);
+        const value = seriesIndex >= 0 ? labels[seriesIndex]?.[params.dataIndex] : undefined;
+        return `<strong>${params.seriesName}</strong><br/>${value ?? ""}`;
+      },
+    },
+    series: series.map((s, i) => ({
+      name: s.name,
+      type: "bar",
+      stack: "saldo",
+      data: s.data,
+      itemStyle: { color: s.color, borderRadius: i === series.length - 1 ? [4, 4, 0, 0] : 0 },
+    })),
+  };
+
   return (
     <div className="flex flex-col gap-3">
-      <ChartContainer config={config} className="h-[320px] w-full">
-        <BarChart
-          data={data}
-          onClick={(state) => {
-            const clicked = state?.activeLabel;
-            if (typeof clicked === "string") setExpanded((cur) => (cur === clicked ? null : clicked));
-          }}
-        >
-          <CartesianGrid vertical={false} strokeDasharray="3 3" />
-          <XAxis
-            dataKey="label"
-            tickLine={false}
-            axisLine={false}
-            tick={{ fontSize: 10, fontWeight: 600 }}
-            interval={0}
-          />
-          <YAxis hide />
-          <ChartTooltip cursor={{ fill: "rgba(33, 48, 93, 0.05)" }} content={<ChartTooltipContent />} />
-          {legend.map((l, i) => (
-            <Bar
-              key={l.key}
-              dataKey={l.key}
-              name={l.label}
-              stackId="saldo"
-              fill={`var(--color-${l.key})`}
-              radius={i === legend.length - 1 ? [4, 4, 0, 0] : 0}
-            />
-          ))}
-        </BarChart>
-      </ChartContainer>
+      <ReactECharts
+        option={option}
+        style={{ height: 320, width: "100%" }}
+        notMerge
+        onEvents={{
+          click: (params: EChartsClickParams) => {
+            const clicked = params.name;
+            if (clicked) setExpanded((cur) => (cur === clicked ? null : clicked));
+          },
+        }}
+      />
 
       {expandedItem && (
         <div className="rounded-lg border border-black/10 bg-black/[.02] p-3">
