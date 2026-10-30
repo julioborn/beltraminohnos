@@ -85,16 +85,19 @@ type ChartTooltipContentProps = {
   label?: React.ReactNode;
   className?: string;
   hideLabel?: boolean;
-  valueFormatter?: (value: number) => React.ReactNode;
   labelFormatter?: (label: React.ReactNode, payload: TooltipPayload) => React.ReactNode;
 };
 
+// El valor de cada serie se formatea del lado del Server Component que arma
+// los datos del gráfico (nunca acá, con una función recibida por props —
+// eso rompería la serialización de RSC si el chart es un Client Component).
+// Convención: si el dato trae un campo hermano "<dataKey>__label" con el
+// string ya formateado, se muestra ese; si no, se muestra el valor crudo.
 function ChartTooltipContent({
   active,
   payload,
   label,
   className,
-  valueFormatter,
   labelFormatter,
   hideLabel = false,
 }: ChartTooltipContentProps) {
@@ -119,8 +122,9 @@ function ChartTooltipContent({
           const key = String(item.dataKey ?? item.name ?? i);
           const itemConfig = config[key];
           const color = (item.color as string | undefined) ?? itemConfig?.color;
-          const formatted =
-            valueFormatter && typeof item.value === "number" ? valueFormatter(item.value) : item.value;
+          const dataRecord = item.payload as Record<string, unknown> | undefined;
+          const formattedLabel = dataRecord?.[`${key}__label`];
+          const formatted = typeof formattedLabel === "string" ? formattedLabel : item.value;
           return (
             <div key={key} className="flex items-center gap-1.5">
               <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: color }} aria-hidden />
