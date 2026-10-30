@@ -16,11 +16,11 @@ import { formatMonto, formatMontoCompact } from "@/lib/currency";
 import { getCurrencyContext } from "@/lib/currency-server";
 import {
   Bar3DChart,
-  StackedBar3DChart,
   BAR_COLORS,
   type StackedBar3DRow,
   type StackedBar3DLegendItem,
 } from "@/components/bar-chart-3d";
+import { StackedBarChart } from "@/components/charts/stacked-bar-chart";
 import {
   PendientesPorProducto,
   PendientesPorCliente,
@@ -217,7 +217,7 @@ export default async function ConsignacionesPanelPage({
                   Composición del saldo por producto y sucursal
                 </h2>
                 <p className="mb-3 text-xs text-btm-black/50">Importe facturado y no cobrado (solo ventas minoristas)</p>
-                <StackedBar3DChart
+                <StackedBarChart
                   rows={saldoStackedRows}
                   formatTotal={fmtMontoCompact}
                   formatSegment={fmtMontoCompact}
