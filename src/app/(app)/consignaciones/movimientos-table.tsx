@@ -1,7 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
-import { actualizarMovimientoSucursal, eliminarMovimientoSucursal } from "@/lib/actions/consignaciones";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
+import {
+  actualizarMovimientoSucursal,
+  eliminarMovimientoSucursal,
+  marcarMovimientosFacturados,
+  marcarMovimientosPendientes,
+} from "@/lib/actions/consignaciones";
 import { formatFecha, formatUsd } from "@/lib/format";
 import { formatMonto, type Currency } from "@/lib/currency";
 import type { getSucursalMovimientos } from "@/lib/data/consignaciones";
@@ -72,7 +77,7 @@ export function MovimientosTable({
                 <td className="px-3 py-2.5">{m.cliente_nombre ?? "—"}</td>
                 <td className="px-3 py-2.5">{m.cliente_cuit ?? "—"}</td>
                 <td className="px-3 py-2.5">
-                  <FacturacionBadge estado={m.estado_facturacion} />
+                  <FacturacionToggle id={m.id} estado={m.estado_facturacion} />
                 </td>
                 <td className="px-3 py-2.5 text-right">
                   <div className="flex justify-end gap-1.5">
@@ -282,6 +287,39 @@ function BorrarMovimientoButton({ id }: { id: string }) {
         </button>
       </form>
     </div>
+  );
+}
+
+// Tocar el badge alterna el estado de facturación de esa venta puntual —
+// a pedido de contable, que necesitaba poder marcar (y corregir, si se
+// equivoca) la facturación sin tener que agruparla en la pestaña de
+// "Pendientes".
+function FacturacionToggle({ id, estado }: { id: string; estado: "PENDIENTE" | "FACTURADO" }) {
+  const [pending, startTransition] = useTransition();
+
+  function toggle() {
+    startTransition(async () => {
+      if (estado === "FACTURADO") await marcarMovimientosPendientes([id]);
+      else await marcarMovimientosFacturados([id]);
+    });
+  }
+
+  const config =
+    estado === "FACTURADO"
+      ? { label: "Facturado", bg: "bg-btm-entregado-bg text-green-950", dot: "bg-btm-entregado" }
+      : { label: "Pendiente", bg: "bg-btm-pendiente-bg text-amber-900", dot: "bg-btm-pendiente" };
+
+  return (
+    <button
+      type="button"
+      onClick={toggle}
+      disabled={pending}
+      title={estado === "FACTURADO" ? "Marcar como pendiente" : "Marcar como facturado"}
+      className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 font-display text-[11px] font-bold uppercase tracking-wide transition-opacity hover:opacity-80 disabled:cursor-wait disabled:opacity-60 ${config.bg}`}
+    >
+      <span className={`h-2 w-2 rounded-full ${config.dot}`} aria-hidden />
+      {pending ? "..." : config.label}
+    </button>
   );
 }
 

@@ -326,6 +326,27 @@ export async function marcarMovimientosFacturados(ids: string[]) {
   revalidateConsignaciones();
 }
 
+// Desde Movimientos (a diferencia de las pestañas de "pendientes", que son
+// un flujo de una sola dirección para facturar en lote) contable puede
+// corregir el estado de una venta puntual en cualquier sentido — por
+// ejemplo si la marcó facturada por error.
+export async function marcarMovimientosPendientes(ids: string[]) {
+  const role = await getProfileRole();
+  if (role !== "admin" && role !== "contable") {
+    throw new Error("No autorizado.");
+  }
+  if (ids.length === 0) return;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("sucursal_movimientos")
+    .update({ estado_facturacion: "PENDIENTE" })
+    .in("id", ids);
+  if (error) throw new Error(`No se pudo marcar como pendiente: ${error.message}`);
+
+  revalidateConsignaciones();
+}
+
 // Solo contable/admin pueden borrar un movimiento ya cargado — por ejemplo
 // si se cargó dos veces por error, o con el producto equivocado y es más
 // simple rehacerlo que corregirlo.
