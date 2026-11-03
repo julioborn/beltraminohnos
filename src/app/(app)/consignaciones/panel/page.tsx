@@ -27,6 +27,7 @@ import {
   type PendienteSucursalProducto,
   type PendienteSucursalCliente,
 } from "../pendientes-facturar";
+import { VentasComparison, type VentasComparisonRow } from "../ventas-comparison";
 import { CargarMovimientoAdminForm } from "../cargar-movimiento-form";
 import { MovimientosTable } from "../movimientos-table";
 import { PanelSucursalSelect } from "../panel-sucursal-select";
@@ -66,20 +67,37 @@ export default async function ConsignacionesPanelPage({
   const params = await searchParams;
   const tab: Tab = TABS.some((t) => t.key === params.tab) ? (params.tab as Tab) : "cargar";
   const rangeFilters = { desde: params.desde, hasta: params.hasta };
-  const ventasRange = monthRange(params.ventasMes);
+  // Sin mes elegido, se compara el mes en curso contra el anterior por
+  // defecto — a diferencia del resto de los filtros de este panel, acá
+  // "sin filtro" no tiene sentido (¿contra qué se compara "todo"?).
+  const ventasMes = params.ventasMes || currentMonthStr();
+  const ventasMesAnterior = prevMonthStr(ventasMes);
+  const ventasRange = monthRange(ventasMes);
+  const ventasRangeAnterior = monthRange(ventasMesAnterior);
 
-  const [sucursales, movimientos, saldos, stockFisico, ventasPorProducto, pendientesVenta, pendientesDirecta, products, { currency, tipoCambio }] =
-    await Promise.all([
-      getSucursales(),
-      getSucursalMovimientos(params),
-      getSucursalSaldos(),
-      getStockFisico(),
-      getVentasPorProducto({ ...ventasRange, sucursal: params.ventasSucursal }),
-      getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "VENTA", estado: "PENDIENTE" }),
-      getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
-      getActiveProducts(),
-      getCurrencyContext(),
-    ]);
+  const [
+    sucursales,
+    movimientos,
+    saldos,
+    stockFisico,
+    ventasPorProducto,
+    ventasPorProductoAnterior,
+    pendientesVenta,
+    pendientesDirecta,
+    products,
+    { currency, tipoCambio },
+  ] = await Promise.all([
+    getSucursales(),
+    getSucursalMovimientos(params),
+    getSucursalSaldos(),
+    getStockFisico(),
+    getVentasPorProducto({ ...ventasRange, sucursal: params.ventasSucursal }),
+    getVentasPorProducto({ ...ventasRangeAnterior, sucursal: params.ventasSucursal }),
+    getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "VENTA", estado: "PENDIENTE" }),
+    getSucursalMovimientos({ ...rangeFilters, sucursal: params.sucursal, tipo: "DIRECTA_CLIENTE", estado: "PENDIENTE" }),
+    getActiveProducts(),
+    getCurrencyContext(),
+  ]);
 
   const fmtMonto = (value: number) => formatMonto(value, currency, tipoCambio);
   const fmtMontoCompact = (value: number) => formatMontoCompact(value, currency, tipoCambio);
@@ -146,7 +164,7 @@ export default async function ConsignacionesPanelPage({
       (!params.stockProducto || r.productId === params.stockProducto),
   );
 
-  const ventasChartRows = ventasPorProducto.map((v) => ({ label: v.productName, primary: v.montoArs, secondary: v.toneladas }));
+  const ventasComparacion = compararVentasPorProducto(ventasPorProducto, ventasPorProductoAnterior);
   const stockChartRows = aggregateToneladasBySucursal(stockFisicoFiltrado);
   const stockPorProductoChartRows = stockPorProductoSucursal.map((r) => ({
     label: r.productName,
@@ -314,13 +332,17 @@ export default async function ConsignacionesPanelPage({
       )}
 
       {tab === "ventas" && (
-        <section className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
-          <VentasFilter
-            sucursales={sucursales}
-            selectedSucursal={params.ventasSucursal ?? ""}
-            selectedMes={params.ventasMes ?? ""}
+        <section className="flex flex-col gap-4">
+          <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+            <VentasFilter sucursales={sucursales} selectedSucursal={params.ventasSucursal ?? ""} selectedMes={ventasMes} />
+          </div>
+          <VentasComparison
+            rows={ventasComparacion}
+            mesActualLabel={mesLabel(ventasMes)}
+            mesAnteriorLabel={mesLabel(ventasMesAnterior)}
+            fmtMonto={fmtMonto}
+            fmtMontoCompact={fmtMontoCompact}
           />
-          <Bar3DChart rows={ventasChartRows} formatPrimary={fmtMontoCompact} formatSecondary={formatTn} />
         </section>
       )}
 
@@ -678,6 +700,42 @@ function monthRange(mes?: string): { desde?: string; hasta?: string } {
   if (!y || !m) return {};
   const lastDay = new Date(y, m, 0).getDate();
   return { desde: `${mes}-01`, hasta: `${mes}-${String(lastDay).padStart(2, "0")}` };
+}
+
+function currentMonthStr() {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function prevMonthStr(mes: string): string {
+  const [y, m] = mes.split("-").map(Number);
+  const date = new Date(y, m - 1 - 1, 1);
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function mesLabel(mes: string): string {
+  const [y, m] = mes.split("-").map(Number);
+  const label = new Date(y, m - 1, 1).toLocaleDateString("es-AR", { month: "long", year: "numeric" });
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+function compararVentasPorProducto(
+  actual: { productName: string; montoArs: number; toneladas: number }[],
+  anterior: { productName: string; montoArs: number; toneladas: number }[],
+): VentasComparisonRow[] {
+  const actualMap = new Map(actual.map((v) => [v.productName, v]));
+  const anteriorMap = new Map(anterior.map((v) => [v.productName, v]));
+  const productNames = new Set([...actualMap.keys(), ...anteriorMap.keys()]);
+
+  return Array.from(productNames)
+    .map((productName) => ({
+      productName,
+      montoActual: actualMap.get(productName)?.montoArs ?? 0,
+      montoAnterior: anteriorMap.get(productName)?.montoArs ?? 0,
+      toneladasActual: actualMap.get(productName)?.toneladas ?? 0,
+      toneladasAnterior: anteriorMap.get(productName)?.toneladas ?? 0,
+    }))
+    .sort((a, b) => b.montoActual - a.montoActual);
 }
 
 function aggregateToneladasBySucursal(rows: { sucursalName: string; toneladas: number; montoUsd: number }[]) {
