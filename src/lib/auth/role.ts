@@ -26,10 +26,11 @@ export async function getProfileRole(): Promise<ProfileRole | null> {
   return (profile?.role as ProfileRole | undefined) ?? null;
 }
 
-// "admin" es el dueño; "contable" ve todo lo mismo (Reportes, Estadísticas,
-// Consignaciones, Producción) a pedido suyo — sigue sin poder tocar lo que
-// ya estaba reservado explícitamente a "admin" en otros lados (ver
-// actions/consignaciones.ts), esto es solo para lo que se gatea acá.
+// "admin" es el dueño; "contable" es su hija y contadora de la empresa —
+// mismo acceso total a pedido suyo, no solo de lectura: todos los chequeos
+// explícitos de "admin" que existen en el código (actions/consignaciones.ts)
+// ya incluyen "contable" también, así que en la práctica tiene paridad
+// completa con el dueño en todo el sistema.
 export function hasFullAccess(role: ProfileRole | null): boolean {
   return role === "admin" || role === "contable";
 }
