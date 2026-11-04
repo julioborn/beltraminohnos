@@ -16,9 +16,16 @@ export type VentasComparisonRow = {
   toneladasAnterior: number;
 };
 
-const CHART_H_PX = 180;
+const CHART_H_PX = 210;
 const MIN_HEIGHT_PCT = 4;
 const COLOR_ANTERIOR = "#aab0c4";
+
+// Solo para la etiqueta arriba de cada barra: sin centavos, para que entre
+// sin pisarse con la barra de al lado. El monto exacto sigue en la tabla
+// de abajo (fmtMonto) y en el title del <span> para quien lo necesite.
+function shortMonto(fmtMontoCompact: (value: number) => string, value: number) {
+  return fmtMontoCompact(value).replace(/,\d{2}$/, "");
+}
 
 function pctChange(actual: number, anterior: number): number | null {
   if (anterior === 0) return actual === 0 ? null : 100;
@@ -88,39 +95,47 @@ export function VentasComparison({
         </div>
 
         <div className="overflow-x-auto">
-          <div className="flex items-end gap-5 pt-8" style={{ minWidth: rows.length * 92 }}>
+          <div className="flex w-max items-end gap-9 pt-8">
             {rows.map((r) => {
               const heightActual = Math.max((r.montoActual / max) * 100, r.montoActual > 0 ? MIN_HEIGHT_PCT : 0);
               const heightAnterior = Math.max((r.montoAnterior / max) * 100, r.montoAnterior > 0 ? MIN_HEIGHT_PCT : 0);
               const variacion = pctChange(r.montoActual, r.montoAnterior);
               return (
-                <div key={r.productName} className="flex w-[72px] shrink-0 flex-col items-center">
-                  <div className="flex w-full items-end justify-center gap-1" style={{ height: CHART_H_PX }}>
-                    <div className="relative flex w-7 flex-col items-center justify-end" style={{ height: "100%" }}>
-                      <span className="btm-fig mb-1 text-[10px] font-bold text-btm-navy" title={fmtMonto(r.montoActual)}>
-                        {fmtMontoCompact(r.montoActual)}
+                // Cada columna se achica al contenido (nunca ancho fijo): así la
+                // etiqueta del monto nunca se recorta ni se pisa con la de al
+                // lado — si el precio es largo, la columna simplemente se hace
+                // más ancha. El scroll horizontal del contenedor absorbe eso.
+                <div key={r.productName} className="flex shrink-0 flex-col items-center gap-1.5">
+                  <div className="flex items-end justify-center gap-4" style={{ height: CHART_H_PX }}>
+                    <div className="flex flex-col items-center justify-end" style={{ height: "100%" }}>
+                      <span
+                        className="btm-fig mb-1 whitespace-nowrap text-[11px] font-bold text-btm-navy"
+                        title={fmtMonto(r.montoActual)}
+                      >
+                        {shortMonto(fmtMontoCompact, r.montoActual)}
                       </span>
-                      <div className="w-full rounded-t-sm bg-btm-navy" style={{ height: `${heightActual}%` }} />
+                      <div className="w-10 rounded-t-sm bg-btm-navy" style={{ height: `${heightActual}%` }} />
                     </div>
-                    <div className="relative flex w-7 flex-col items-center justify-end" style={{ height: "100%" }}>
-                      <span className="btm-fig mb-1 text-[10px] font-semibold text-btm-black/50" title={fmtMonto(r.montoAnterior)}>
-                        {fmtMontoCompact(r.montoAnterior)}
+                    <div className="flex flex-col items-center justify-end" style={{ height: "100%" }}>
+                      <span
+                        className="btm-fig mb-1 whitespace-nowrap text-[11px] font-semibold text-btm-black/50"
+                        title={fmtMonto(r.montoAnterior)}
+                      >
+                        {shortMonto(fmtMontoCompact, r.montoAnterior)}
                       </span>
-                      <div className="w-full rounded-t-sm" style={{ height: `${heightAnterior}%`, backgroundColor: COLOR_ANTERIOR }} />
+                      <div
+                        className="w-10 rounded-t-sm"
+                        style={{ height: `${heightAnterior}%`, backgroundColor: COLOR_ANTERIOR }}
+                      />
                     </div>
                   </div>
-                  <span className="btm-fig mt-1 text-[10px] font-semibold text-btm-black/50">
+                  <span className="btm-fig whitespace-nowrap text-[10px] font-semibold text-btm-black/50">
                     {r.toneladasActual.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn
                   </span>
-                  <span
-                    className="mt-0.5 w-full truncate text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/60"
-                    title={r.productName}
-                  >
+                  <span className="max-w-[128px] text-center text-[10px] leading-tight font-semibold uppercase tracking-wide text-btm-black/60">
                     {r.productName}
                   </span>
-                  <div className="mt-1.5">
-                    <VariacionBadge pct={variacion} />
-                  </div>
+                  <VariacionBadge pct={variacion} />
                 </div>
               );
             })}
