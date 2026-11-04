@@ -118,6 +118,11 @@ export type SucursalSaldo = {
 // tiene un desglose "real" por producto — se reparte proporcional a lo
 // vendido de cada uno (decisión confirmada con el usuario), de forma que la
 // suma de los segmentos siempre da exacto el saldo de la sucursal.
+//
+// Solo entran las ventas tipo VENTA (a consignación, a través de la
+// sucursal) — las DIRECTA_CLIENTE se facturan directo al cliente y no se
+// acumulan en lo que la sucursal le debe a BTM. Incluirlas acá infla el
+// saldo contra lo que da el sistema contable (confirmado con contable).
 export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
   const supabase = await createClient();
 
@@ -128,7 +133,7 @@ export async function getSucursalSaldos(): Promise<SucursalSaldo[]> {
       .select(
         "sucursal_id, tipo_movimiento, cantidad_bolsas, monto_ars, estado_facturacion, product:products(id, name, kg_por_bolsa)",
       )
-      .in("tipo_movimiento", ["VENTA", "DIRECTA_CLIENTE"]),
+      .eq("tipo_movimiento", "VENTA"),
     supabase.from("sucursal_pagos").select("sucursal_id, importe_ars"),
   ]);
 
