@@ -26,8 +26,12 @@ export async function getProfileRole(): Promise<ProfileRole | null> {
   return (profile?.role as ProfileRole | undefined) ?? null;
 }
 
+// "admin" es el dueño; "contable" ve todo lo mismo (Reportes, Estadísticas,
+// Consignaciones, Producción) a pedido suyo — sigue sin poder tocar lo que
+// ya estaba reservado explícitamente a "admin" en otros lados (ver
+// actions/consignaciones.ts), esto es solo para lo que se gatea acá.
 export function hasFullAccess(role: ProfileRole | null): boolean {
-  return role === "admin";
+  return role === "admin" || role === "contable";
 }
 
 // Quién puede ver el panel de admin de Producción: los admins de siempre, el

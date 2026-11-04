@@ -44,37 +44,34 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   const fullAccess = hasFullAccess(role);
   const isLimitado = role === "limitado";
-  const isContable = role === "contable";
   const isOperador = role === "operador";
   const isProduccionRole = role === "produccion";
   const misucursal = user ? await getSucursalByProfileId(user.id) : null;
   const { currency, tipoCambio } = await getCurrencyContext();
 
+  // "contable" ahora es fullAccess (ver hasFullAccess) así que cae directo
+  // en la rama de abajo: mismo menú e inicio que el dueño.
   const navLinks = isLimitado
     ? [
         { href: "/mis-notas", label: "Mis notas" },
         ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
       ]
-    : isContable
-      ? [{ href: "/consignaciones", label: "Consignaciones" }]
-      : isOperador
-        ? [{ href: "/produccion/cargar", label: "Producción" }]
-        : isProduccionRole
-          ? [{ href: "/produccion", label: "Producción" }]
-          : [
-              ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
-              ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
-              ...(veProduccion && !fullAccess ? [{ href: "/produccion", label: "Producción" }] : []),
-            ];
+    : isOperador
+      ? [{ href: "/produccion/cargar", label: "Producción" }]
+      : isProduccionRole
+        ? [{ href: "/produccion", label: "Producción" }]
+        : [
+            ...NAV_LINKS.filter((link) => fullAccess || !link.fullAccessOnly),
+            ...(misucursal ? [{ href: "/consignaciones/mi-sucursal", label: "Consignaciones" }] : []),
+            ...(veProduccion && !fullAccess ? [{ href: "/produccion", label: "Producción" }] : []),
+          ];
   const homeHref = isLimitado
     ? "/mis-notas"
-    : isContable
-      ? "/consignaciones"
-      : isOperador
-        ? "/produccion/cargar"
-        : isProduccionRole
-          ? "/produccion"
-          : "/inicio";
+    : isOperador
+      ? "/produccion/cargar"
+      : isProduccionRole
+        ? "/produccion"
+        : "/inicio";
 
   return (
     <div className="flex min-h-full flex-1 flex-col">
