@@ -235,6 +235,8 @@ export default async function ConsignacionesPanelPage({
             </p>
           ) : (
             <>
+              <CargarPagoForm sucursales={sucursales} />
+
               <div className="rounded-lg border border-black/10 p-4 sm:p-5">
                 <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">
                   Composición del saldo por producto y sucursal
@@ -331,8 +333,6 @@ export default async function ConsignacionesPanelPage({
                   </tbody>
                 </table>
               </div>
-
-              <CargarPagoForm sucursales={sucursales} />
 
               <div className="flex flex-col gap-2">
                 <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Pagos cargados</h2>
