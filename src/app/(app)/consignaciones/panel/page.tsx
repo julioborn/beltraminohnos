@@ -5,6 +5,7 @@ import {
   getSucursales,
   getSucursalMovimientos,
   getSucursalSaldos,
+  getSucursalPagos,
   getStockFisico,
   getStockFisicoSucursal,
   getVentasPorProducto,
@@ -28,6 +29,7 @@ import {
   type PendienteSucursalCliente,
 } from "../pendientes-facturar";
 import { VentasComparison, type VentasComparisonRow } from "../ventas-comparison";
+import { CargarPagoForm, PagosTable } from "../sucursal-pagos";
 import { CargarMovimientoAdminForm } from "../cargar-movimiento-form";
 import { MovimientosTable } from "../movimientos-table";
 import { PanelSucursalSelect } from "../panel-sucursal-select";
@@ -79,6 +81,7 @@ export default async function ConsignacionesPanelPage({
     sucursales,
     movimientos,
     saldos,
+    pagos,
     stockFisico,
     ventasPorProducto,
     ventasPorProductoAnterior,
@@ -90,6 +93,7 @@ export default async function ConsignacionesPanelPage({
     getSucursales(),
     getSucursalMovimientos(params),
     getSucursalSaldos(),
+    getSucursalPagos({}),
     getStockFisico(),
     getVentasPorProducto({ ...ventasRange, sucursal: params.ventasSucursal }),
     getVentasPorProducto({ ...ventasRangeAnterior, sucursal: params.ventasSucursal }),
@@ -325,6 +329,13 @@ export default async function ConsignacionesPanelPage({
                     ))}
                   </tbody>
                 </table>
+              </div>
+
+              <CargarPagoForm sucursales={sucursales} />
+
+              <div className="flex flex-col gap-2">
+                <h2 className="font-display text-sm font-bold uppercase tracking-wide text-btm-navy">Pagos cargados</h2>
+                <PagosTable pagos={pagos} fmtMonto={fmtMonto} />
               </div>
             </>
           )}

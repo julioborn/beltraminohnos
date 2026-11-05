@@ -365,3 +365,67 @@ export async function eliminarMovimientoSucursal(formData: FormData) {
 
   revalidateConsignaciones();
 }
+
+export type CargarPagoState = { error: string } | undefined;
+
+// Pagos "sueltos": contable los va cargando a medida que cada sucursal
+// entrega plata, sin atarlos a una venta o factura puntual — la mayoría de
+// las veces no corresponden a un pago completo de algo específico, así que
+// el modelo (sucursal_pagos) nunca tuvo una FK a sucursal_movimientos a
+// propósito. Lo que importa es que el total por sucursal (Σ importe_ars)
+// coincida con lo que figura en el sistema contable.
+export async function cargarSucursalPago(
+  _prevState: CargarPagoState,
+  formData: FormData,
+): Promise<CargarPagoState> {
+  const role = await getProfileRole();
+  if (role !== "admin" && role !== "contable") {
+    return { error: "No autorizado." };
+  }
+
+  const sucursalId = String(formData.get("sucursal_id") ?? "");
+  const fecha = String(formData.get("fecha") ?? "");
+  const importeArs = Number(formData.get("importe_ars") ?? 0);
+  const formatoPago = String(formData.get("formato_pago") ?? "").trim() || null;
+  const comprobante = String(formData.get("comprobante") ?? "").trim() || null;
+  const observaciones = String(formData.get("observaciones") ?? "").trim() || null;
+
+  if (!sucursalId) return { error: "Seleccioná la sucursal." };
+  if (!fecha) return { error: "Ingresá la fecha." };
+  if (!importeArs || importeArs <= 0) return { error: "Ingresá un importe válido." };
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const { error } = await supabase.from("sucursal_pagos").insert({
+    sucursal_id: sucursalId,
+    fecha,
+    importe_ars: importeArs,
+    formato_pago: formatoPago,
+    comprobante,
+    observaciones,
+    created_by: user?.id ?? null,
+  });
+  if (error) return { error: `No se pudo cargar el pago: ${error.message}` };
+
+  revalidateConsignaciones();
+  return undefined;
+}
+
+export async function eliminarSucursalPago(formData: FormData) {
+  const role = await getProfileRole();
+  if (role !== "admin" && role !== "contable") {
+    throw new Error("No autorizado.");
+  }
+
+  const id = String(formData.get("id") ?? "");
+  if (!id) throw new Error("Pago inválido.");
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("sucursal_pagos").delete().eq("id", id);
+  if (error) throw new Error(`No se pudo borrar el pago: ${error.message}`);
+
+  revalidateConsignaciones();
+}
