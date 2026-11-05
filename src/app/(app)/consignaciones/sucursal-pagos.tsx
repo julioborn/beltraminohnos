@@ -89,13 +89,16 @@ export function CargarPagoForm({ sucursales }: { sucursales: Option[] }) {
               <label htmlFor="pago_formato" className="text-xs font-semibold uppercase tracking-wide text-btm-black/70">
                 Formato de pago
               </label>
-              <input
+              <select
                 id="pago_formato"
                 name="formato_pago"
-                type="text"
-                placeholder="Transferencia, efectivo..."
-                className="rounded-md border border-black/15 px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
-              />
+                defaultValue=""
+                className="rounded-md border border-black/15 bg-white px-3 py-2 text-sm focus:border-btm-navy focus:outline-none focus:ring-1 focus:ring-btm-navy"
+              >
+                <option value="">Seleccionar...</option>
+                <option value="Transferencia">Transferencia</option>
+                <option value="Efectivo">Efectivo</option>
+              </select>
             </div>
           </div>
 
