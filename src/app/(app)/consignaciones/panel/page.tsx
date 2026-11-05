@@ -29,7 +29,8 @@ import {
   type PendienteSucursalCliente,
 } from "../pendientes-facturar";
 import { VentasComparison, type VentasComparisonRow } from "../ventas-comparison";
-import { CargarPagoForm, PagosTable } from "../sucursal-pagos";
+import { CargarPagoForm } from "../sucursal-pagos";
+import { PagosTable } from "../pagos-table";
 import { CargarMovimientoAdminForm } from "../cargar-movimiento-form";
 import { MovimientosTable } from "../movimientos-table";
 import { PanelSucursalSelect } from "../panel-sucursal-select";
