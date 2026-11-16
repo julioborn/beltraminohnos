@@ -112,7 +112,7 @@ export default async function ClienteReportPage({
           <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} />
         </div>
         <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-          <ClienteVolumeChart data={acumulado} titulo="YTD de cant. (en tn)" subtitulo={contexto} />
+          <ClienteVolumeChart data={acumulado} titulo="Acumulado del año (en tn)" subtitulo={contexto} />
         </div>
       </div>
 
