@@ -13,7 +13,15 @@ const PAD_X = 24;
 const PAD_TOP = 36;
 const PAD_BOTTOM = 28;
 
-export function ClienteVolumeChart({ data, titulo }: { data: MesVolumen[]; titulo: string }) {
+export function ClienteVolumeChart({
+  data,
+  titulo,
+  subtitulo,
+}: {
+  data: MesVolumen[];
+  titulo: string;
+  subtitulo?: string;
+}) {
   const max = Math.max(...data.map((d) => d.toneladas), 1);
   const plotW = W - PAD_X * 2;
   const plotH = H - PAD_TOP - PAD_BOTTOM;
@@ -30,7 +38,10 @@ export function ClienteVolumeChart({ data, titulo }: { data: MesVolumen[]; titul
 
   return (
     <div className="flex flex-col gap-2">
-      <h3 className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy">{titulo}</h3>
+      <div>
+        <h3 className="font-display text-xs font-bold uppercase tracking-wide text-btm-navy">{titulo}</h3>
+        {subtitulo && <p className="text-[11px] text-btm-black/50">{subtitulo}</p>}
+      </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img" aria-label={titulo}>
         <line x1={PAD_X} y1={PAD_TOP + plotH} x2={W - PAD_X} y2={PAD_TOP + plotH} stroke="rgba(0,0,0,0.1)" />
         <path d={areaPath} fill="var(--btm-navy)" opacity={0.15} />

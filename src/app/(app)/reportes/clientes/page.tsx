@@ -3,15 +3,24 @@ import { redirect } from "next/navigation";
 import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getClienteNames, getOrderYearsRange, getOrdersForClienteReport } from "@/lib/data/orders";
 import { getActiveProducts } from "@/lib/data/master-data";
-import { aggregateClienteProductos, aggregateClientesResumen, aggregateMensual } from "@/lib/reports/cliente-report";
+import {
+  acumularMensual,
+  aggregateClienteProductos,
+  aggregateClientesResumen,
+  aggregateMensual,
+} from "@/lib/reports/cliente-report";
 import { ClienteReportFilters } from "./filters";
 import { ClienteReportTable } from "./cliente-report-table";
 import { ClienteVolumeChart } from "./cliente-volume-chart";
 
+const MES_LABELS = Array.from({ length: 12 }, (_, i) =>
+  new Date(2000, i, 1).toLocaleDateString("es-AR", { month: "long" }),
+);
+
 export default async function ClienteReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cliente?: string; anio?: string; productos?: string }>;
+  searchParams: Promise<{ cliente?: string; anio?: string; mes?: string; productos?: string }>;
 }) {
   if (!hasFullAccess(await getProfileRole())) {
     redirect("/inicio");
@@ -19,6 +28,7 @@ export default async function ClienteReportPage({
 
   const params = await searchParams;
   const productos = params.productos ? params.productos.split(",").filter(Boolean) : [];
+  const mes = params.mes ? Number(params.mes) : undefined;
 
   const years = await getOrderYearsRange();
   const currentYear = new Date().getFullYear();
@@ -30,14 +40,23 @@ export default async function ClienteReportPage({
     getOrdersForClienteReport({ cliente: params.cliente, productos, anio: String(anio) }),
   ]);
 
-  const mode = params.cliente ? "productos" : "clientes";
-  const rows = mode === "productos" ? aggregateClienteProductos(orders) : aggregateClientesResumen(orders);
-  const mensual = aggregateMensual(orders, anio);
+  // Los gráficos siempre muestran el año completo (los 12 meses); el
+  // filtro de "mes" solo acota la tabla/export a ese mes puntual — filtrar
+  // acá en JS, no en la consulta, evita pedirle los datos dos veces.
+  const ordersDelMes = mes ? orders.filter((o) => Number(o.fecha.slice(5, 7)) === mes) : orders;
 
-  // Preserva año/productos al armar los links de drill-down y de export —
-  // nunca el cliente (eso lo pone cada link específico).
+  const mode = params.cliente ? "productos" : "clientes";
+  const rows = mode === "productos" ? aggregateClienteProductos(ordersDelMes) : aggregateClientesResumen(ordersDelMes);
+  const mensual = aggregateMensual(orders, anio);
+  const acumulado = acumularMensual(mensual);
+
+  const contexto = `${params.cliente ?? "Todos los clientes"} · ${anio}${mes ? ` · ${MES_LABELS[mes - 1]}` : ""}`;
+
+  // Preserva año/mes/productos al armar los links de drill-down y de
+  // export — nunca el cliente (eso lo pone cada link específico).
   const linkQuery = new URLSearchParams();
   linkQuery.set("anio", String(anio));
+  if (mes) linkQuery.set("mes", String(mes));
   if (productos.length) linkQuery.set("productos", productos.join(","));
 
   const exportParams = new URLSearchParams(linkQuery);
@@ -84,14 +103,17 @@ export default async function ClienteReportPage({
         products={products}
         selectedCliente={params.cliente}
         selectedAnio={anio}
+        selectedMes={mes}
         selectedProductos={productos}
       />
 
-      <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-        <ClienteVolumeChart
-          data={mensual}
-          titulo={`Toneladas por mes · ${params.cliente ?? "Todos los clientes"} · ${anio}`}
-        />
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+          <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} />
+        </div>
+        <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+          <ClienteVolumeChart data={acumulado} titulo="YTD de cant. (en tn)" subtitulo={contexto} />
+        </div>
       </div>
 
       <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} />

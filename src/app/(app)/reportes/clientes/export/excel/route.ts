@@ -11,13 +11,18 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const cliente = searchParams.get("cliente") ?? undefined;
   const anio = searchParams.get("anio") ?? undefined;
+  const mes = searchParams.get("mes") ? Number(searchParams.get("mes")) : undefined;
   const productos = searchParams.get("productos")?.split(",").filter(Boolean) ?? [];
 
   const orders = await getOrdersForClienteReport({ cliente, productos, anio });
+  // Mismo criterio que la pantalla: el filtro de mes acota acá en JS, no en
+  // la consulta (ver cliente-report/page.tsx).
+  const ordersDelMes = mes ? orders.filter((o) => Number(o.fecha.slice(5, 7)) === mes) : orders;
 
   const mode = cliente ? "productos" : "clientes";
-  const rows = mode === "productos" ? aggregateClienteProductos(orders) : aggregateClientesResumen(orders);
-  const titulo = cliente ? `${cliente} · ${anio ?? ""}` : `Todos los clientes · ${anio ?? ""}`;
+  const rows = mode === "productos" ? aggregateClienteProductos(ordersDelMes) : aggregateClientesResumen(ordersDelMes);
+  const mesLabel = mes ? ` · mes ${mes}` : "";
+  const titulo = cliente ? `${cliente} · ${anio ?? ""}${mesLabel}` : `Todos los clientes · ${anio ?? ""}${mesLabel}`;
 
   const workbook = await buildClienteReportWorkbook(rows, mode, titulo);
   const buffer = await workbook.xlsx.writeBuffer();

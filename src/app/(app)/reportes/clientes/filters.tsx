@@ -10,12 +10,17 @@ import { useRouter, useSearchParams } from "next/navigation";
 
 type Option = { id: string; name: string };
 
+const MESES = Array.from({ length: 12 }, (_, i) =>
+  new Date(2000, i, 1).toLocaleDateString("es-AR", { month: "short" }),
+);
+
 export function ClienteReportFilters({
   clientes,
   years,
   products,
   selectedCliente,
   selectedAnio,
+  selectedMes,
   selectedProductos,
 }: {
   clientes: string[];
@@ -23,6 +28,7 @@ export function ClienteReportFilters({
   products: Option[];
   selectedCliente?: string;
   selectedAnio: number;
+  selectedMes?: number;
   selectedProductos: string[];
 }) {
   const router = useRouter();
@@ -139,6 +145,37 @@ export function ClienteReportFilters({
                 }`}
               >
                 {y}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <span className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Mes</span>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              disabled={pending}
+              onClick={() => pushParams((params) => params.delete("mes"))}
+              className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors disabled:opacity-60 ${
+                !selectedMes ? "border-btm-navy bg-btm-navy text-white" : "border-black/15 text-btm-black/70 hover:border-btm-navy"
+              }`}
+            >
+              Todos
+            </button>
+            {MESES.map((label, i) => (
+              <button
+                key={label}
+                type="button"
+                disabled={pending}
+                onClick={() => pushParams((params) => params.set("mes", String(i + 1)))}
+                className={`rounded-full border px-3 py-1.5 text-xs font-semibold capitalize transition-colors disabled:opacity-60 ${
+                  selectedMes === i + 1
+                    ? "border-btm-navy bg-btm-navy text-white"
+                    : "border-black/15 text-btm-black/70 hover:border-btm-navy"
+                }`}
+              >
+                {label}
               </button>
             ))}
           </div>
