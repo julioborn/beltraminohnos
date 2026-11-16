@@ -8,10 +8,10 @@
 import type { MesVolumen } from "@/lib/reports/cliente-report";
 
 const W = 760;
-const H = 220;
+const H = 150;
 const PAD_X = 24;
-const PAD_TOP = 36;
-const PAD_BOTTOM = 28;
+const PAD_TOP = 30;
+const PAD_BOTTOM = 24;
 
 export function ClienteVolumeChart({
   data,

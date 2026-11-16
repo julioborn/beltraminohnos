@@ -110,12 +110,11 @@ export default async function ClienteReportPage({
         selectedProductos={productos}
       />
 
-      <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
-        <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-          <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} mesSeleccionado={mes} />
-        </div>
-        <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} fmtMonto={fmtMonto} />
+      <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+        <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} mesSeleccionado={mes} />
       </div>
+
+      <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} fmtMonto={fmtMonto} />
     </div>
   );
 }
