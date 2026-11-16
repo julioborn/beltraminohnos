@@ -17,7 +17,7 @@ const MES_LABELS = Array.from({ length: 12 }, (_, i) =>
 export default async function ClienteReportPage({
   searchParams,
 }: {
-  searchParams: Promise<{ cliente?: string; anio?: string; mes?: string; productos?: string }>;
+  searchParams: Promise<{ cliente?: string; anio?: string; mes?: string; productos?: string; page?: string }>;
 }) {
   if (!hasFullAccess(await getProfileRole())) {
     redirect("/inicio");
@@ -26,6 +26,7 @@ export default async function ClienteReportPage({
   const params = await searchParams;
   const productos = params.productos ? params.productos.split(",").filter(Boolean) : [];
   const mes = params.mes ? Number(params.mes) : undefined;
+  const page = Math.max(1, Number(params.page) || 1);
 
   const years = await getOrderYearsRange();
   const currentYear = new Date().getFullYear();
@@ -64,6 +65,12 @@ export default async function ClienteReportPage({
 
   const exportParams = new URLSearchParams(linkQuery);
   if (params.cliente) exportParams.set("cliente", params.cliente);
+
+  function pageHref(targetPage: number) {
+    const sp = new URLSearchParams(exportParams);
+    if (targetPage > 1) sp.set("page", String(targetPage));
+    return `/reportes/clientes?${sp.toString()}`;
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-6xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -114,7 +121,14 @@ export default async function ClienteReportPage({
         <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} mesSeleccionado={mes} />
       </div>
 
-      <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} fmtMonto={fmtMonto} />
+      <ClienteReportTable
+        rows={rows}
+        mode={mode}
+        linkQuery={linkQuery.toString()}
+        fmtMonto={fmtMonto}
+        page={page}
+        pageHref={pageHref}
+      />
     </div>
   );
 }

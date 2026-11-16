@@ -42,6 +42,7 @@ export function ClienteReportFilters({
   function pushParams(mutate: (params: URLSearchParams) => void) {
     const params = new URLSearchParams(searchParams);
     mutate(params);
+    params.delete("page"); // cualquier cambio de filtro vuelve a la página 1
     startTransition(() => {
       router.push(`/reportes/clientes?${params.toString()}`);
     });
