@@ -43,12 +43,20 @@ export default async function ReportesPage({
             {toneladas.toLocaleString("es-AR", { maximumFractionDigits: 2 })} tn · Total {formatUsd(total)}
           </p>
         </div>
-        <a
-          href={`/reportes/export/excel${qs ? `?${qs}` : ""}`}
-          className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
-        >
-          Exportar Excel
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/reportes/clientes"
+            className="rounded-full bg-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+          >
+            Informe por cliente
+          </Link>
+          <a
+            href={`/reportes/export/excel${qs ? `?${qs}` : ""}`}
+            className="rounded-full border border-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-btm-navy hover:bg-btm-navy hover:text-white"
+          >
+            Exportar Excel
+          </a>
+        </div>
       </div>
 
       <form method="get" className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:items-end">

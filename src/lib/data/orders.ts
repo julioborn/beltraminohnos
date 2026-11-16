@@ -140,6 +140,63 @@ export async function getOrdersForReports(filters: ReportFilters) {
   return data ?? [];
 }
 
+// "cliente" es texto libre en order_notes (sin tabla de clientes con FK,
+// igual que el resto de los reportes que ya agrupan así) — no hay SELECT
+// DISTINCT en el cliente de Supabase, así que se trae la columna sola y se
+// deduplica acá.
+export async function getClienteNames() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("order_notes").select("cliente").limit(5000);
+  const nombres = new Set((data ?? []).map((o) => o.cliente));
+  return Array.from(nombres).sort((a, b) => a.localeCompare(b, "es"));
+}
+
+// Rango de años con notas cargadas, para las pestañas de año del informe
+// por cliente — nunca una lista hardcodeada. Dos consultas de una sola fila
+// (la más vieja y la más nueva) en vez de traer las 5000 fechas.
+export async function getOrderYearsRange() {
+  const supabase = await createClient();
+  const [oldest, newest] = await Promise.all([
+    supabase.from("order_notes").select("fecha").order("fecha", { ascending: true }).limit(1).maybeSingle(),
+    supabase.from("order_notes").select("fecha").order("fecha", { ascending: false }).limit(1).maybeSingle(),
+  ]);
+
+  const currentYear = new Date().getFullYear();
+  const desde = oldest.data?.fecha ? Number(oldest.data.fecha.slice(0, 4)) : currentYear;
+  const hasta = newest.data?.fecha ? Number(newest.data.fecha.slice(0, 4)) : currentYear;
+
+  const years: number[] = [];
+  for (let y = desde; y <= hasta; y++) years.push(y);
+  return years;
+}
+
+export type ClienteReportFilters = { cliente?: string; productos?: string[]; anio?: string };
+
+export async function getOrdersForClienteReport(filters: ClienteReportFilters) {
+  const supabase = await createClient();
+  const hasProductos = Boolean(filters.productos?.length);
+
+  let query = supabase
+    .from("order_notes")
+    .select(
+      hasProductos
+        ? `id, cliente, fecha,
+           items:order_items!inner(cantidad, precio_unitario, product_id, estado_produccion, estado_logistica, product:products(name))`
+        : `id, cliente, fecha,
+           items:order_items(cantidad, precio_unitario, product_id, estado_produccion, estado_logistica, product:products(name))`,
+    )
+    .order("fecha", { ascending: true });
+
+  if (filters.cliente) query = query.eq("cliente", filters.cliente);
+  if (filters.productos?.length) query = query.in("order_items.product_id", filters.productos);
+  if (filters.anio) {
+    query = query.gte("fecha", `${filters.anio}-01-01`).lte("fecha", `${filters.anio}-12-31`);
+  }
+
+  const { data } = await query.limit(5000);
+  return data ?? [];
+}
+
 const ORDER_NOTE_DETAIL_SELECT = `id, numero, cliente, fecha, fecha_entrega, fecha_envio, observaciones, estado_logistica, estado_produccion, provincia, localidad,
    zona:zones(id, name), vendedor:vendedores(id, name), chofer:choferes(id, name),
    camiones:order_note_camiones(camion:camiones(id, dominio, tipo, marca_modelo, anio, empresa, chofer_id)),
