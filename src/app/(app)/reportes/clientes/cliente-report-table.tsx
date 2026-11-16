@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { formatUsd } from "@/lib/format";
 import type { ClienteReportRow } from "@/lib/reports/cliente-report";
 
 function formatTn(value: number) {
@@ -17,12 +16,15 @@ export function ClienteReportTable({
   rows,
   mode,
   linkQuery,
+  fmtMonto,
 }: {
   rows: ClienteReportRow[];
   mode: "productos" | "clientes";
   // querystring (sin "cliente") para armar el link de drill-down desde la
   // vista "todos los clientes" — mantiene año/productos elegidos.
   linkQuery?: string;
+  // Respeta el switch ARS/USD del header — ver fmtMontoUsd en page.tsx.
+  fmtMonto: (valueUsd: number) => string;
 }) {
   if (rows.length === 0) {
     return (
@@ -63,20 +65,20 @@ export function ClienteReportTable({
                   r.label
                 )}
               </td>
-              <MetricCell metric={r.entregado} />
-              <MetricCell metric={r.pendienteFabricar} />
-              <MetricCell metric={r.pendienteEntregar} />
-              <MetricCell metric={r.total} bold />
+              <MetricCell metric={r.entregado} fmtMonto={fmtMonto} />
+              <MetricCell metric={r.pendienteFabricar} fmtMonto={fmtMonto} />
+              <MetricCell metric={r.pendienteEntregar} fmtMonto={fmtMonto} />
+              <MetricCell metric={r.total} fmtMonto={fmtMonto} bold />
             </tr>
           ))}
         </tbody>
         <tfoot className="font-bold">
           <tr className="border-t border-black/10">
             <td className="px-3 py-2.5">Total</td>
-            <MetricCell metric={totals.entregado} bold />
-            <MetricCell metric={totals.pendienteFabricar} bold />
-            <MetricCell metric={totals.pendienteEntregar} bold />
-            <MetricCell metric={totals.total} bold />
+            <MetricCell metric={totals.entregado} fmtMonto={fmtMonto} bold />
+            <MetricCell metric={totals.pendienteFabricar} fmtMonto={fmtMonto} bold />
+            <MetricCell metric={totals.pendienteEntregar} fmtMonto={fmtMonto} bold />
+            <MetricCell metric={totals.total} fmtMonto={fmtMonto} bold />
           </tr>
         </tfoot>
       </table>
@@ -84,10 +86,18 @@ export function ClienteReportTable({
   );
 }
 
-function MetricCell({ metric, bold = false }: { metric: { cantidad: number; monto: number }; bold?: boolean }) {
+function MetricCell({
+  metric,
+  fmtMonto,
+  bold = false,
+}: {
+  metric: { cantidad: number; monto: number };
+  fmtMonto: (valueUsd: number) => string;
+  bold?: boolean;
+}) {
   return (
     <td className={`px-3 py-2.5 text-right ${bold ? "font-bold text-btm-navy" : ""}`}>
-      <div>{formatUsd(metric.monto)}</div>
+      <div>{fmtMonto(metric.monto)}</div>
       <div className="text-xs font-normal text-btm-black/50">{formatTn(metric.cantidad)}</div>
     </td>
   );

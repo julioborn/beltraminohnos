@@ -3,6 +3,8 @@ import { redirect } from "next/navigation";
 import { getProfileRole, hasFullAccess } from "@/lib/auth/role";
 import { getClienteNames, getOrderYearsRange, getOrdersForClienteReport } from "@/lib/data/orders";
 import { getActiveProducts } from "@/lib/data/master-data";
+import { getCurrencyContext } from "@/lib/currency-server";
+import { formatArs, formatUsd } from "@/lib/format";
 import {
   acumularMensual,
   aggregateClienteProductos,
@@ -34,11 +36,18 @@ export default async function ClienteReportPage({
   const currentYear = new Date().getFullYear();
   const anio = params.anio ? Number(params.anio) : years.includes(currentYear) ? currentYear : (years.at(-1) ?? currentYear);
 
-  const [clientes, products, orders] = await Promise.all([
+  const [clientes, products, orders, { currency, tipoCambio }] = await Promise.all([
     getClienteNames(),
     getActiveProducts(),
     getOrdersForClienteReport({ cliente: params.cliente, productos, anio: String(anio) }),
+    getCurrencyContext(),
   ]);
+
+  // A diferencia de Consignaciones, acá el monto ya está en USD (como el
+  // resto de Reportes/Estadísticas) — así que la conversión es al revés:
+  // a ARS se multiplica por el tipo de cambio en vez de dividir.
+  const fmtMonto = (valueUsd: number) =>
+    currency === "ARS" && tipoCambio ? formatArs(valueUsd * tipoCambio) : formatUsd(valueUsd);
 
   // Los gráficos siempre muestran el año completo (los 12 meses); el
   // filtro de "mes" solo acota la tabla/export a ese mes puntual — filtrar
@@ -116,7 +125,7 @@ export default async function ClienteReportPage({
         </div>
       </div>
 
-      <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} />
+      <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} fmtMonto={fmtMonto} />
     </div>
   );
 }
