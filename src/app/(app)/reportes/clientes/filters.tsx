@@ -28,6 +28,8 @@ export function ClienteReportFilters({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+  const [clienteOpen, setClienteOpen] = useState(false);
+  const [clienteSearch, setClienteSearch] = useState("");
   const [productOpen, setProductOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -54,27 +56,71 @@ export function ClienteReportFilters({
     [products, search],
   );
 
+  const filteredClientes = useMemo(
+    () => clientes.filter((c) => c.toLowerCase().includes(clienteSearch.toLowerCase())),
+    [clientes, clienteSearch],
+  );
+
+  function selectCliente(cliente: string) {
+    pushParams((params) => (cliente ? params.set("cliente", cliente) : params.delete("cliente")));
+    setClienteOpen(false);
+    setClienteSearch("");
+  }
+
   return (
     <div className="flex flex-col gap-4 rounded-lg border border-black/10 p-4 sm:p-5">
       <div className="flex flex-wrap items-end gap-4">
-        <div className="flex flex-col gap-1">
-          <label htmlFor="cliente" className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">
-            Cliente
-          </label>
-          <select
-            id="cliente"
-            defaultValue={selectedCliente ?? ""}
+        <div className="relative flex flex-col gap-1">
+          <label className="text-xs font-semibold uppercase tracking-wide text-btm-black/60">Cliente</label>
+          <button
+            type="button"
             disabled={pending}
-            onChange={(e) => pushParams((params) => (e.target.value ? params.set("cliente", e.target.value) : params.delete("cliente")))}
-            className="min-w-[220px] rounded-md border border-black/15 bg-white px-3 py-2 text-sm disabled:opacity-60"
+            onClick={() => setClienteOpen((v) => !v)}
+            className="flex min-w-[220px] items-center justify-between gap-2 rounded-md border border-black/15 bg-white px-3 py-2 text-left text-sm disabled:opacity-60"
           >
-            <option value="">Todos los clientes</option>
-            {clientes.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            <span className="truncate">{selectedCliente ?? "Todos los clientes"}</span>
+            <svg
+              className={`h-3.5 w-3.5 shrink-0 transition-transform ${clienteOpen ? "rotate-90" : ""}`}
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              aria-hidden
+            >
+              <path d="M6 4l6 6-6 6V4z" />
+            </svg>
+          </button>
+
+          {clienteOpen && (
+            <div className="absolute top-full left-0 z-10 mt-1 flex w-72 flex-col gap-2 rounded-md border border-black/10 bg-white p-3 shadow-lg">
+              <input
+                type="text"
+                value={clienteSearch}
+                onChange={(e) => setClienteSearch(e.target.value)}
+                placeholder="Buscar cliente..."
+                autoFocus
+                className="rounded-md border border-black/15 px-2 py-1.5 text-sm"
+              />
+              <div className="flex max-h-60 flex-col divide-y divide-black/5 overflow-y-auto">
+                <button
+                  type="button"
+                  onClick={() => selectCliente("")}
+                  className={`py-1.5 text-left text-sm hover:text-btm-navy ${!selectedCliente ? "font-bold text-btm-navy" : ""}`}
+                >
+                  Todos los clientes
+                </button>
+                {filteredClientes.map((c) => (
+                  <button
+                    key={c}
+                    type="button"
+                    onClick={() => selectCliente(c)}
+                    className={`py-1.5 text-left text-sm hover:text-btm-navy ${c === selectedCliente ? "font-bold text-btm-navy" : ""}`}
+                  >
+                    {c}
+                  </button>
+                ))}
+                {filteredClientes.length === 0 && <p className="py-1.5 text-sm text-btm-black/50">Sin resultados.</p>}
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col gap-1">
