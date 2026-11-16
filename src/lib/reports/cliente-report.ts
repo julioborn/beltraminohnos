@@ -110,13 +110,3 @@ export function aggregateMensual(orders: ClienteReportOrder[], anio: number): Me
     toneladas,
   }));
 }
-
-// "YTD" (year-to-date): la curva acumulada mes a mes, para el segundo
-// gráfico de la referencia de PowerBI.
-export function acumularMensual(mensual: MesVolumen[]): MesVolumen[] {
-  let acumulado = 0;
-  return mensual.map((m) => {
-    acumulado += m.toneladas;
-    return { ...m, toneladas: acumulado };
-  });
-}

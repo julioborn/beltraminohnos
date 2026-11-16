@@ -5,12 +5,7 @@ import { getClienteNames, getOrderYearsRange, getOrdersForClienteReport } from "
 import { getActiveProducts } from "@/lib/data/master-data";
 import { getCurrencyContext } from "@/lib/currency-server";
 import { formatArs, formatUsd } from "@/lib/format";
-import {
-  acumularMensual,
-  aggregateClienteProductos,
-  aggregateClientesResumen,
-  aggregateMensual,
-} from "@/lib/reports/cliente-report";
+import { aggregateClienteProductos, aggregateClientesResumen, aggregateMensual } from "@/lib/reports/cliente-report";
 import { ClienteReportFilters } from "./filters";
 import { ClienteReportTable } from "./cliente-report-table";
 import { ClienteVolumeChart } from "./cliente-volume-chart";
@@ -57,7 +52,6 @@ export default async function ClienteReportPage({
   const mode = params.cliente ? "productos" : "clientes";
   const rows = mode === "productos" ? aggregateClienteProductos(ordersDelMes) : aggregateClientesResumen(ordersDelMes);
   const mensual = aggregateMensual(orders, anio);
-  const acumulado = acumularMensual(mensual);
 
   const contexto = `${params.cliente ?? "Todos los clientes"} · ${anio}${mes ? ` · ${MES_LABELS[mes - 1]}` : ""}`;
 
@@ -116,13 +110,8 @@ export default async function ClienteReportPage({
         selectedProductos={productos}
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-          <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} mesSeleccionado={mes} />
-        </div>
-        <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-          <ClienteVolumeChart data={acumulado} titulo="Acumulado del año (en tn)" subtitulo={contexto} mesSeleccionado={mes} />
-        </div>
+      <div className="rounded-lg border border-black/10 p-4 sm:p-5">
+        <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} mesSeleccionado={mes} />
       </div>
 
       <ClienteReportTable rows={rows} mode={mode} linkQuery={linkQuery.toString()} fmtMonto={fmtMonto} />
