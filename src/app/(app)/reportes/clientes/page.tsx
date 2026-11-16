@@ -118,10 +118,10 @@ export default async function ClienteReportPage({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-          <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} />
+          <ClienteVolumeChart data={mensual} titulo="Cant. (en tn) por mes y año" subtitulo={contexto} mesSeleccionado={mes} />
         </div>
         <div className="rounded-lg border border-black/10 p-4 sm:p-5">
-          <ClienteVolumeChart data={acumulado} titulo="Acumulado del año (en tn)" subtitulo={contexto} />
+          <ClienteVolumeChart data={acumulado} titulo="Acumulado del año (en tn)" subtitulo={contexto} mesSeleccionado={mes} />
         </div>
       </div>
 
