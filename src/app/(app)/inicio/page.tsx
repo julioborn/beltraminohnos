@@ -68,20 +68,23 @@ const ROW_2 = [
     ),
   },
   {
-    href: "/personal",
-    label: "Personal",
-    description: "Vendedores, choferes y flota",
+    href: "/produccion",
+    label: "Producción",
+    description: "Turnos de fábrica y consumo de materia prima",
+    fullAccessOnly: true,
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <circle cx="9" cy="8" r="3.25" />
-        <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
-        <circle cx="17.5" cy="8.5" r="2.5" />
-        <path d="M16 13.2a5.5 5.5 0 0 1 5.5 6.3" />
+        <path d="M4 21V9l8-6 8 6v12" />
+        <path d="M9 21v-6h6v6" />
+        <path d="M9 14V9h6v5" />
       </svg>
     ),
   },
 ];
 
+// Análisis: los tres miran hacia atrás con números (ventas, tendencias,
+// por cliente puntual) — a diferencia del resto de las filas, que son
+// herramientas de uso diario.
 const ROW_3 = [
   {
     href: "/reportes",
@@ -108,6 +111,24 @@ const ROW_3 = [
     ),
   },
   {
+    href: "/reportes/clientes",
+    label: "Informe por cliente",
+    description: "Entregado, pendiente y total por cliente y producto",
+    fullAccessOnly: true,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
+        <circle cx="7" cy="7" r="3" />
+        <path d="M2.5 20a4.5 4.5 0 0 1 9 0" />
+        <path d="M15 20v-4M18.5 20v-7M22 20v-2" />
+      </svg>
+    ),
+  },
+];
+
+// Comercial y equipo: cotizar, las sucursales que venden a consignación, y
+// quién hace que todo eso funcione (vendedores, choferes, flota).
+const ROW_4 = [
+  {
     href: "/cotizaciones",
     label: "Cotizaciones",
     description: "Armar y descargar una cotización en PDF",
@@ -118,9 +139,6 @@ const ROW_3 = [
       </svg>
     ),
   },
-];
-
-const ROW_4 = [
   {
     href: "/consignaciones",
     label: "Consignaciones",
@@ -135,15 +153,15 @@ const ROW_4 = [
     ),
   },
   {
-    href: "/produccion",
-    label: "Producción",
-    description: "Turnos de fábrica y consumo de materia prima",
-    fullAccessOnly: true,
+    href: "/personal",
+    label: "Personal",
+    description: "Vendedores, choferes y flota",
     icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.75} strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6">
-        <path d="M4 21V9l8-6 8 6v12" />
-        <path d="M9 21v-6h6v6" />
-        <path d="M9 14V9h6v5" />
+        <circle cx="9" cy="8" r="3.25" />
+        <path d="M2.5 20a6.5 6.5 0 0 1 13 0" />
+        <circle cx="17.5" cy="8.5" r="2.5" />
+        <path d="M16 13.2a5.5 5.5 0 0 1 5.5 6.3" />
       </svg>
     ),
   },
@@ -212,6 +230,7 @@ function HomeCard({
 export default async function InicioPage() {
   const role = await getProfileRole();
   const fullAccess = hasFullAccess(role);
+  const row2 = fullAccess ? ROW_2 : ROW_2.filter((item) => !item.fullAccessOnly);
   const row3 = fullAccess ? ROW_3 : ROW_3.filter((item) => !item.fullAccessOnly);
 
   const user = await getAuthUser();
@@ -232,7 +251,7 @@ export default async function InicioPage() {
 
   const cards = [
     ...ROW_1.map((item) => ({ ...item, accent: "red" as const })),
-    ...ROW_2.map((item) => ({ ...item, accent: item.href === "/productos" ? ("red" as const) : ("navy" as const) })),
+    ...row2.map((item) => ({ ...item, accent: item.href === "/productos" ? ("red" as const) : ("navy" as const) })),
     ...row3.map((item) => ({ ...item, accent: "navy" as const })),
     ...row4.map((item) => ({ ...item, accent: "navy" as const })),
   ];

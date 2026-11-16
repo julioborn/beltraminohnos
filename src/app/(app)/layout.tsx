@@ -7,7 +7,7 @@ import { MobileMenu } from "@/components/mobile-menu";
 import { CurrencyToggle } from "@/components/currency-toggle";
 import { getCurrencyContext } from "@/lib/currency-server";
 
-// Mismos 9 destinos y mismo orden que las cards de Inicio, para que el menú
+// Mismos destinos y mismo orden que las cards de Inicio, para que el menú
 // lateral y la pantalla de inicio coincidan exactamente.
 const NAV_LINKS = [
   { href: "/inicio", label: "Inicio" },
@@ -16,12 +16,13 @@ const NAV_LINKS = [
   { href: "/repartos", label: "Repartos" },
   { href: "/productos", label: "Productos" },
   { href: "/productos/pendientes", label: "Pendientes por producto" },
-  { href: "/personal", label: "Personal" },
+  { href: "/produccion", label: "Producción", fullAccessOnly: true },
   { href: "/reportes", label: "Reportes", fullAccessOnly: true },
   { href: "/estadisticas", label: "Estadísticas", fullAccessOnly: true },
+  { href: "/reportes/clientes", label: "Informe por cliente", fullAccessOnly: true },
   { href: "/cotizaciones", label: "Cotizaciones" },
   { href: "/consignaciones", label: "Consignaciones", fullAccessOnly: true },
-  { href: "/produccion", label: "Producción", fullAccessOnly: true },
+  { href: "/personal", label: "Personal" },
 ];
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
