@@ -5,12 +5,23 @@ import { getFormulasAdmin, getFormulaIngredienteOptions } from "@/lib/data/produ
 import { NuevaFormulaSection } from "./nueva-formula-section";
 import { FormulasList } from "./formulas-list";
 
-export default async function FormulasPage() {
+const PAGE_SIZE = 20;
+
+export default async function FormulasPage({ searchParams }: { searchParams: Promise<{ page?: string }> }) {
   if (!(await canViewProduccion())) {
     redirect("/inicio");
   }
 
-  const [formulas, { plataformas, productos }] = await Promise.all([getFormulasAdmin(), getFormulaIngredienteOptions()]);
+  const { page: pageParam } = await searchParams;
+  const [allFormulas, { plataformas, productos }] = await Promise.all([getFormulasAdmin(), getFormulaIngredienteOptions()]);
+
+  const totalPages = Math.max(1, Math.ceil(allFormulas.length / PAGE_SIZE));
+  const page = Math.min(Math.max(1, Number(pageParam) || 1), totalPages);
+  const formulas = allFormulas.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  function pageHref(targetPage: number) {
+    return `/produccion/formulas${targetPage > 1 ? `?page=${targetPage}` : ""}`;
+  }
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 px-4 py-6 sm:px-6">
@@ -31,6 +42,40 @@ export default async function FormulasPage() {
       <NuevaFormulaSection plataformas={plataformas} productos={productos} />
 
       <FormulasList formulas={formulas} plataformas={plataformas} productos={productos} />
+
+      {allFormulas.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <p className="text-xs text-btm-black/50">
+            Página {page} de {totalPages} · {allFormulas.length} fórmula{allFormulas.length === 1 ? "" : "s"}
+          </p>
+          <div className="flex items-center gap-2">
+            {page > 1 ? (
+              <Link
+                href={pageHref(page - 1)}
+                className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+              >
+                Anterior
+              </Link>
+            ) : (
+              <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                Anterior
+              </span>
+            )}
+            {page < totalPages ? (
+              <Link
+                href={pageHref(page + 1)}
+                className="rounded-md border border-black/15 px-4 py-2 text-sm font-semibold text-btm-black/70 hover:bg-black/5"
+              >
+                Siguiente
+              </Link>
+            ) : (
+              <span className="cursor-not-allowed rounded-md border border-black/10 px-4 py-2 text-sm font-semibold text-btm-black/30">
+                Siguiente
+              </span>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
