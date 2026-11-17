@@ -16,6 +16,42 @@ export async function getFormulas() {
   return data ?? [];
 }
 
+// Para la pantalla de administración de fórmulas: todas (activas e
+// inactivas, a diferencia de getFormulas que solo trae las activas para el
+// combobox de carga) con su desglose de ingredientes.
+export async function getFormulasAdmin() {
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("formulas")
+    .select("id, codigo, nombre, set_total_kg, active, formula_ingredientes(id, item, plataforma, producto, set_kg)")
+    .order("nombre");
+
+  return (data ?? []).map((f) => ({
+    ...f,
+    formula_ingredientes: [...f.formula_ingredientes].sort((a, b) => a.item - b.item),
+  }));
+}
+
+// "plataforma" y "producto" son texto libre en formula_ingredientes (sin
+// tabla maestra) — se sugiere lo ya usado en otras fórmulas para mantener
+// la ortografía consistente, igual que el cliente en Pedidos.
+export async function getFormulaIngredienteOptions() {
+  const supabase = await createClient();
+  const { data } = await supabase.from("formula_ingredientes").select("plataforma, producto");
+
+  const plataformas = new Set<string>();
+  const productos = new Set<string>();
+  for (const row of data ?? []) {
+    if (row.plataforma) plataformas.add(row.plataforma);
+    if (row.producto) productos.add(row.producto);
+  }
+
+  return {
+    plataformas: Array.from(plataformas).sort((a, b) => a.localeCompare(b, "es")),
+    productos: Array.from(productos).sort((a, b) => a.localeCompare(b, "es")),
+  };
+}
+
 // Computadora única en planta, cuenta compartida: el operador que carga el
 // turno se elige de esta lista (no hay un login por persona), no se infiere
 // del usuario autenticado.

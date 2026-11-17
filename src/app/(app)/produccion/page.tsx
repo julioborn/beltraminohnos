@@ -30,6 +30,12 @@ export default async function ProduccionPage({
           </h1>
           <p className="text-sm text-btm-black/60">Turnos de planta y consumo de materia prima calculado.</p>
         </div>
+        <Link
+          href="/produccion/formulas"
+          className="rounded-full bg-btm-navy px-4 py-2.5 font-display text-xs font-bold uppercase tracking-wide text-white hover:bg-btm-red"
+        >
+          Fórmulas
+        </Link>
       </div>
 
       <form method="get" className="flex flex-col gap-3 rounded-lg border border-black/10 p-4 sm:flex-row sm:flex-wrap sm:items-end">

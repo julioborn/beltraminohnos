@@ -568,3 +568,94 @@ export async function eliminarTurno(formData: FormData) {
   revalidatePath("/produccion/cargar");
   redirect("/produccion");
 }
+
+export type FormulaState = { error: string } | undefined;
+
+type ParsedIngrediente = { plataforma: string; producto: string; set_kg: number };
+
+function parseIngredientes(formData: FormData): ParsedIngrediente[] {
+  return parseJsonArray(formData, "ingredientes")
+    .map((it) => ({
+      plataforma: str(it.plataforma) ?? "",
+      producto: str(it.producto) ?? "",
+      set_kg: num(it.set_kg) ?? 0,
+    }))
+    .filter((it) => it.plataforma && it.producto && it.set_kg > 0);
+}
+
+function revalidateFormulaPaths() {
+  revalidatePath("/produccion/formulas");
+  revalidatePath("/produccion");
+  revalidatePath("/produccion/cargar");
+}
+
+export async function crearFormula(_prevState: FormulaState, formData: FormData): Promise<FormulaState> {
+  if (!(await canViewProduccion())) {
+    return { error: "No autorizado." };
+  }
+
+  const codigo = str(formData.get("codigo"));
+  const nombre = str(formData.get("nombre"));
+  const setTotalKg = num(formData.get("set_total_kg"));
+  const ingredientes = parseIngredientes(formData);
+
+  if (!codigo) return { error: "Ingresá el código." };
+  if (!nombre) return { error: "Ingresá el nombre." };
+  if (!setTotalKg || setTotalKg <= 0) return { error: "Ingresá el set total en kg." };
+  if (ingredientes.length === 0) return { error: "Agregá al menos un ingrediente." };
+
+  const supabase = await createClient();
+  const { data: formula, error } = await supabase
+    .from("formulas")
+    .insert({ codigo, nombre, set_total_kg: setTotalKg })
+    .select("id")
+    .single();
+  if (error || !formula) return { error: `No se pudo crear la fórmula: ${error?.message ?? "sin detalle"}` };
+
+  const { error: ingError } = await supabase
+    .from("formula_ingredientes")
+    .insert(ingredientes.map((ing, i) => ({ formula_id: formula.id, item: i + 1, ...ing })));
+  if (ingError) return { error: `La fórmula se creó pero falló cargar los ingredientes: ${ingError.message}` };
+
+  revalidateFormulaPaths();
+  return undefined;
+}
+
+// Reemplaza todos los ingredientes en vez de diffear fila por fila — más
+// simple, y nada más referencia el id de un ingrediente puntual (las
+// producciones guardan formula_id, no formula_ingrediente_id). Ojo: el
+// consumo de materia prima (getConsumoMateriaPrima) se calcula siempre con
+// la receta ACTUAL de la fórmula, no la que estaba vigente en su momento —
+// así que corregir una fórmula vieja recalcula también el consumo
+// histórico ya informado con ella.
+export async function actualizarFormula(_prevState: FormulaState, formData: FormData): Promise<FormulaState> {
+  if (!(await canViewProduccion())) {
+    return { error: "No autorizado." };
+  }
+
+  const id = str(formData.get("id"));
+  const codigo = str(formData.get("codigo"));
+  const nombre = str(formData.get("nombre"));
+  const setTotalKg = num(formData.get("set_total_kg"));
+  const active = formData.get("active") === "on";
+  const ingredientes = parseIngredientes(formData);
+
+  if (!id) return { error: "Fórmula inválida." };
+  if (!codigo) return { error: "Ingresá el código." };
+  if (!nombre) return { error: "Ingresá el nombre." };
+  if (!setTotalKg || setTotalKg <= 0) return { error: "Ingresá el set total en kg." };
+  if (ingredientes.length === 0) return { error: "Agregá al menos un ingrediente." };
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("formulas").update({ codigo, nombre, set_total_kg: setTotalKg, active }).eq("id", id);
+  if (error) return { error: `No se pudo actualizar la fórmula: ${error.message}` };
+
+  await supabase.from("formula_ingredientes").delete().eq("formula_id", id);
+  const { error: ingError } = await supabase
+    .from("formula_ingredientes")
+    .insert(ingredientes.map((ing, i) => ({ formula_id: id, item: i + 1, ...ing })));
+  if (ingError) return { error: `No se pudieron actualizar los ingredientes: ${ingError.message}` };
+
+  revalidateFormulaPaths();
+  return undefined;
+}
