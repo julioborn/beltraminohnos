@@ -29,7 +29,7 @@ export type PriceImportChange = {
 export type PriceImportPreview = {
   changes: PriceImportChange[];
   unmatchedProducts: string[];
-  unmatchedColumns: { sheet: string; header: string }[];
+  unmatchedColumns: { sheet: string; header: string; reason: string }[];
 };
 
 function normalizeCode(s: string) {
@@ -64,7 +64,7 @@ export function parsePriceListWorkbook(
 
   const changes: PriceImportChange[] = [];
   const unmatchedProductsSet = new Set<string>();
-  const unmatchedColumns: { sheet: string; header: string }[] = [];
+  const unmatchedColumns: { sheet: string; header: string; reason: string }[] = [];
 
   for (const sheet of workbook.worksheets) {
     const headerRow = sheet.getRow(1);
@@ -74,16 +74,25 @@ export function parsePriceListWorkbook(
       const header = cellText(headerRow.getCell(c).value);
       if (!header) continue;
 
-      const match = header.match(/^(granel|bolsa)\s+(.+)$/i);
-      if (!match) {
-        unmatchedColumns.push({ sheet: sheet.name, header });
+      // La mayoría de las hojas ponen el envase primero ("Granel Chaco"),
+      // pero alguna (ej. Hoja 3 de la lista de noviembre) lo pone al final
+      // separado por un punto ("Concep.Granel") — se acepta cualquiera de
+      // los dos órdenes en vez de depender de que todas las hojas usen el
+      // mismo formato de encabezado.
+      const forward = header.match(/^(granel|bolsa)[\s.]+(.+)$/i);
+      const reversed = header.match(/^(.+?)[\s.]+(granel|bolsa)$/i);
+      const packagingLabel = forward?.[1] ?? reversed?.[2];
+      const zoneLabel = forward?.[2] ?? reversed?.[1];
+
+      if (!packagingLabel || !zoneLabel) {
+        unmatchedColumns.push({ sheet: sheet.name, header, reason: "No tiene pinta de columna de precio (ni \"Granel/Bolsa <zona>\" ni \"<zona>.Granel/Bolsa\")." });
         continue;
       }
 
-      const packagingType: PackagingType = match[1].toUpperCase() === "GRANEL" ? "GRANEL" : "BOLSA";
-      const zone = zoneByCode.get(normalizeCode(match[2]));
+      const packagingType: PackagingType = packagingLabel.toUpperCase() === "GRANEL" ? "GRANEL" : "BOLSA";
+      const zone = zoneByCode.get(normalizeCode(zoneLabel));
       if (!zone) {
-        unmatchedColumns.push({ sheet: sheet.name, header });
+        unmatchedColumns.push({ sheet: sheet.name, header, reason: `Zona "${zoneLabel}" no coincide con ninguna zona cargada en el sistema.` });
         continue;
       }
 

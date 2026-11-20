@@ -163,9 +163,16 @@ export function PriceImportForm() {
               <p className="text-xs font-semibold uppercase tracking-wide text-orange-900">
                 Columnas que no se pudieron reconocer (no se actualizaron):
               </p>
-              <p className="mt-1 text-sm text-orange-900">
-                {preview.unmatchedColumns.map((c) => `${c.header} (${c.sheet})`).join(", ")}
-              </p>
+              <ul className="mt-1 flex flex-col gap-1 text-sm text-orange-900">
+                {preview.unmatchedColumns.map((c, i) => (
+                  <li key={i}>
+                    <strong>
+                      {c.header} ({c.sheet})
+                    </strong>
+                    : {c.reason}
+                  </li>
+                ))}
+              </ul>
             </div>
           )}
 
