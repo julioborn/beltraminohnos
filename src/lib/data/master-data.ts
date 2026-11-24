@@ -38,7 +38,7 @@ export async function getAllProducts() {
 
 export async function getZones() {
   const supabase = await createClient();
-  const { data } = await supabase.from("zones").select("id, code, name").order("sort_order");
+  const { data } = await supabase.from("zones").select("id, code, name, sort_order").order("sort_order");
   return data ?? [];
 }
 
