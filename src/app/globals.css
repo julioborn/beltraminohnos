@@ -73,6 +73,33 @@ select:disabled,
   cursor: not-allowed;
 }
 
+/* En el celu no hay mouse, así que :hover nunca dispara al tocar — sin
+   esto, nada del botón o link reacciona hasta que la acción/navegación
+   termina (que puede tardar), y toda la app se siente con delay. Esto le da
+   una respuesta visual instantánea apenas el dedo toca, sea cual sea el
+   tiempo real que tarde lo que pasa después. Se saca también el flash gris
+   nativo de iOS/Android (tap-highlight) para no pisarlo. */
+button:not(:disabled),
+a,
+[role="button"]:not([aria-disabled="true"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button:not(:disabled):active,
+a:active,
+[role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.97);
+  transition: transform 0.05s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button:active,
+  a:active,
+  [role="button"]:active {
+    transform: none;
+  }
+}
+
 /* iOS Safari zooms in on focus when a form field's font-size is under 16px.
    Force 16px on mobile only, so the desktop/tablet type scale is untouched. */
 @media (max-width: 640px) {
@@ -176,8 +203,16 @@ select:disabled,
   transform: translateY(-1px);
 }
 
+/* Misma especificidad que :hover de arriba — al tocar gana esta por venir
+   después, así la tarjeta se achica en vez de "levantarse" al presionar. */
+.btm-card-hover:active {
+  transform: scale(0.97);
+  transition: transform 0.05s ease-out;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .btm-card-hover:hover {
+  .btm-card-hover:hover,
+  .btm-card-hover:active {
     transform: none;
   }
 }
